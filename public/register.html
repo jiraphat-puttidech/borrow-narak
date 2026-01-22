@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Register</title>
+    <link rel="stylesheet" href="/static/register.css" />
+
+    <style>
+      /* เพิ่มสไตล์สำหรับกล่องแจ้งเตือน (เผื่อใน CSS ไม่มี) */
+      #msg-box {
+        padding: 12px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: bold;
+      }
+      .error-msg {
+        background-color: #ffe6e6;
+        color: #d63031;
+        border: 1px solid #d63031;
+      }
+      .success-msg {
+        background-color: #e6fffa;
+        color: #00b894;
+        border: 1px solid #00b894;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="register-box">
+      <h2>ลงทะเบียนพนักงานใหม่</h2>
+
+      <div id="msg-box" style="display: none"></div>
+
+      <form method="POST" action="/register">
+        <label>รหัสพนักงาน (Employee ID)</label>
+        <input type="text" name="emp_num" required placeholder="เช่น 0001" />
+
+        <label>Username (สำหรับเข้าสู่ระบบ)</label>
+        <input type="text" name="username" required />
+
+        <label>Password</label>
+        <input type="password" name="password" required />
+
+        <label>ชื่อจริง (First Name)</label>
+        <input type="text" name="fname" required />
+
+        <label>นามสกุล (Last Name)</label>
+        <input type="text" name="lname" required />
+
+        <label>Email (สำหรับกู้คืนรหัส)</label>
+        <input type="email" name="email" required />
+
+        <label>เบอร์โทรศัพท์</label>
+        <input type="text" name="phone" required />
+
+        <button type="submit">สมัครสมาชิก</button>
+      </form>
+      <div class="back">
+        <a href="/">← กลับไปหน้า Login</a>
+      </div>
+    </div>
+
+    <script>
+      // ตรวจสอบ URL ว่ามี ?error=... หรือ ?success=... ไหม
+      const urlParams = new URLSearchParams(window.location.search);
+      const errorMsg = urlParams.get("error");
+      const successMsg = urlParams.get("success");
+      const msgBox = document.getElementById("msg-box");
+
+      if (errorMsg) {
+        msgBox.style.display = "block";
+        msgBox.className = "error-msg"; // ใช้สีแดง
+        msgBox.innerText = errorMsg;
+      } else if (successMsg) {
+        msgBox.style.display = "block";
+        msgBox.className = "success-msg"; // ใช้สีเขียว
+        msgBox.innerText = successMsg;
+      }
+    </script>
+  </body>
+</html>

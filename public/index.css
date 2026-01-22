@@ -1,0 +1,161 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Kanit", sans-serif;
+}
+
+body {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* --- Sidebar (ซ้าย) --- */
+.sidebar {
+  width: 250px;
+  background-color: #f27044;
+  color: #000;
+  display: flex;
+  flex-direction: column; /* เรียงแนวตั้ง */
+  padding: 30px;
+  flex-shrink: 0;
+}
+
+.brand-title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 50px;
+  text-transform: uppercase;
+}
+
+.menu-list {
+  list-style: none;
+  flex-grow: 1; /* ดันเนื้อหาให้ยืดเต็มพื้นที่ เพื่อส่งปุ่ม Logout ไปล่างสุด */
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  text-decoration: none;
+  position: relative;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.menu-item:hover {
+  opacity: 0.7;
+}
+
+/* ปุ่ม Logout ใน Sidebar (ด้านล่าง) */
+.logout-link {
+  margin-top: auto; /* ดันตัวเองลงไปล่างสุดของ Sidebar */
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* วงกลมตกแต่ง */
+.indicator-circle {
+  width: 12px;
+  height: 12px;
+  border: 2px solid white;
+  border-radius: 50%;
+  position: absolute;
+  left: -25px;
+}
+
+.indicator-dots {
+  width: 30px;
+  height: 30px;
+  background-color: #c084fc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  position: absolute;
+  left: -40px;
+}
+
+/* --- Main Content (ขวา) --- */
+.main-content {
+  flex-grow: 1;
+  background-color: #fbebe8;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 40px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #111;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-name {
+  font-weight: 600;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Card เนื้อหา --- */
+.welcome-card {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  max-width: 500px;
+}
+
+.welcome-card h2 {
+  margin-bottom: 10px;
+  color: #f27044;
+}
+
+.welcome-card p {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+/* ปุ่ม Logout แบบปุ่มกด */
+.btn-logout {
+  display: inline-block;
+  padding: 10px 25px;
+  background-color: #333;
+  color: white;
+  text-decoration: none;
+  border-radius: 30px;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.btn-logout:hover {
+  background-color: #000;
+  transform: translateY(-2px);
+}

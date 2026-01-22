@@ -1,0 +1,129 @@
+* {
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  height: 100vh;
+  background: linear-gradient(
+    135deg,
+    #ff6b35,
+    #a5929b
+  ); /* สีเดียวกับหน้า Register */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.forgot-box {
+  background: white;
+  padding: 40px;
+  width: 90%;
+  max-width: 450px; /* กว้างกว่า Register นิดหน่อยเผื่อชื่อยาว */
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+label {
+  font-size: 14px;
+  margin-bottom: 5px;
+  display: block;
+  color: #333;
+  font-weight: 500;
+}
+
+input {
+  width: 100%;
+  padding: 12px 18px;
+  margin-bottom: 18px;
+  border-radius: 50px;
+  border: 2px solid #ddd;
+  outline: none;
+  transition: 0.3s;
+  background-color: #f9f9f9;
+}
+
+input:focus {
+  border-color: #6c7ae0;
+  background-color: #fff;
+}
+
+/* จัดชื่อ-นามสกุล ให้อยู่บรรทัดเดียวกันแบบสวยๆ */
+.input-group {
+  display: flex;
+  gap: 15px;
+}
+
+.input-group div {
+  width: 50%;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 50px;
+  border: none;
+  background: #6c7ae0; /* สีม่วงน้ำเงิน */
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 10px;
+  box-shadow: 0 4px 15px rgba(108, 122, 224, 0.4);
+}
+
+button:hover {
+  background: #5a66c4;
+  transform: translateY(-2px);
+}
+
+.back {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.back a {
+  color: #6c7ae0;
+  text-decoration: none;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.back a:hover {
+  text-decoration: underline;
+  color: #444;
+}
+
+/* Responsive มือถือ */
+@media (max-width: 480px) {
+  .forgot-box {
+    padding: 30px 20px;
+  }
+
+  /* มือถือจอเล็ก ให้ชื่อกับนามสกุลเรียงแนวตั้ง */
+  .input-group {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .input-group div {
+    width: 100%;
+  }
+}

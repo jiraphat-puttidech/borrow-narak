@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Page Design</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/static/login.css" />
+
+    <style>
+      #msg-box {
+        padding: 12px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: bold;
+      }
+      .error-msg {
+        background-color: #ffe6e6;
+        color: #d63031;
+        border: 1px solid #d63031;
+      }
+      .success-msg {
+        background-color: #e6fffa;
+        color: #00b894;
+        border: 1px solid #00b894;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="left-section">
+      <div class="login-container">
+        <div id="msg-box" style="display: none"></div>
+
+        <form method="POST" action="/login">
+          <label>Username:</label>
+          <input name="username" type="text" required />
+
+          <label>Password:</label>
+          <input name="password" type="password" required />
+
+          <button type="submit">Login</button>
+        </form>
+
+        <div style="text-align: right; margin-top: 10px">
+          <a
+            href="/forgot"
+            style="font-size: 12px; color: #666; text-decoration: none"
+            >ลืมรหัสผ่าน?</a
+          >
+        </div>
+
+        <p class="register-text" style="margin-top: 15px; font-size: 14px">
+          ยังไม่มีบัญชี?
+          <a
+            href="/register"
+            style="color: #6c7ae0; text-decoration: none; font-weight: 600"
+            >Register</a
+          >
+        </p>
+
+        <div class="social-icons">
+          <a href="#" class="social-btn fb"
+            ><i class="fab fa-facebook-f"></i
+          ></a>
+          <a href="#" class="social-btn wa"><i class="fab fa-whatsapp"></i></a>
+          <a href="#" class="social-btn tg"
+            ><i class="fab fa-telegram-plane"></i
+          ></a>
+        </div>
+      </div>
+
+      <div class="decorative-circle"></div>
+      <div class="decorative-bar"></div>
+    </div>
+
+    <div class="right-section">
+      <img
+        src="https://cdni.iconscout.com/illustration/premium/thumb/login-3305943-2757111.png"
+        alt="3D Laptop Illustration"
+        class="hero-image"
+      />
+    </div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const errorMsg = urlParams.get("error");
+      const successMsg = urlParams.get("success");
+      const msgBox = document.getElementById("msg-box");
+
+      if (errorMsg) {
+        msgBox.style.display = "block";
+        msgBox.className = "error-msg"; // สีแดง
+        msgBox.innerText = errorMsg;
+      } else if (successMsg) {
+        msgBox.style.display = "block";
+        msgBox.className = "success-msg"; // สีเขียว
+        msgBox.innerText = successMsg;
+      }
+    </script>
+  </body>
+</html>

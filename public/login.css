@@ -1,0 +1,179 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  overflow: hidden; /* ป้องกันการเลื่อนหน้าจอ */
+}
+
+/* --- ส่วนซ้าย (สีส้ม) --- */
+.left-section {
+  width: 55%;
+  background-color: #ff6b35; /* สีส้มตามภาพ */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 10%;
+  position: relative;
+  z-index: 1;
+}
+
+/* --- ส่วนขวา (สีเทาม่วง) --- */
+.right-section {
+  width: 45%;
+  background-color: #a5929b; /* สีเทาอมม่วงตามภาพ */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* รูปภาพ 3D */
+.hero-image {
+  max-width: 120%; /* ขยายให้ใหญ่และล้นนิดๆ ตามดีไซน์ */
+  transform: translateX(-20%); /* ขยับมาทางซ้ายเพื่อให้ทับรอยต่อ */
+  z-index: 10;
+  filter: drop-shadow(10px 10px 20px rgba(0, 0, 0, 0.3));
+}
+
+/* --- ฟอร์ม Login --- */
+.login-container {
+  width: 100%;
+  max-width: 400px;
+}
+
+label {
+  display: block;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+/* กล่อง Input แบบแคปซูล */
+input {
+  width: 100%;
+  padding: 12px 20px;
+  margin-bottom: 20px;
+  border: 2px solid rgba(109, 87, 87, 0.2);
+  background: transparent;
+  border-radius: 50px; /* ทรงแคปซูล */
+  outline: none;
+  color: #333;
+  transition: 0.3s;
+}
+
+input:focus {
+  border-color: #6c7ae0;
+}
+
+/* ปุ่ม Login */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #6c7ae0; /* สีน้ำเงินม่วง */
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(108, 122, 224, 0.4);
+  transition: 0.3s;
+}
+
+button:hover {
+  background-color: #5a66c4;
+  transform: translateY(-2px);
+}
+
+/* --- ไอคอน Social Media --- */
+.social-icons {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+}
+
+.social-btn {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.fb {
+  background-color: #4267b2;
+} /* Facebook Blue */
+.wa {
+  background-color: #25d366;
+} /* WhatsApp Green */
+.tg {
+  background-color: #0088cc;
+} /* Telegram Blue */
+
+.social-btn:hover {
+  transform: scale(1.1);
+}
+
+/* --- ของตกแต่ง (วงกลมมุมซ้ายล่าง) --- */
+.decorative-circle {
+  position: absolute;
+  bottom: -50px;
+  left: -50px;
+  width: 200px;
+  height: 200px;
+  background-color: #ff4500;
+  border-radius: 50%;
+  z-index: -1;
+}
+
+.decorative-bar {
+  position: absolute;
+  bottom: 40px;
+  left: -20px;
+  width: 180px;
+  height: 180px;
+  border: 20px solid #6c7ae0;
+  border-radius: 40px;
+  transform: rotate(45deg);
+  z-index: -2;
+  opacity: 0.5;
+}
+
+/* --- Responsive (มือถือ) --- */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column-reverse; /* เอารูปไว้บน ฟอร์มไว้ล่าง */
+    height: auto;
+    min-height: 100vh;
+  }
+  .left-section,
+  .right-section {
+    width: 100%;
+  }
+  .right-section {
+    height: 40vh;
+  }
+  .left-section {
+    height: 60vh;
+    padding: 40px;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    margin-top: -30px; /* ดึงขึ้นไปทับรูปนิดหน่อย */
+  }
+  .hero-image {
+    transform: translateX(0);
+    max-width: 80%;
+  }
+}

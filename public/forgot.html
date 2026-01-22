@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Forgot Password</title>
+    <link rel="stylesheet" href="/static/forgot.css" />
+  </head>
+  <body>
+    <div class="forgot-box">
+      <h2>ลืมรหัสผ่าน</h2>
+      <p class="subtitle">กรอกข้อมูลเพื่อตั้งรหัสผ่านใหม่</p>
+
+      <form method="POST" action="/reset-password">
+        <label>Username</label>
+        <input
+          type="text"
+          name="username"
+          required
+          placeholder="ชื่อผู้ใช้งานของคุณ"
+        />
+
+        <label>Email ที่ลงทะเบียนไว้</label>
+        <input
+          type="email"
+          name="email"
+          required
+          placeholder="เช่น admin@example.com"
+        />
+
+        <label>รหัสผ่านใหม่</label>
+        <input
+          type="password"
+          name="new_password"
+          required
+          placeholder="ตั้งรหัสใหม่"
+        />
+
+        <button type="submit">บันทึกรหัสผ่านใหม่</button>
+      </form>
+
+      <div class="back">
+        <a href="/">← กลับไปหน้า Login</a>
+      </div>
+    </div>
+  </body>
+</html>
