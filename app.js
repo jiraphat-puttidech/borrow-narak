@@ -29,6 +29,7 @@ app.get("/", (req, res) => {
   }
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
+/* ===== LOGIN PROCESS ===== */
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -37,24 +38,30 @@ app.post("/login", (req, res) => {
   db.query(sql, [username], (err, rows) => {
     if (err) return res.send("❌ DB ERROR");
 
-    // ❌ กรณีไม่พบผู้ใช้: ให้ส่งกลับไปหน้า Login พร้อมข้อความ error
     if (rows.length === 0) {
       return res.redirect("/?error=ไม่พบชื่อผู้ใช้งาน");
     }
 
     const user = rows[0];
+
+    // ตรวจสอบรหัสผ่าน
     if (bcrypt.compareSync(password, user.password)) {
-      // ... (ส่วน Login สำเร็จ เหมือนเดิม) ...
       req.session.login = true;
+
+      // ✅ แก้ตรงนี้: ต้องบันทึก EMPID ลงไปใน session ด้วย
       req.session.user = {
-        /* ... */
+        empid: user.EMPID, // สำคัญมาก! ต้องมีบรรทัดนี้ Logout ถึงจะทำงาน
+        fullname: `${user.fname} ${user.lname}`,
+        role: user.RoleID,
       };
+
+      // อัปเดตสถานะเป็น Online (2)
       db.query("UPDATE TB_T_Employee SET EMPStatusID = 2 WHERE EMPID = ?", [
         user.EMPID,
       ]);
+
       return res.redirect("/dashboard");
     } else {
-      // ❌ กรณีรหัสผิด: ส่งกลับไปหน้า Login พร้อมข้อความ error
       return res.redirect("/?error=รหัสผ่านไม่ถูกต้อง");
     }
   });
