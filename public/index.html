@@ -12,23 +12,16 @@
   </head>
   <body>
     <aside class="sidebar">
-      <div class="brand-title">BORROW</div>
+      <div class="brand-title">BORROW SYSTEM</div>
 
       <ul class="menu-list">
-        <li><a href="#" class="menu-item">หน้าหลัก</a></li>
-        <li>
-          <a href="#" class="menu-item">
-            <span class="indicator-circle"></span>
-            หมวดหมู่สินค้า
-          </a>
-        </li>
+        <li><a href="#" class="menu-item active">หน้าหลัก</a></li>
+        <li><a href="#" class="menu-item">หมวดหมู่สินค้า</a></li>
         <li><a href="#" class="menu-item">สินค้า</a></li>
-        <li><a href="#" class="menu-item">ผู้ใช้งาน</a></li>
-        <li><a href="#" class="menu-item">ยืมคืน</a></li>
+        <li><a href="#" class="menu-item">ประวัติการยืม</a></li>
         <li>
           <a href="#" class="menu-item">
-            <span class="indicator-dots">...</span>
-            อื่นๆ
+            <span class="indicator-dots">...</span> อื่นๆ
           </a>
         </li>
       </ul>
@@ -38,10 +31,15 @@
 
     <main class="main-content">
       <header class="header-bar">
-        <h1 class="page-title">หน้าหลัก</h1>
+        <div>
+          <h1 class="page-title">รายการอุปกรณ์</h1>
+          <p style="color: #666; font-size: 14px">
+            เลือกอุปกรณ์ที่คุณต้องการยืมจากรายการด้านล่าง
+          </p>
+        </div>
 
         <div class="user-profile">
-          <span class="user-name">นาย A BCD</span>
+          <span class="user-name" id="user-name">กำลังโหลด...</span>
           <img
             src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png"
             alt="User Avatar"
@@ -50,11 +48,11 @@
         </div>
       </header>
 
-      <div class="welcome-card">
-        <h2>Dashboard</h2>
-        <p>ยินดีต้อนรับเข้าสู่ระบบ</p>
-        <a class="btn-logout" href="/logout">Logout</a>
+      <div id="device-grid" class="device-grid">
+        <p>กำลังโหลดข้อมูล...</p>
       </div>
     </main>
+
+    <script src="js/dashboard.js"></script>
   </body>
 </html>

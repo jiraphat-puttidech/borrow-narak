@@ -72,24 +72,34 @@ app.get("/register", (req, res) => {
 });
 /* ===== REGISTER PROCESS ===== */
 app.post("/register", (req, res) => {
-  // ... (รับค่าตัวแปร) ...
+  // ✅ 1. ต้องเพิ่มบรรทัดนี้ครับ! (เพื่อดึงค่า password มาจากฟอร์ม)
+  const { emp_num, username, password, fname, lname, email, phone } = req.body;
+
+  // ป้องกันกรณี password เป็นค่าว่าง (Optional)
+  if (!password) {
+    return res.redirect("/register?error=กรุณากรอกรหัสผ่าน");
+  }
+
+  // 2. เข้ารหัสรหัสผ่าน (บรรทัดนี้แหละที่แจ้ง error ก่อนหน้านี้)
   const hash = bcrypt.hashSync(password, 10);
-  const sql = `...`; // (SQL Insert เดิม)
+
+  // 3. SQL บันทึกข้อมูล
+  const sql = `
+    INSERT INTO TB_T_Employee 
+    (EMP_NUM, username, password, fname, lname, email, phone, RoleID, InstitutionID, DepartmentID, EMPStatusID) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1, 1, 1)
+  `;
 
   db.query(
     sql,
-    [
-      /* ... */
-    ],
+    [emp_num, username, hash, fname, lname, email, phone],
     (err) => {
       if (err) {
         console.error(err);
-        // ❌ กรณีสมัครไม่ผ่าน (เช่น username ซ้ำ): ส่งกลับไปหน้า Register พร้อม error
         return res.redirect(
-          "/register?error=สมัครไม่สำเร็จ ชื่อผู้ใช้หรือรหัสพนักงานอาจซ้ำ",
+          "/register?error=สมัครไม่สำเร็จ รหัสพนักงานหรือ Username อาจซ้ำ",
         );
       }
-      // สมัครสำเร็จ ให้ไปหน้า Login พร้อมข้อความ success
       res.redirect("/?success=สมัครสมาชิกเรียบร้อย กรุณาเข้าสู่ระบบ");
     },
   );
@@ -100,28 +110,41 @@ app.get("/forgot", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "forgot.html"));
 });
 
+/* RESET PASSWORD PROCESS */
 app.post("/reset-password", (req, res) => {
-  // ใช้ Username และ Email ในการยืนยันตัวตน
   const { username, email, new_password } = req.body;
 
+  // เช็คว่ามี Username และ Email นี้คู่กันหรือไม่
   const checkSql =
     "SELECT * FROM TB_T_Employee WHERE username = ? AND email = ?";
 
   db.query(checkSql, [username, email], (err, rows) => {
-    if (err) return res.send("❌ DB ERROR");
-    if (rows.length === 0)
-      return res.send(
-        "❌ ข้อมูลไม่ถูกต้อง (ชื่อผู้ใช้หรืออีเมลผิด) <a href='/forgot'>กลับ</a>",
-      );
+    if (err) {
+      console.error(err);
+      return res.redirect("/forgot?error=เกิดข้อผิดพลาดจากฐานข้อมูล");
+    }
 
-    // ถ้าข้อมูลถูก ให้เปลี่ยนรหัสผ่าน
+    // ❌ จุดสำคัญ: ถ้าหาไม่เจอ (rows.length เป็น 0)
+    if (rows.length === 0) {
+      // ส่งกลับไปหน้า forgot พร้อมข้อความแจ้งเตือน
+      return res.redirect(
+        "/forgot?error=ข้อมูลไม่ถูกต้อง! ตรวจสอบ Username หรือ Email อีกครั้ง",
+      );
+    }
+
+    // ✅ ถ้าเจอข้อมูลถูกต้อง -> ทำการเปลี่ยนรหัส
     const hash = bcrypt.hashSync(new_password, 10);
     const updateSql =
       "UPDATE TB_T_Employee SET password = ? WHERE username = ?";
 
-    db.query(updateSql, [hash, username], () => {
-      res.send(
-        "<script>alert('✅ เปลี่ยนรหัสผ่านเรียบร้อย'); window.location='/';</script>",
+    db.query(updateSql, [hash, username], (err) => {
+      if (err) {
+        return res.redirect("/forgot?error=อัปเดตรหัสผ่านไม่สำเร็จ");
+      }
+
+      // สำเร็จ! ส่งกลับไปหน้า Login
+      res.redirect(
+        "/?success=เปลี่ยนรหัสผ่านเรียบร้อยแล้ว กรุณาเข้าสู่ระบบใหม่",
       );
     });
   });

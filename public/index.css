@@ -1,3 +1,4 @@
+/* --- Base Styles (เดิมของคุณ) --- */
 * {
   margin: 0;
   padding: 0;
@@ -9,98 +10,89 @@ body {
   display: flex;
   height: 100vh;
   overflow: hidden;
+  background-color: #fbebe8; /* สีพื้นหลังหลัก */
 }
 
-/* --- Sidebar (ซ้าย) --- */
+/* --- Sidebar (เดิมของคุณ) --- */
 .sidebar {
   width: 250px;
   background-color: #f27044;
   color: #000;
   display: flex;
-  flex-direction: column; /* เรียงแนวตั้ง */
+  flex-direction: column;
   padding: 30px;
   flex-shrink: 0;
 }
 
 .brand-title {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: 1px;
   margin-bottom: 50px;
   text-transform: uppercase;
+  color: white;
 }
 
 .menu-list {
   list-style: none;
-  flex-grow: 1; /* ดันเนื้อหาให้ยืดเต็มพื้นที่ เพื่อส่งปุ่ม Logout ไปล่างสุด */
+  flex-grow: 1;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
   font-size: 16px;
-  font-weight: 600;
-  color: #222;
+  font-weight: 500;
+  color: #222; /* สีข้อความเมนู */
   text-decoration: none;
-  position: relative;
-  cursor: pointer;
   transition: 0.3s;
 }
 
-.menu-item:hover {
-  opacity: 0.7;
+.menu-item:hover,
+.menu-item.active {
+  color: white;
+  font-weight: 600;
 }
 
-/* ปุ่ม Logout ใน Sidebar (ด้านล่าง) */
 .logout-link {
-  margin-top: auto; /* ดันตัวเองลงไปล่างสุดของ Sidebar */
+  margin-top: auto;
   padding-top: 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-/* วงกลมตกแต่ง */
-.indicator-circle {
-  width: 12px;
-  height: 12px;
-  border: 2px solid white;
-  border-radius: 50%;
-  position: absolute;
-  left: -25px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  color: #222;
 }
 
 .indicator-dots {
-  width: 30px;
-  height: 30px;
-  background-color: #c084fc;
+  width: 24px;
+  height: 24px;
+  background-color: #222;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 12px;
-  position: absolute;
-  left: -40px;
+  font-size: 10px;
+  margin-right: 10px;
 }
 
 /* --- Main Content (ขวา) --- */
 .main-content {
   flex-grow: 1;
-  background-color: #fbebe8;
   padding: 40px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* ให้เลื่อนลงได้ถ้าของเยอะ */
 }
 
 .header-bar {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .page-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
   color: #111;
 }
@@ -109,53 +101,131 @@ body {
   display: flex;
   align-items: center;
   gap: 15px;
+  background: white;
+  padding: 8px 15px;
+  border-radius: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .user-name {
   font-weight: 600;
+  color: #333;
 }
 
 .avatar {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border: 2px solid #f27044;
 }
 
-/* --- Card เนื้อหา --- */
-.welcome-card {
+/* --- ✅ Device Grid & Cards (เพิ่มใหม่) --- */
+.device-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(240px, 1fr)
+  ); /* จัดเรียงอัตโนมัติ */
+  gap: 25px;
+  padding-bottom: 20px;
+}
+
+.device-card {
   background: white;
-  padding: 30px;
-  border-radius: 15px;
+  border-radius: 16px;
+  overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  max-width: 500px;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
 }
 
-.welcome-card h2 {
+.device-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-wrapper {
+  height: 160px;
+  background: #f9f9f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.card-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.card-body {
+  padding: 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.card-info {
+  font-size: 13px;
+  color: #888;
   margin-bottom: 10px;
-  color: #f27044;
 }
 
-.welcome-card p {
-  margin-bottom: 20px;
-  color: #666;
+/* ป้ายสถานะ */
+.status-badge {
+  align-self: flex-start;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 15px;
 }
 
-/* ปุ่ม Logout แบบปุ่มกด */
-.btn-logout {
-  display: inline-block;
-  padding: 10px 25px;
-  background-color: #333;
-  color: white;
-  text-decoration: none;
-  border-radius: 30px;
-  font-weight: 500;
+.status-available {
+  background-color: #e6fffa;
+  color: #00b894; /* เขียว */
+}
+
+.status-busy {
+  background-color: #fff5f5;
+  color: #d63031; /* แดง */
+}
+
+/* ปุ่มยืม */
+.btn-borrow {
+  margin-top: auto;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
   transition: 0.3s;
 }
 
-.btn-logout:hover {
-  background-color: #000;
-  transform: translateY(-2px);
+.btn-borrow.active {
+  background-color: #f27044; /* ใช้สีส้มตามธีม */
+  color: white;
+}
+
+.btn-borrow.active:hover {
+  background-color: #d95e32;
+}
+
+.btn-borrow.disabled {
+  background-color: #eee;
+  color: #aaa;
+  cursor: not-allowed;
 }

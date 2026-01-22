@@ -4,11 +4,40 @@
     <meta charset="UTF-8" />
     <title>Forgot Password</title>
     <link rel="stylesheet" href="/static/forgot.css" />
+
+    <style>
+      .error-msg {
+        background-color: #ffe6e6; /* พื้นหลังสีแดงอ่อน */
+        color: #d63031; /* ตัวหนังสือสีแดงเข้ม */
+        border: 1px solid #d63031;
+      }
+      .success-msg {
+        background-color: #e6fffa; /* พื้นหลังสีเขียวอ่อน */
+        color: #00b894; /* ตัวหนังสือสีเขียว */
+        border: 1px solid #00b894;
+      }
+      /* จัดสไตล์เพิ่มเติมให้กล่องดูดีขึ้น */
+      #msg-box {
+        font-weight: bold;
+        font-size: 14px;
+      }
+    </style>
   </head>
   <body>
     <div class="forgot-box">
       <h2>ลืมรหัสผ่าน</h2>
       <p class="subtitle">กรอกข้อมูลเพื่อตั้งรหัสผ่านใหม่</p>
+
+      <div
+        id="msg-box"
+        style="
+          display: none;
+          padding: 15px;
+          margin-bottom: 20px;
+          text-align: center;
+          border-radius: 5px;
+        "
+      ></div>
 
       <form method="POST" action="/reset-password">
         <label>Username</label>
@@ -42,5 +71,24 @@
         <a href="/">← กลับไปหน้า Login</a>
       </div>
     </div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const errorMsg = urlParams.get("error");
+      const successMsg = urlParams.get("success");
+      const msgBox = document.getElementById("msg-box");
+
+      if (errorMsg) {
+        msgBox.style.display = "block";
+        // ใส่ Class ให้กล่องเป็นสีแดง
+        msgBox.className = "msg-box error-msg";
+        msgBox.innerText = errorMsg;
+      } else if (successMsg) {
+        msgBox.style.display = "block";
+        // ใส่ Class ให้กล่องเป็นสีเขียว
+        msgBox.className = "msg-box success-msg";
+        msgBox.innerText = successMsg;
+      }
+    </script>
   </body>
 </html>
