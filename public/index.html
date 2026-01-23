@@ -3,47 +3,36 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BORROW Dashboard</title>
+    <title>หน้าหลัก - BORROW SYSTEM</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
-
     <link rel="stylesheet" href="/static/index.css" />
   </head>
   <body>
     <aside class="sidebar">
       <div class="brand-title">BORROW SYSTEM</div>
-
       <ul class="menu-list">
-        <li><a href="#" class="menu-item active">หน้าหลัก</a></li>
-        <li><a href="#" class="menu-item">หมวดหมู่สินค้า</a></li>
-        <li><a href="#" class="menu-item">สินค้า</a></li>
-        <li><a href="#" class="menu-item">ประวัติการยืม</a></li>
-        <li>
-          <a href="#" class="menu-item">
-            <span class="indicator-dots">...</span> อื่นๆ
-          </a>
-        </li>
+        <li><a href="/dashboard" class="menu-item active">หน้าหลัก</a></li>
+        <li><a href="/category" class="menu-item">หมวดหมู่สินค้า</a></li>
+        <li><a href="/product" class="menu-item">สินค้า</a></li>
+        <li><a href="/history" class="menu-item">ประวัติการยืม</a></li>
+        <li><a href="/others" class="menu-item">... อื่นๆ</a></li>
       </ul>
-
       <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
     </aside>
 
     <main class="main-content">
       <header class="header-bar">
         <div>
-          <h1 class="page-title">รายการอุปกรณ์</h1>
-          <p style="color: #666; font-size: 14px">
-            เลือกอุปกรณ์ที่คุณต้องการยืมจากรายการด้านล่าง
-          </p>
+          <h1 class="page-title">ยืมอุปกรณ์</h1>
+          <p style="color: #666; font-size: 14px">เลือกอุปกรณ์ที่ต้องการยืม</p>
         </div>
-
         <div class="user-profile">
-          <span class="user-name" id="user-name">กำลังโหลด...</span>
+          <span class="user-name" id="user-name">Loading...</span>
           <img
             src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png"
-            alt="User Avatar"
             class="avatar"
           />
         </div>
@@ -58,36 +47,21 @@
       <div class="modal-content">
         <span class="close-btn" onclick="closeModal()">&times;</span>
         <h2>📝 แบบฟอร์มขอเบิก/ยืม</h2>
-
         <form id="borrowForm" onsubmit="confirmBorrow(event)">
           <input type="hidden" id="borrow-dvid" />
-
           <div class="form-group">
-            <label>วันที่คาดว่าจะคืน (Due Date)</label>
+            <label>วันที่คืน (Due Date)</label>
             <input type="date" id="borrow-duedate" required />
           </div>
-
           <div class="form-group">
-            <label>สถานที่นำไปใช้งาน (Location)</label>
-            <input
-              type="text"
-              id="borrow-location"
-              placeholder="เช่น ห้องประชุม 2, ออกกองถ่าย..."
-              required
-            />
+            <label>สถานที่ใช้งาน</label>
+            <input type="text" id="borrow-location" required />
           </div>
-
           <div class="form-group">
-            <label>วัตถุประสงค์ (Purpose)</label>
-            <textarea
-              id="borrow-purpose"
-              rows="3"
-              placeholder="เช่น ใช้สำหรับการนำเสนองาน..."
-              required
-            ></textarea>
+            <label>วัตถุประสงค์</label>
+            <textarea id="borrow-purpose" rows="3" required></textarea>
           </div>
-
-          <button type="submit" class="btn-confirm">ยืนยันการเบิก</button>
+          <button type="submit" class="btn-confirm">ยืนยัน</button>
         </form>
       </div>
     </div>

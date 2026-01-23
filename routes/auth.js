@@ -13,6 +13,8 @@ router.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public", "login.html"));
 });
 
+/* routes/auth.js */
+
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
   const sql = "SELECT * FROM TB_T_Employee WHERE username = ?";
@@ -23,15 +25,25 @@ router.post("/login", (req, res) => {
 
     const user = rows[0];
     if (bcrypt.compareSync(password, user.password)) {
+      // ✅ ตั้งค่า Session
       req.session.login = true;
+
+      // 👇👇 เพิ่มบรรทัดนี้ครับ! เพื่อให้ routes/main.js รู้จัก ID ของคนนี้ 👇👇
+      req.session.userID = user.EMPID;
+      req.session.username = user.username;
+
+      // ส่วนนี้เก็บไว้เหมือนเดิม (สำหรับโชว์ชื่อหน้าเว็บ)
       req.session.user = {
         empid: user.EMPID,
         fullname: `${user.fname} ${user.lname}`,
         role: user.RoleID,
       };
+
+      // อัปเดตสถานะเป็น Online (2)
       db.query("UPDATE TB_T_Employee SET EMPStatusID = 2 WHERE EMPID = ?", [
         user.EMPID,
       ]);
+
       return res.redirect("/dashboard");
     } else {
       return res.redirect("/?error=รหัสผ่านไม่ถูกต้อง");

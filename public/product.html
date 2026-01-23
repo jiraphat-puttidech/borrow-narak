@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>สินค้าทั้งหมด - BORROW SYSTEM</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/index.css" />
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        color: #555;
+      }
+      tr:hover {
+        background-color: #f9f9f9;
+      }
+      .badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .bg-green {
+        background: #e8f8f5;
+        color: #2ecc71;
+      }
+      .bg-red {
+        background: #fdedec;
+        color: #e74c3c;
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand-title">BORROW SYSTEM</div>
+      <ul class="menu-list">
+        <li><a href="/dashboard" class="menu-item">หน้าหลัก</a></li>
+        <li><a href="/category" class="menu-item">หมวดหมู่สินค้า</a></li>
+        <li><a href="/product" class="menu-item active">สินค้า</a></li>
+        <li><a href="/history" class="menu-item">ประวัติการยืม</a></li>
+        <li><a href="/others" class="menu-item">... อื่นๆ</a></li>
+      </ul>
+      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+    </aside>
+
+    <main class="main-content">
+      <header class="header-bar">
+        <h1 class="page-title">รายการสินค้าทั้งหมด</h1>
+        <div class="user-profile">
+          <span class="user-name" id="user-name">User</span>
+        </div>
+      </header>
+
+      <table>
+        <thead>
+          <tr>
+            <th>รหัสทรัพย์สิน</th>
+            <th>ชื่ออุปกรณ์</th>
+            <th>หมวดหมู่</th>
+            <th>สถานะ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>NB-001</td>
+            <td>MacBook Pro M1</td>
+            <td>แล็ปท็อป</td>
+            <td><span class="badge bg-green">ว่าง</span></td>
+          </tr>
+          <tr>
+            <td>CAM-002</td>
+            <td>Sony A7III</td>
+            <td>กล้อง</td>
+            <td><span class="badge bg-red">ถูกยืม</span></td>
+          </tr>
+          <tr>
+            <td>PRJ-005</td>
+            <td>Epson Projector</td>
+            <td>โปรเจคเตอร์</td>
+            <td><span class="badge bg-green">ว่าง</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </main>
+    <script src="/static/js/dashboard.js"></script>
+  </body>
+</html>

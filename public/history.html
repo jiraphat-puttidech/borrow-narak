@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ประวัติ - BORROW SYSTEM</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/index.css" />
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        margin-top: 20px;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      th {
+        background-color: #eee;
+        padding: 12px;
+        text-align: left;
+      }
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+        vertical-align: middle;
+      }
+      .btn-return {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn-return:hover {
+        background: #c0392b;
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand-title">BORROW SYSTEM</div>
+      <ul class="menu-list">
+        <li><a href="/dashboard" class="menu-item">หน้าหลัก</a></li>
+        <li><a href="/category" class="menu-item">หมวดหมู่สินค้า</a></li>
+        <li><a href="/product" class="menu-item">สินค้า</a></li>
+        <li><a href="/history" class="menu-item active">ประวัติการยืม</a></li>
+        <li><a href="/others" class="menu-item">... อื่นๆ</a></li>
+      </ul>
+      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+    </aside>
+
+    <main class="main-content">
+      <header class="header-bar">
+        <h1 class="page-title">ประวัติการยืมของฉัน</h1>
+        <div class="user-profile">
+          <span class="user-name" id="user-name">User</span>
+        </div>
+      </header>
+
+      <div style="background: white; border-radius: 10px; padding: 20px">
+        <table>
+          <thead>
+            <tr>
+              <th width="80">รูป</th>
+              <th>อุปกรณ์</th>
+              <th>วันที่ยืม</th>
+              <th>กำหนดคืน</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="history-list">
+            <tr>
+              <td colspan="5" align="center">กำลังโหลด...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <script src="/static/js/dashboard.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        fetch("/api/my-borrowing")
+          .then((res) => res.json())
+          .then((data) => {
+            const tbody = document.getElementById("history-list");
+            tbody.innerHTML = "";
+            if (data.length === 0) {
+              tbody.innerHTML = `<tr><td colspan="5" align="center" style="padding:20px; color:#999;">ไม่มีรายการที่กำลังยืม</td></tr>`;
+              return;
+            }
+            data.forEach((item) => {
+              const dateTxt = new Date(item.duedate).toLocaleDateString(
+                "th-TH",
+              );
+              const img = item.image || "https://via.placeholder.com/50";
+              tbody.innerHTML += `
+                            <tr>
+                                <td><img src="${img}" style="height:50px;"></td>
+                                <td>${item.devicename}<br><small style="color:#888">${item.stickerid}</small></td>
+                                <td>${new Date(item.borrowdate).toLocaleDateString("th-TH")}</td>
+                                <td style="color:red; font-weight:bold;">${dateTxt}</td>
+                                <td><button class="btn-return" onclick="returnItem(${item.TSTID}, ${item.DVID})">คืนของ</button></td>
+                            </tr>
+                        `;
+            });
+          });
+      });
+
+      function returnItem(tstid, dvid) {
+        if (!confirm("ยืนยันการคืน?")) return;
+        fetch("/api/return", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tstid, dvid }),
+        })
+          .then((res) => res.json())
+          .then((d) => {
+            if (d.success) {
+              alert("คืนสำเร็จ!");
+              location.reload();
+            }
+          });
+      }
+    </script>
+  </body>
+</html>
