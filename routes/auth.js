@@ -1,53 +1,192 @@
-// ไฟล์: routes/auth.js
 const express = require("express");
 const router = express.Router();
 const path = require("path");
+const fs = require("fs"); // ✅ เพิ่ม fs เพื่อใช้เช็คและสร้างโฟลเดอร์อัตโนมัติ
 const bcrypt = require("bcryptjs");
-const db = require("../config/db"); // ⚠️ เช็คว่ามีไฟล์ config/db.js ด้วยนะ
+const db = require("../config/db");
+const multer = require("multer");
 
-// --- LOGIN ---
+// ==========================================
+// 🛠️ Config การอัปโหลดรูปภาพ (Multer) แบบปลอดภัย
+// ==========================================
+
+// 1. กำหนด path โฟลเดอร์ที่จะเก็บไฟล์
+const uploadDir = path.join(__dirname, "../public/uploads");
+
+// 2. เช็คว่ามีโฟลเดอร์ไหม? ถ้าไม่มีให้สร้างใหม่เลย (ป้องกัน Error หาโฟลเดอร์ไม่เจอ)
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    // ส่งไฟล์ไปที่โฟลเดอร์ที่เราเช็คแล้วเมื่อกี้
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // ตั้งชื่อไฟล์กันซ้ำ: emp-เวลา-เลขสุ่ม.นามสกุล
+    const uniqueSuffix = Date.now() + Math.round(Math.random() * 1e9);
+    cb(null, "emp-" + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage: storage });
+
+// ==========================================
+// 1. หน้า Login (GET)
+// ==========================================
 router.get("/", (req, res) => {
-  if (req.session.login) {
-    return res.redirect("/dashboard");
-  }
+  if (req.session.login) return res.redirect("/dashboard");
   res.sendFile(path.join(__dirname, "../public", "login.html"));
 });
 
-/* routes/auth.js */
-
+// ==========================================
+// 2. ฟังก์ชัน Login (POST)
+// ==========================================
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
-  const sql = "SELECT * FROM TB_T_Employee WHERE username = ?";
+
+  // เพิ่มการ JOIN เพื่อดึงชื่อสำนักและฝ่ายมาเก็บไว้ใน Session ด้วย (เผื่อใช้โชว์)
+  const sql = `
+      SELECT E.*, I.InstitutionName, D.DepartmentName 
+      FROM TB_T_Employee E
+      LEFT JOIN TB_M_Institution I ON E.InstitutionID = I.InstitutionID
+      LEFT JOIN TB_M_Department D ON E.DepartmentID = D.DepartmentID
+      WHERE E.username = ?
+  `;
 
   db.query(sql, [username], (err, rows) => {
-    if (err) return res.send("❌ DB ERROR");
+    if (err) {
+      console.error("Login DB Error:", err);
+      return res.redirect("/?error=Database Error");
+    }
     if (rows.length === 0) return res.redirect("/?error=ไม่พบชื่อผู้ใช้งาน");
 
     const user = rows[0];
+    // เช็ค Password
     if (bcrypt.compareSync(password, user.password)) {
-      // ✅ ตั้งค่า Session
+      // ✅ Login สำเร็จ: สร้าง Session
       req.session.login = true;
-
-      // 👇👇 เพิ่มบรรทัดนี้ครับ! เพื่อให้ routes/main.js รู้จัก ID ของคนนี้ 👇👇
       req.session.userID = user.EMPID;
       req.session.username = user.username;
 
-      // ส่วนนี้เก็บไว้เหมือนเดิม (สำหรับโชว์ชื่อหน้าเว็บ)
+      // เก็บข้อมูลลง Session (เพิ่มชื่อสำนัก/ฝ่าย ให้เอาไปใช้ง่ายๆ)
       req.session.user = {
-        empid: user.EMPID,
         fullname: `${user.fname} ${user.lname}`,
-        role: user.RoleID,
+        role: user.RoleID, // ✅ สำคัญ: เก็บ RoleID ไว้เช็คสิทธิ์
+        emp_num: user.EMP_NUM,
+        image: user.image,
+        institution: user.InstitutionName,
+        department: user.DepartmentName,
       };
 
-      // อัปเดตสถานะเป็น Online (2)
+      // อัปเดตสถานะ Online (2)
       db.query("UPDATE TB_T_Employee SET EMPStatusID = 2 WHERE EMPID = ?", [
         user.EMPID,
       ]);
 
-      return res.redirect("/dashboard");
+      // ===============================================
+      // 🚦 จุดแยกทาง (Router Logic)
+      // ===============================================
+      if (user.RoleID === 2) {
+        // ถ้าเป็น Admin (RoleID = 2) ให้ไปหน้า Admin
+        console.log(`👑 Admin Login: ${user.username}`);
+        return res.redirect("/admin");
+      } else {
+        // ถ้าเป็น User ทั่วไป ให้ไปหน้า Dashboard
+        console.log(`👤 User Login: ${user.username}`);
+        return res.redirect("/dashboard");
+      }
     } else {
       return res.redirect("/?error=รหัสผ่านไม่ถูกต้อง");
     }
+  });
+});
+
+// ==========================================
+// 3. หน้า Register (GET)
+// ==========================================
+router.get("/register", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public", "register.html"));
+});
+
+// ==========================================
+// 4. ฟังก์ชัน Register (POST) - บันทึกข้อมูล
+// ==========================================
+router.post("/register", upload.single("image"), (req, res) => {
+  // 1. รับค่าจากฟอร์ม
+  const {
+    emp_num,
+    fname,
+    lname,
+    institution_id,
+    department_id,
+    role_id,
+    email,
+    phone,
+    username,
+    password,
+  } = req.body;
+
+  // 2. รับชื่อไฟล์รูป (ถ้าไม่ได้อัปโหลดมา ให้เป็น null)
+  const imageFilename = req.file ? req.file.filename : null;
+
+  // 3. Validation ข้อมูลสำคัญ
+  if (!username || !password || !emp_num || !fname) {
+    return res.redirect("/register?error=กรุณากรอกข้อมูลสำคัญให้ครบ");
+  }
+
+  // 4. เข้ารหัสรหัสผ่าน
+  const hashPassword = bcrypt.hashSync(password, 10);
+
+  // 5. เตรียม SQL Insert
+  // ⚠️ ต้องแน่ใจว่าใน Database มีคอลัมน์ CreateBy แล้วนะครับ
+  const sql = `
+        INSERT INTO TB_T_Employee 
+        (
+            EMP_NUM, fname, lname, 
+            InstitutionID, DepartmentID, RoleID,
+            email, phone, 
+            username, password, 
+            image, 
+            EMPStatusID, CreateDate, CreateBy
+        ) 
+        VALUES 
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), 'System')
+    `;
+
+  // 6. ค่าที่จะใส่ (เรียงตามลำดับ SQL ข้างบน)
+  const values = [
+    emp_num,
+    fname,
+    lname,
+    institution_id,
+    department_id,
+    role_id,
+    email,
+    phone,
+    username,
+    hashPassword,
+    imageFilename,
+  ];
+
+  // 7. รันคำสั่ง SQL
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error("Register SQL Error:", err); // ปริ้น Error ออกมาดูถ้ามีปัญหา
+
+      if (err.code === "ER_DUP_ENTRY") {
+        return res.redirect(
+          "/register?error=รหัสพนักงานหรือชื่อผู้ใช้นี้มีในระบบแล้ว",
+        );
+      }
+
+      // ส่งข้อความ Error กลับไปหน้าเว็บด้วย จะได้รู้ว่าผิดตรงไหน
+      return res.redirect("/register?error=บันทึกไม่ผ่าน: " + err.sqlMessage);
+    }
+
+    console.log(`✅ สมัครสมาชิกสำเร็จ: ${username} (EMP_NUM: ${emp_num})`);
+    res.redirect("/?success=สมัครสมาชิกเรียบร้อย กรุณาเข้าสู่ระบบ");
   });
 });
 
@@ -97,13 +236,17 @@ router.post("/reset-password", (req, res) => {
   });
 });
 
-// --- LOGOUT ---
+// ==========================================
+// 5. Logout
+// ==========================================
 router.get("/logout", (req, res) => {
-  if (req.session.user) {
+  if (req.session.userID) {
+    // ปรับสถานะเป็น Offline (1)
     db.query("UPDATE TB_T_Employee SET EMPStatusID = 1 WHERE EMPID = ?", [
-      req.session.user.empid,
+      req.session.userID,
     ]);
   }
+  // ล้าง Session และกลับหน้าแรก
   req.session.destroy(() => res.redirect("/"));
 });
 

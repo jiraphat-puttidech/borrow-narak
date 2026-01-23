@@ -23,11 +23,12 @@ app.use("/static", express.static(path.join(__dirname, "public")));
 // เรียกใช้ไฟล์ที่เราแยกไว้
 const authRoutes = require("./routes/auth");
 const mainRoutes = require("./routes/main");
+const adminRoutes = require("./routes/admin");
 
 // ใช้งาน Routes
 app.use("/", authRoutes); // ถ้า URL เป็น /login, /register จะวิ่งไป auth.js
 app.use("/", mainRoutes); // ถ้า URL เป็น /dashboard, /api จะวิ่งไป main.js
-
+app.use("/", adminRoutes); // ถ้า URL เป็น /admin จะวิ่งไป admin.js
 /* ================= SERVER START ================= */
 const PORT = 5050;
 app.listen(PORT, () => {

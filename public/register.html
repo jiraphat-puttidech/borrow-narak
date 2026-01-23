@@ -1,69 +1,126 @@
 <!doctype html>
-<html lang="en">
+<html lang="th">
   <head>
     <meta charset="UTF-8" />
-    <title>Register</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ลงทะเบียนพนักงาน - Borrow System</title>
     <link rel="stylesheet" href="/static/register.css" />
-
-    <style>
-      /* เพิ่มสไตล์สำหรับกล่องแจ้งเตือน (เผื่อใน CSS ไม่มี) */
-      #msg-box {
-        padding: 12px;
-        margin-bottom: 20px;
-        border-radius: 8px;
-        text-align: center;
-        font-size: 14px;
-        font-weight: bold;
-      }
-      .error-msg {
-        background-color: #ffe6e6;
-        color: #d63031;
-        border: 1px solid #d63031;
-      }
-      .success-msg {
-        background-color: #e6fffa;
-        color: #00b894;
-        border: 1px solid #00b894;
-      }
-    </style>
   </head>
   <body>
     <div class="register-box">
       <h2>ลงทะเบียนพนักงานใหม่</h2>
-
       <div id="msg-box" style="display: none"></div>
 
-      <form method="POST" action="/register">
-        <label>รหัสพนักงาน (Employee ID)</label>
-        <input type="text" name="emp_num" required placeholder="เช่น 0001" />
+      <form method="POST" action="/register" enctype="multipart/form-data">
+        <div style="text-align: center; margin-bottom: 20px">
+          <label style="display: block; margin-bottom: 10px">รูปโปรไฟล์</label>
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            required
+            class="input-file"
+          />
+        </div>
 
-        <label>Username (สำหรับเข้าสู่ระบบ)</label>
+        <label>รหัสพนักงาน (EMP_NUM)</label>
+        <input type="text" name="emp_num" required placeholder="เช่น 6601001" />
+
+        <div class="input-group">
+          <div class="input-wrapper">
+            <label>ชื่อจริง</label>
+            <input type="text" name="fname" required />
+          </div>
+          <div class="input-wrapper">
+            <label>นามสกุล</label>
+            <input type="text" name="lname" required />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="input-wrapper">
+            <label>สำนัก (Institution)</label>
+            <select name="institution_id" required>
+              <option value="1">1 : ไม่มีสำนัก</option>
+              <option value="2">2 : สำนักสื่อดิจิทัล</option>
+              <option value="3">3 : สำนักโทรทัศน์และวิทยุ</option>
+              <option value="4">4 : สำนักบริหาร</option>
+              <option value="5">5 : สำนักวิศวกรรม</option>
+              <option value="6">6 : สำนักทรัพยากรมนุษย์</option>
+              <option value="7">7 : สำนักตรวจสอบภายใน</option>
+              <option value="8">8 : สำนักสร้างสรรค์เนื้อหา</option>
+              <option value="9">9 : สำนักข่าว</option>
+              <option value="10">
+                10 : สำนักเครือข่ายและการมีส่วนร่วมสาธารณะ
+              </option>
+              <option value="11">11 : คณะกรรมการนโยบาย</option>
+              <option value="12">12 : คณะกรรมการบริหาร</option>
+            </select>
+          </div>
+          <div class="input-wrapper">
+            <label>ฝ่าย (Department)</label>
+            <select name="department_id" required>
+              <option value="1">1 : ไม่มีฝ่าย</option>
+              <option value="2">2 : ฝ่ายเทคโนโลยีสารสนเทศ</option>
+              <option value="3">3 : ฝ่ายบริหารความเสี่ยงและธรรมาภิบาล</option>
+              <option value="4">4 : ฝ่ายยุทธศาสตร์องค์การ</option>
+              <option value="5">5 : ฝ่ายสนับสนุนคณะกรรมการและผู้บริหาร</option>
+              <option value="6">6 : ศูนย์การเงิน</option>
+              <option value="7">
+                7 : ศูนย์สื่อสารวาระทางสังคมและนโยบายสาธารณะ
+              </option>
+              <option value="8">8 : ศูนย์ Thai PBS World</option>
+              <option value="9">9 : ศูนย์วิจัยและพัฒนาสื่อสาธารณะ</option>
+              <option value="10">
+                10 : ศูนย์สื่อสารและส่งเสริมการตลาดเพื่อสาธารณะ
+              </option>
+              <option value="11">11 : ศูนย์พัฒนานวัตกรรมสื่อสาธารณะ</option>
+              <option value="12">12 : ศูนย์พัฒนาระบบงานสารสนเทศ</option>
+              <option value="13">
+                13 : ศูนย์สื่อสาธารณะเพื่อเด็กและการเรียนรู้
+              </option>
+              <option value="14">14 : ศูนย์สื่อศิลปวัฒนธรรม</option>
+              <option value="15">
+                15 : หน่วยสนับสนุนสภาผู้ชมและผู้ฟังรายการ
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <label>บทบาท (Role)</label>
+        <select name="role_id" required>
+          <option value="1">พนักงานทั่วไป (User)</option>
+          <option value="2">ผู้ดูแลระบบ (Admin)</option>
+        </select>
+
+        <div class="input-group">
+          <div class="input-wrapper">
+            <label>Email</label>
+            <input type="email" name="email" required />
+          </div>
+          <div class="input-wrapper">
+            <label>เบอร์โทรศัพท์</label>
+            <input type="text" name="phone" required />
+          </div>
+        </div>
+
+        <hr />
+
+        <label>Username</label>
         <input type="text" name="username" required />
 
         <label>Password</label>
         <input type="password" name="password" required />
 
-        <label>ชื่อจริง (First Name)</label>
-        <input type="text" name="fname" required />
-
-        <label>นามสกุล (Last Name)</label>
-        <input type="text" name="lname" required />
-
-        <label>Email (สำหรับกู้คืนรหัส)</label>
-        <input type="email" name="email" required />
-
-        <label>เบอร์โทรศัพท์</label>
-        <input type="text" name="phone" required />
-
         <button type="submit">สมัครสมาชิก</button>
       </form>
+
       <div class="back">
         <a href="/">← กลับไปหน้า Login</a>
       </div>
     </div>
 
     <script>
-      // ตรวจสอบ URL ว่ามี ?error=... หรือ ?success=... ไหม
       const urlParams = new URLSearchParams(window.location.search);
       const errorMsg = urlParams.get("error");
       const successMsg = urlParams.get("success");
@@ -71,11 +128,11 @@
 
       if (errorMsg) {
         msgBox.style.display = "block";
-        msgBox.className = "error-msg"; // ใช้สีแดง
+        msgBox.className = "error-msg";
         msgBox.innerText = errorMsg;
       } else if (successMsg) {
         msgBox.style.display = "block";
-        msgBox.className = "success-msg"; // ใช้สีเขียว
+        msgBox.className = "success-msg";
         msgBox.innerText = successMsg;
       }
     </script>
