@@ -1,256 +1,269 @@
 const express = require("express");
 const router = express.Router();
 const path = require("path");
-const db = require("../config/db"); // เรียกใช้ DB
+const db = require("../config/db");
 
-/* ==========================================
-   ส่วนที่ 1: Route สำหรับเปลี่ยนหน้า (Page Navigation)
-   ========================================== */
-
+/* ================= PAGE ROUTES ================= */
 router.get("/dashboard", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "index.html"));
+});
+
+// ✅ 1. เพิ่มหน้า Tracking (สถานะการยืม-คืน)
+router.get("/tracking", (req, res) => {
+  if (!req.session.login) return res.redirect("/");
+  res.sendFile(path.join(__dirname, "../public", "tracking.html"));
+});
+
+router.get("/profile", (req, res) => {
+  if (!req.session.login) return res.redirect("/");
+  res.sendFile(path.join(__dirname, "../public", "profile.html"));
 });
 
 router.get("/history", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "history.html"));
 });
-
 router.get("/category", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "category.html"));
 });
-
 router.get("/product", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "product.html"));
 });
-
 router.get("/others", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "others.html"));
 });
 
-/* ==========================================
-   ส่วนที่ 2: API ข้อมูลผู้ใช้
-   ========================================== */
+/* ================= API ROUTES ================= */
 
 router.get("/api/user", (req, res) => {
   if (req.session.login) {
     res.json({
       loggedIn: true,
       fullname: req.session.user.fullname,
-      role: req.session.user.role || "User",
+      role: req.session.user.role || 1,
+      image: req.session.user.image,
     });
   } else {
     res.json({ loggedIn: false });
   }
 });
 
-/* ==========================================
-   ส่วนที่ 3: API เกี่ยวกับอุปกรณ์และการยืมคืน
-   ========================================== */
+router.get("/api/dashboard-stats", (req, res) => {
+  if (!req.session.login) return res.json({});
+  const q1 = "SELECT COUNT(*) AS count FROM TB_T_BorrowTrans";
+  const q2 =
+    "SELECT COUNT(*) AS count FROM TB_T_BorrowTrans WHERE returndate IS NULL";
+  const q3 = "SELECT COUNT(*) AS count FROM TB_T_Employee";
+  const q4 = "SELECT COUNT(*) AS count FROM TB_T_Device";
+  const qRecent = `
+        SELECT t.*, d.devicename, e.username, e.fname
+        FROM TB_T_BorrowTrans t
+        JOIN TB_T_Device d ON t.DVID = d.DVID
+        JOIN TB_T_Employee e ON t.EMPID = e.EMPID
+        ORDER BY t.transactiondate DESC LIMIT 5
+    `;
 
-// 1. ดึงรายการอุปกรณ์ทั้งหมด (หน้า Dashboard)
+  db.query(`${q1}; ${q2}; ${q3}; ${q4}; ${qRecent}`, (err, results) => {
+    if (err) return res.json({});
+    res.json({
+      totalTrans: results[0][0].count,
+      pendingReturn: results[1][0].count,
+      totalMembers: results[2][0].count,
+      totalDevices: results[3][0].count,
+      recentTrans: results[4],
+    });
+  });
+});
+
 router.get("/api/devices", (req, res) => {
-  // SQL ดึงข้อมูลจาก TB_T_Device และ Join เอาชื่อสถานะมา
   const sql = `
-        SELECT 
-            d.DVID, 
-            d.devicename, 
-            d.stickerid, 
-            d.sticker AS image, 
-            d.DVStatusID,
-            s.StatusNameDV
+        SELECT d.DVID, d.devicename, d.stickerid, d.sticker AS image, d.DVStatusID, s.StatusNameDV
         FROM TB_T_Device d
         LEFT JOIN TB_M_StatusDevice s ON d.DVStatusID = s.DVStatusID
     `;
-
   db.query(sql, (err, results) => {
-    if (err) {
-      console.error("SQL Error (Get Devices):", err);
-      return res.status(500).json({ error: "Database Error" });
-    }
+    if (err) return res.status(500).json({ error: "DB Error" });
     res.json(results);
   });
 });
 
-// 2. ยืมอุปกรณ์ (แก้ไขให้ตรงกับ TB_T_BorrowTrans 100%)
 router.post("/api/borrow", (req, res) => {
-  // เช็ค Session
   if (!req.session.login || !req.session.userID) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Session หมดอายุ กรุณา Login ใหม่" });
+    return res.status(401).json({ success: false, message: "Session หมดอายุ" });
   }
 
   const { dvid, duedate, location, purpose } = req.body;
   const empid = req.session.userID;
 
-  // สร้างเลขที่รายการ (Transaction Number) เช่น EBRS-240123-xxxx
-  const datePart = new Date().toISOString().slice(2, 10).replace(/-/g, "");
-  const transNum = `EBRS-${datePart}-${Date.now().toString().slice(-4)}`;
+  db.query(
+    "SELECT * FROM TB_T_Employee WHERE EMPID = ?",
+    [empid],
+    (err, users) => {
+      if (err || users.length === 0)
+        return res.json({ success: false, message: "ไม่พบข้อมูลผู้ใช้" });
+      const user = users[0];
 
-  // ✅ SQL INSERT: แก้ชื่อคอลัมน์ให้ตรงเป๊ะ และใส่ NULL ในค่าที่ยังไม่มี
-  const sqlInsert = `
-        INSERT INTO TB_T_BorrowTrans 
-        (
-            transaction_num, transactiondate, 
-            DVID, EMPID, borrowdate, duedate, 
-            location, purpose, BorrowTransStatusID, 
-            
-            -- คอลัมน์อื่นๆ ที่ต้องมีตามตาราง (ใส่ NULL หรือค่า Default ไว้ก่อน)
-            EMP_NUM, phone,
-            InstitutionID, DepartmentID, 
-            CategoryID, TypeID, ModelID, BrandID, 
-            notes_emp, notes_admin
-        )
-        VALUES 
-        (
-            ?, NOW(), -- transaction_num, transactiondate
-            ?, ?, NOW(), ?, -- DVID, EMPID, borrowdate, duedate
-            ?, ?, 1,  -- location, purpose, Status=1 (รอตรวจสอบ)
-            
-            -- ใส่ NULL ไว้ก่อน (เพราะหน้าเว็บยังไม่ได้ส่งมา)
-            NULL, NULL, 
-            NULL, NULL, 
-            NULL, NULL, NULL, NULL,
-            '-', '-'
-        )
-    `;
+      db.query(
+        "SELECT * FROM TB_T_Device WHERE DVID = ?",
+        [dvid],
+        (err, devices) => {
+          if (err || devices.length === 0)
+            return res.json({ success: false, message: "ไม่พบข้อมูลอุปกรณ์" });
+          const device = devices[0];
 
-  // SQL UPDATE Status Device (2 = ไม่ว่าง/ถูกยืม)
-  const sqlUpdateDevice = `UPDATE TB_T_Device SET DVStatusID = 2 WHERE DVID = ?`;
+          const datePart = new Date()
+            .toISOString()
+            .slice(2, 10)
+            .replace(/-/g, "");
+          const transNum = `EBRS-${datePart}-${Date.now().toString().slice(-4)}`;
 
-  db.beginTransaction((err) => {
-    if (err) return res.json({ success: false, message: "Transaction Error" });
+          const sqlInsert = `
+            INSERT INTO TB_T_BorrowTrans 
+            (
+                transaction_num, transactiondate, DVID, EMPID, borrowdate, duedate, location, purpose, 
+                BorrowTransStatusID, Due_statusID,
+                EMP_NUM, phone, InstitutionID, DepartmentID,
+                CategoryID, TypeID, ModelID, BrandID, notes_emp, notes_admin
+            )
+            VALUES 
+            (?, NOW(), ?, ?, NOW(), ?, ?, ?, 1, 5, ?, ?, ?, ?, ?, ?, ?, ?, '-', '-')
+        `;
+          const sqlUpdateDevice = `UPDATE TB_T_Device SET DVStatusID = 2 WHERE DVID = ?`;
 
-    // Step 1: Insert ลงตาราง BorrowTrans
-    db.query(
-      sqlInsert,
-      [transNum, dvid, empid, duedate, location, purpose],
-      (err, result) => {
-        if (err) {
-          console.error("❌ INSERT FAILED:", err.sqlMessage); // ปริ้น Error ชัดๆ
-          return db.rollback(() =>
-            res.json({
-              success: false,
-              message: "บันทึกไม่ผ่าน: " + err.sqlMessage,
-            }),
-          );
-        }
-
-        // Step 2: Update สถานะ Device เป็น 'ไม่ว่าง'
-        db.query(sqlUpdateDevice, [dvid], (err) => {
-          if (err) {
-            return db.rollback(() =>
-              res.json({ success: false, message: "อัปเดตสถานะของไม่สำเร็จ" }),
-            );
-          }
-
-          db.commit((err) => {
+          db.beginTransaction((err) => {
             if (err)
-              return db.rollback(() =>
-                res.json({ success: false, message: "Commit Error" }),
-              );
-            console.log("✅ ยืมสำเร็จ! TSTID:", result.insertId);
-            res.json({ success: true, message: "บันทึกการยืมสำเร็จ!" });
+              return res.json({ success: false, message: "Transaction Error" });
+
+            db.query(
+              sqlInsert,
+              [
+                transNum,
+                dvid,
+                empid,
+                duedate,
+                location,
+                purpose,
+                user.EMP_NUM,
+                user.phone,
+                user.InstitutionID,
+                user.DepartmentID,
+                device.CategoryID,
+                device.TypeID,
+                device.ModelID,
+                device.BrandID,
+              ],
+              (err, result) => {
+                if (err)
+                  return db.rollback(() =>
+                    res.json({
+                      success: false,
+                      message: "Insert Failed: " + err.message,
+                    }),
+                  );
+
+                db.query(sqlUpdateDevice, [dvid], (err) => {
+                  if (err)
+                    return db.rollback(() =>
+                      res.json({
+                        success: false,
+                        message: "Update Device Failed",
+                      }),
+                    );
+
+                  db.commit((err) => {
+                    if (err)
+                      return db.rollback(() => res.json({ success: false }));
+                    res.json({
+                      success: true,
+                      message: "ส่งคำขอยืมเรียบร้อย!",
+                    });
+                  });
+                });
+              },
+            );
           });
-        });
-      },
-    );
-  });
+        },
+      );
+    },
+  );
 });
 
-// 3. ดึงประวัติการยืมของฉัน (จาก TB_T_BorrowTrans)
-router.get("/api/my-borrowing", (req, res) => {
+// ✅ 2. แก้ชื่อ API เป็น active-borrow (เพื่อให้ตรงกับ tracking.html)
+router.get("/api/my-active-borrow", (req, res) => {
   if (!req.session.login) return res.json([]);
-
-  const empid = req.session.userID;
-
-  // เลือกรายการที่ returndate เป็น NULL (ยังไม่คืน)
+  // ดึงรายการที่ยังไม่คืน (returndate IS NULL)
   const sql = `
-        SELECT 
-            t.TSTID, 
-            t.DVID, 
-            t.borrowdate, 
-            t.duedate,
-            d.devicename, 
-            d.stickerid, 
-            d.sticker AS image
+        SELECT t.TSTID, t.DVID, t.borrowdate, t.duedate, t.Due_statusID,
+               d.devicename, d.stickerid, d.sticker AS image
         FROM TB_T_BorrowTrans t
         JOIN TB_T_Device d ON t.DVID = d.DVID
-        WHERE t.EMPID = ? 
-        AND t.returndate IS NULL 
+        WHERE t.EMPID = ? AND t.returndate IS NULL 
         ORDER BY t.borrowdate DESC
     `;
-
-  db.query(sql, [empid], (err, results) => {
-    if (err) {
-      console.error("SQL Error (My Borrowing):", err);
-      return res.status(500).json({ error: "Database Error" });
-    }
+  db.query(sql, [req.session.userID], (err, results) => {
+    if (err) return res.status(500).json({ error: "DB Error" });
     res.json(results);
   });
 });
 
-// ==========================================
-// 4. API: คืนอุปกรณ์ (แก้สถานะเป็น 3 = คืนแล้ว)
-// ==========================================
-router.post("/api/return", (req, res) => {
-  // 1. เช็ค Login
-  if (!req.session.login) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
-  const { tstid, dvid } = req.body;
-  const modifier = req.session.username || "System"; // ใครเป็นคนกดคืน
-
-  // ✅ SQL Update Transaction:
-  // เปลี่ยน BorrowTransStatusID เป็น 3 (คืนแล้ว)
-  const sqlTrans = `
-        UPDATE TB_T_BorrowTrans 
-        SET 
-            returndate = NOW(), 
-            BorrowTransStatusID = 3,  -- 👈 แก้ตรงนี้ครับ (จาก 4 เป็น 3)
-            ModifyDate = NOW(), 
-            ModifyBy = ?
-        WHERE TSTID = ?
+// ✅ 3. เพิ่ม API my-history-all (เพื่อให้ตรงกับ history.html)
+router.get("/api/my-history-all", (req, res) => {
+  if (!req.session.login) return res.json([]);
+  // ดึงทั้งหมด (ไม่สนว่าคืนหรือยัง)
+  const sql = `
+        SELECT t.TSTID, t.borrowdate, t.returndate, t.BorrowTransStatusID,
+               d.devicename, d.stickerid, d.sticker AS image
+        FROM TB_T_BorrowTrans t
+        JOIN TB_T_Device d ON t.DVID = d.DVID
+        WHERE t.EMPID = ? 
+        ORDER BY t.borrowdate DESC
     `;
+  db.query(sql, [req.session.userID], (err, results) => {
+    if (err) return res.status(500).json({ error: "DB Error" });
+    res.json(results);
+  });
+});
 
-  // ✅ SQL Update Device:
-  // เปลี่ยนสถานะของกลับเป็น 1 (พร้อมใช้งาน/ปกติ)
+router.post("/api/return", (req, res) => {
+  if (!req.session.login)
+    return res.status(401).json({ error: "Unauthorized" });
+  const { tstid, dvid } = req.body;
+  const username = req.session.username;
+
+  const sqlTrans = `UPDATE TB_T_BorrowTrans SET returndate = NOW(), BorrowTransStatusID = 3, Due_statusID = 4, ModifyDate = NOW(), ModifyBy = ? WHERE TSTID = ?`;
   const sqlDevice = `UPDATE TB_T_Device SET DVStatusID = 1 WHERE DVID = ?`;
 
   db.beginTransaction((err) => {
-    if (err) return res.json({ success: false, message: "Server Error" });
-
-    // Step 1: อัปเดตสถานะการยืม (เป็น 3)
-    db.query(sqlTrans, [modifier, tstid], (err) => {
-      if (err) {
-        console.error("❌ Update Trans Error:", err.sqlMessage);
-        return db.rollback(() =>
-          res.json({ success: false, message: "Update History Failed" }),
-        );
-      }
-
-      // Step 2: ปลดล็อกอุปกรณ์ (ให้กลับมาว่าง)
+    if (err) return res.json({ success: false });
+    db.query(sqlTrans, [username, tstid], (err) => {
+      if (err) return db.rollback(() => res.json({ success: false }));
       db.query(sqlDevice, [dvid], (err) => {
-        if (err) {
-          console.error("❌ Update Device Error:", err.sqlMessage);
-          return db.rollback(() =>
-            res.json({ success: false, message: "Update Device Failed" }),
-          );
-        }
-
-        db.commit((err) => {
-          if (err) return db.rollback(() => res.json({ success: false }));
-          console.log(`✅ คืนของสำเร็จ (TSTID: ${tstid} -> Status 3)`);
-          res.json({ success: true, message: "คืนอุปกรณ์สำเร็จ" });
-        });
+        if (err) return db.rollback(() => res.json({ success: false }));
+        db.commit(() =>
+          res.json({ success: true, message: "คืนอุปกรณ์สำเร็จ" }),
+        );
       });
     });
+  });
+});
+
+router.get("/api/my-profile", (req, res) => {
+  if (!req.session.login)
+    return res.status(401).json({ error: "Unauthorized" });
+  const sql = `
+          SELECT E.*, I.InstitutionName, D.DepartmentName 
+          FROM TB_T_Employee E
+          LEFT JOIN TB_M_Institution I ON E.InstitutionID = I.InstitutionID
+          LEFT JOIN TB_M_Department D ON E.DepartmentID = D.DepartmentID
+          WHERE E.EMPID = ?
+      `;
+  db.query(sql, [req.session.userID], (err, rows) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    res.json(rows[0]);
   });
 });
 

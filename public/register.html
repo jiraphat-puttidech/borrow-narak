@@ -11,7 +11,12 @@
       <h2>ลงทะเบียนพนักงานใหม่</h2>
       <div id="msg-box" style="display: none"></div>
 
-      <form method="POST" action="/register" enctype="multipart/form-data">
+      <form
+        id="regForm"
+        method="POST"
+        action="/register"
+        enctype="multipart/form-data"
+      >
         <div style="text-align: center; margin-bottom: 20px">
           <label style="display: block; margin-bottom: 10px">รูปโปรไฟล์</label>
           <input
@@ -100,7 +105,16 @@
           </div>
           <div class="input-wrapper">
             <label>เบอร์โทรศัพท์</label>
-            <input type="text" name="phone" required />
+            <input
+              type="tel"
+              name="phone"
+              placeholder="ตัวเลข 10 หลัก (ไม่ต้องมีขีด)"
+              required
+              maxlength="10"
+              pattern="[0-9]{10}"
+              title="กรุณากรอกเบอร์โทรศัพท์เป็นตัวเลข 10 หลัก"
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+            />
           </div>
         </div>
 
@@ -110,7 +124,29 @@
         <input type="text" name="username" required />
 
         <label>Password</label>
-        <input type="password" name="password" required />
+        <input type="password" name="password" id="password" required />
+
+        <label>Confirm Password (ยืนยันรหัสผ่าน)</label>
+        <input
+          type="password"
+          name="confirm_password"
+          id="confirm_password"
+          required
+          placeholder="กรอกรหัสผ่านอีกครั้ง"
+        />
+
+        <p
+          id="pass-error"
+          style="
+            color: red;
+            display: none;
+            font-size: 14px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+          "
+        >
+          ❌ รหัสผ่านไม่ตรงกัน กรุณากรอกใหม่
+        </p>
 
         <button type="submit">สมัครสมาชิก</button>
       </form>
@@ -135,6 +171,23 @@
         msgBox.className = "success-msg";
         msgBox.innerText = successMsg;
       }
+
+      // ✅ 4. Script ตรวจสอบรหัสผ่านก่อนกดส่ง
+      document
+        .getElementById("regForm")
+        .addEventListener("submit", function (e) {
+          const pass = document.getElementById("password").value;
+          const confirm = document.getElementById("confirm_password").value;
+          const errorText = document.getElementById("pass-error");
+
+          if (pass !== confirm) {
+            e.preventDefault(); // ห้ามส่งฟอร์ม
+            errorText.style.display = "block"; // โชว์ตัวแดง
+            // alert("รหัสผ่านไม่ตรงกัน!"); // (ถ้าอยากให้เด้งแจ้งเตือนด้วย ให้เปิดบรรทัดนี้)
+          } else {
+            errorText.style.display = "none";
+          }
+        });
     </script>
   </body>
 </html>

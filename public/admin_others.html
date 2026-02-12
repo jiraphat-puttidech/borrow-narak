@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>อื่นๆ - Admin</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/index.css" />
+    <style>
+      /* Profile Link */
+      .profile-link {
+        text-decoration: none;
+        color: inherit;
+      }
+      .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: white;
+        padding: 5px 15px;
+        border-radius: 30px;
+        border: 1px solid #ddd;
+        cursor: pointer;
+      }
+      .user-profile:hover {
+        background-color: #f5f5f5;
+      }
+
+      /* Settings List Style */
+      .settings-box {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+      }
+      .settings-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .settings-list li {
+        border-bottom: 1px solid #f0f0f0;
+      }
+      .settings-list li:last-child {
+        border-bottom: none;
+      }
+      .settings-list a {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px;
+        text-decoration: none;
+        color: #333;
+        font-size: 16px;
+        transition: 0.2s;
+      }
+      .settings-list a:hover {
+        background-color: #f8f9fa;
+        color: #2c3e50;
+      }
+      .arrow {
+        color: #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar admin-sidebar">
+      <div class="brand-title">ADMIN PANEL</div>
+      <ul class="menu-list">
+        <li><a href="/admin" class="menu-item">📊 ภาพรวมระบบ</a></li>
+        <li>
+          <a href="/admin/approve" class="menu-item">📝 รายการรออนุมัติ</a>
+        </li>
+        <li><a href="/admin/device" class="menu-item">📦 จัดการอุปกรณ์</a></li>
+        <li>
+          <a href="/admin/history" class="menu-item">📜 ประวัติการยืม-คืน</a>
+        </li>
+        <li><a href="/admin/others" class="menu-item active">... อื่นๆ</a></li>
+      </ul>
+      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+    </aside>
+
+    <main class="main-content">
+      <header class="header-bar">
+        <div>
+          <h1 class="page-title">การตั้งค่าและอื่นๆ</h1>
+          <p style="color: #666; font-size: 14px">
+            จัดการบัญชีและข้อมูลส่วนตัว
+          </p>
+        </div>
+
+        <a href="/profile" class="profile-link">
+          <div class="user-profile">
+            <span class="user-name" id="user-name">Loading...</span>
+            <img
+              src="/static/default.png"
+              class="avatar"
+              id="header-avatar"
+              style="
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+                margin-left: 10px;
+              "
+            />
+          </div>
+        </a>
+      </header>
+
+      <div style="max-width: 600px; margin-top: 20px">
+        <h3 style="margin-bottom: 10px; color: #555">บัญชีของฉัน</h3>
+        <div class="settings-box">
+          <ul class="settings-list">
+            <li>
+              <a href="/profile">
+                <span>👤 แก้ไขข้อมูลส่วนตัว</span>
+                <span class="arrow">&gt;</span>
+              </a>
+            </li>
+            <li>
+              <a href="#">
+                <span>🔒 เปลี่ยนรหัสผ่าน</span>
+                <span class="arrow">&gt;</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <h3 style="margin-bottom: 10px; color: #555; margin-top: 30px">ระบบ</h3>
+        <div class="settings-box">
+          <ul class="settings-list">
+            <li>
+              <a href="#">
+                <span>📖 คู่มือการใช้งานสำหรับผู้ดูแล</span>
+                <span class="arrow">&gt;</span>
+              </a>
+            </li>
+            <li>
+              <a href="/logout" style="color: #e74c3c">
+                <span>🚪 ออกจากระบบ</span>
+                <span class="arrow">&gt;</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", loadAdminProfile);
+
+      function loadAdminProfile() {
+        fetch("/api/user")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.loggedIn) {
+              document.getElementById("user-name").innerText = data.fullname;
+              const imgEl = document.getElementById("header-avatar");
+              if (data.image) imgEl.src = `/uploads/${data.image}`;
+              imgEl.onerror = () => {
+                imgEl.src = "/static/default.png";
+              };
+            }
+          });
+      }
+    </script>
+  </body>
+</html>

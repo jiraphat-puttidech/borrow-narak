@@ -29,6 +29,8 @@ const adminRoutes = require("./routes/admin");
 app.use("/", authRoutes); // ถ้า URL เป็น /login, /register จะวิ่งไป auth.js
 app.use("/", mainRoutes); // ถ้า URL เป็น /dashboard, /api จะวิ่งไป main.js
 app.use("/", adminRoutes); // ถ้า URL เป็น /admin จะวิ่งไป admin.js
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+
 /* ================= SERVER START ================= */
 const PORT = 5050;
 app.listen(PORT, () => {

@@ -40,10 +40,15 @@
     <aside class="sidebar">
       <div class="brand-title">BORROW SYSTEM</div>
       <ul class="menu-list">
-        <li><a href="/dashboard" class="menu-item">หน้าหลัก</a></li>
-        <li><a href="/category" class="menu-item active">หมวดหมู่สินค้า</a></li>
-        <li><a href="/product" class="menu-item">สินค้า</a></li>
-        <li><a href="/history" class="menu-item">ประวัติการยืม</a></li>
+        <li><a href="/dashboard" class="menu-item">🏠 หน้าหลัก</a></li>
+        <li>
+          <a href="/tracking" class="menu-item">📦 สถานะการยืม-คืน</a>
+        </li>
+        <li><a href="/history" class="menu-item">📜 ประวัติทั้งหมด</a></li>
+        <li>
+          <a href="/category" class="menu-item active">📂 หมวดหมู่สินค้า</a>
+        </li>
+        <li><a href="/product" class="menu-item">🛍️ สินค้า</a></li>
         <li><a href="/others" class="menu-item">... อื่นๆ</a></li>
       </ul>
       <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
@@ -52,9 +57,23 @@
     <main class="main-content">
       <header class="header-bar">
         <h1 class="page-title">หมวดหมู่สินค้า</h1>
-        <div class="user-profile">
-          <span class="user-name" id="user-name">User</span>
-        </div>
+        <a href="/profile" class="profile-link">
+          <div class="user-profile">
+            <span class="user-name" id="user-name">Loading...</span>
+
+            <img
+              src="/uploads/default.png"
+              class="avatar"
+              style="
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+                margin-left: 10px;
+              "
+            />
+          </div>
+        </a>
       </header>
 
       <div class="cat-grid">

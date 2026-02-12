@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ประวัติทั้งหมด - BORROW SYSTEM</title>
+    <title>สถานะการยืม-คืน - BORROW SYSTEM</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/static/index.css" />
     <style>
-      /* สไตล์ตาราง */
+      /* สไตล์ตารางแบบเดียวกับ History แต่เพิ่มปุ่ม */
       table {
         width: 100%;
         border-collapse: collapse;
@@ -38,6 +38,25 @@
         background-color: #f9f9f9;
       }
 
+      /* ปุ่มคืนของ */
+      .btn-return {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .btn-return:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+      }
+
       /* Badge สถานะ */
       .badge {
         padding: 5px 10px;
@@ -46,18 +65,14 @@
         font-weight: 600;
         display: inline-block;
       }
-      .bg-success {
-        background: #d4edda;
-        color: #155724;
-      } /* คืนแล้ว */
       .bg-warning {
         background: #fff3cd;
         color: #856404;
-      } /* กำลังยืม/รออนุมัติ */
-      .bg-danger {
-        background: #f8d7da;
-        color: #721c24;
-      } /* เกินกำหนด (อนาคต) */
+      } /* รออนุมัติ */
+      .bg-info {
+        background: #cce5ff;
+        color: #004085;
+      } /* กำลังใช้งาน */
     </style>
   </head>
   <body>
@@ -65,10 +80,10 @@
       <div class="brand-title">BORROW SYSTEM</div>
       <ul class="menu-list">
         <li><a href="/dashboard" class="menu-item">🏠 หน้าหลัก</a></li>
-        <li><a href="/tracking" class="menu-item">📦 สถานะการยืม-คืน</a></li>
         <li>
-          <a href="/history" class="menu-item active">📜 ประวัติทั้งหมด</a>
+          <a href="/tracking" class="menu-item active">📦 สถานะการยืม-คืน</a>
         </li>
+        <li><a href="/history" class="menu-item">📜 ประวัติทั้งหมด</a></li>
         <li><a href="/category" class="menu-item">📂 หมวดหมู่สินค้า</a></li>
         <li><a href="/product" class="menu-item">🛍️ สินค้า</a></li>
         <li><a href="/others" class="menu-item">... อื่นๆ</a></li>
@@ -79,9 +94,9 @@
     <main class="main-content">
       <header class="header-bar">
         <div>
-          <h1 class="page-title">ประวัติการยืม-คืนทั้งหมด</h1>
+          <h1 class="page-title">สถานะการยืม-คืน</h1>
           <p style="color: #666; font-size: 14px">
-            รายการย้อนหลังทั้งหมด (รวมที่คืนแล้ว)
+            รายการอุปกรณ์ที่อยู่กับคุณในขณะนี้
           </p>
         </div>
 
@@ -118,13 +133,14 @@
               <th width="80">รูป</th>
               <th>อุปกรณ์</th>
               <th>วันที่ยืม</th>
-              <th>วันที่คืน</th>
+              <th>กำหนดส่ง</th>
               <th>สถานะ</th>
+              <th width="100">จัดการ</th>
             </tr>
           </thead>
-          <tbody id="history-list">
+          <tbody id="active-list">
             <tr>
-              <td colspan="5" align="center">กำลังโหลดข้อมูล...</td>
+              <td colspan="6" align="center">กำลังโหลดข้อมูล...</td>
             </tr>
           </tbody>
         </table>
@@ -134,7 +150,7 @@
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         loadUserProfile();
-        loadHistory();
+        loadActiveItems();
       });
 
       function loadUserProfile() {
@@ -150,44 +166,46 @@
           });
       }
 
-      function loadHistory() {
-        // ✅ เรียก API ตัวใหม่ (ประวัติทั้งหมด)
-        fetch("/api/my-history-all")
+      function loadActiveItems() {
+        // ✅ เรียก API ดึงเฉพาะของที่ยังไม่คืน
+        fetch("/api/my-active-borrow")
           .then((res) => res.json())
           .then((data) => {
-            const tbody = document.getElementById("history-list");
+            const tbody = document.getElementById("active-list");
             tbody.innerHTML = "";
 
             if (data.length === 0) {
-              tbody.innerHTML = `<tr><td colspan="5" align="center" style="padding:30px; color:#999;">ยังไม่มีประวัติการยืม</td></tr>`;
+              tbody.innerHTML = `<tr><td colspan="6" align="center" style="padding:30px; color:#999;">
+                ✅ ไม่มีอุปกรณ์ค้างส่งคืน<br>
+                <small>คุณสามารถยืมอุปกรณ์ใหม่ได้ที่หน้าแรก</small>
+              </td></tr>`;
               return;
             }
 
             data.forEach((item) => {
-              // 1. จัดการวันที่คืน (ถ้ายังไม่คืน ให้ขีด -)
               const borrowDate = new Date(item.borrowdate).toLocaleDateString(
                 "th-TH",
               );
-              const returnDate = item.returndate
-                ? new Date(item.returndate).toLocaleDateString("th-TH")
-                : "-";
-
-              // 2. จัดการรูปภาพ
+              const dueDate = new Date(item.duedate).toLocaleDateString(
+                "th-TH",
+              );
               const img = item.image
                 ? `/uploads/${item.image}`
                 : "/static/default.png";
 
-              // 3. จัดการสถานะ (Badge)
+              // เช็คสถานะ (ถ้า Admin ยังไม่อนุมัติ จะคืนของไม่ได้ หรือจะให้คืนก็ได้แล้วแต่ Policy)
+              // ในที่นี้ผมให้กดคืนได้ตลอด เพื่อความสะดวก
               let statusHtml = "";
-              if (item.BorrowTransStatusID == 3) {
-                statusHtml = `<span class="badge bg-success">✅ คืนแล้ว</span>`;
-              } else if (item.BorrowTransStatusID == 1) {
+              let btnDisabled = "";
+
+              if (item.Due_statusID == 5) {
+                // 5 = รออนุมัติ
                 statusHtml = `<span class="badge bg-warning">⏳ รออนุมัติ</span>`;
               } else {
-                statusHtml = `<span class="badge bg-warning">📦 กำลังยืม</span>`;
+                // อื่นๆ = กำลังใช้งาน
+                statusHtml = `<span class="badge bg-info">📦 กำลังใช้งาน</span>`;
               }
 
-              // แสดงผล (ไม่มีปุ่มคืนของ)
               tbody.innerHTML += `
                   <tr>
                       <td><img src="${img}" style="height:50px; border-radius:5px; object-fit:cover;"></td>
@@ -196,11 +214,35 @@
                         <small style="color:#888">${item.stickerid}</small>
                       </td>
                       <td>${borrowDate}</td>
-                      <td>${returnDate}</td>
+                      <td style="color:#e74c3c; font-weight:bold;">${dueDate}</td>
                       <td>${statusHtml}</td>
+                      <td>
+                        <button class="btn-return" onclick="returnItem(${item.TSTID}, ${item.DVID})">
+                            ↩️ ส่งคืน
+                        </button>
+                      </td>
                   </tr>
               `;
             });
+          });
+      }
+
+      function returnItem(tstid, dvid) {
+        if (!confirm("ยืนยันการส่งคืนอุปกรณ์ใช่หรือไม่?")) return;
+
+        fetch("/api/return", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tstid, dvid }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              alert("คืนอุปกรณ์สำเร็จ!");
+              loadActiveItems(); // โหลดรายการใหม่ (รายการนี้จะหายไป)
+            } else {
+              alert("เกิดข้อผิดพลาด: " + (data.message || "ไม่สามารถคืนได้"));
+            }
           });
       }
     </script>

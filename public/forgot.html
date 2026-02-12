@@ -7,16 +7,15 @@
 
     <style>
       .error-msg {
-        background-color: #ffe6e6; /* พื้นหลังสีแดงอ่อน */
-        color: #d63031; /* ตัวหนังสือสีแดงเข้ม */
+        background-color: #ffe6e6;
+        color: #d63031;
         border: 1px solid #d63031;
       }
       .success-msg {
-        background-color: #e6fffa; /* พื้นหลังสีเขียวอ่อน */
-        color: #00b894; /* ตัวหนังสือสีเขียว */
+        background-color: #e6fffa;
+        color: #00b894;
         border: 1px solid #00b894;
       }
-      /* จัดสไตล์เพิ่มเติมให้กล่องดูดีขึ้น */
       #msg-box {
         font-weight: bold;
         font-size: 14px;
@@ -39,7 +38,7 @@
         "
       ></div>
 
-      <form method="POST" action="/reset-password">
+      <form id="resetForm" method="POST" action="/reset-password">
         <label>Username</label>
         <input
           type="text"
@@ -60,10 +59,32 @@
         <input
           type="password"
           name="new_password"
+          id="new_password"
           required
           placeholder="ตั้งรหัสใหม่"
         />
 
+        <label>Confirm Password (ยืนยันรหัสผ่าน)</label>
+        <input
+          type="password"
+          name="confirm_password"
+          id="confirm_password"
+          required
+          placeholder="กรอกรหัสผ่านอีกครั้ง"
+        />
+
+        <p
+          id="pass-error"
+          style="
+            color: red;
+            display: none;
+            font-size: 14px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+          "
+        >
+          ❌ รหัสผ่านไม่ตรงกัน กรุณากรอกใหม่
+        </p>
         <button type="submit">บันทึกรหัสผ่านใหม่</button>
       </form>
 
@@ -73,6 +94,7 @@
     </div>
 
     <script>
+      // โค้ดเดิม: จัดการ Error/Success จาก Server
       const urlParams = new URLSearchParams(window.location.search);
       const errorMsg = urlParams.get("error");
       const successMsg = urlParams.get("success");
@@ -80,15 +102,34 @@
 
       if (errorMsg) {
         msgBox.style.display = "block";
-        // ใส่ Class ให้กล่องเป็นสีแดง
         msgBox.className = "msg-box error-msg";
         msgBox.innerText = errorMsg;
       } else if (successMsg) {
         msgBox.style.display = "block";
-        // ใส่ Class ให้กล่องเป็นสีเขียว
         msgBox.className = "msg-box success-msg";
         msgBox.innerText = successMsg;
       }
+
+      // โค้ดใหม่: เช็คว่ารหัสตรงกันไหมก่อนส่งฟอร์ม
+      const form = document.getElementById("resetForm");
+      const newPass = document.getElementById("new_password");
+      const confirmPass = document.getElementById("confirm_password");
+      const passError = document.getElementById("pass-error");
+
+      form.addEventListener("submit", function (e) {
+        if (newPass.value !== confirmPass.value) {
+          e.preventDefault(); // ห้ามส่งฟอร์ม
+          passError.style.display = "block"; // โชว์ข้อความ Error
+        } else {
+          passError.style.display = "none";
+        }
+      });
+
+      // (เสริม) พิมพ์ใหม่แล้วซ่อน Error
+      confirmPass.addEventListener(
+        "input",
+        () => (passError.style.display = "none"),
+      );
     </script>
   </body>
 </html>

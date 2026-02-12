@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ข้อมูลส่วนตัว - Thai PBS</title>
+    <link rel="stylesheet" href="/static/profile.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="profile-container">
+      <div class="profile-header">
+        <h1 style="margin: 0">ข้อมูลผู้ใช้งาน</h1>
+
+        <a href="#" onclick="closeProfile(event)" class="btn-close">✕ ปิด</a>
+      </div>
+
+      <div class="profile-body">
+        <div class="profile-left">
+          <div class="avatar-wrapper">
+            <img src="/static/default.png" id="p-img" class="profile-avatar" />
+          </div>
+          <h2 id="p-fullname">กำลังโหลด...</h2>
+          <span class="role-badge" id="p-role">-</span>
+        </div>
+
+        <div class="profile-right">
+          <div class="info-group">
+            <label>รหัสพนักงาน</label>
+            <div class="info-value" id="p-emp-id">-</div>
+          </div>
+
+          <div class="info-group">
+            <label>ชื่อผู้ใช้งาน (Username)</label>
+            <div class="info-value" id="p-username">-</div>
+          </div>
+
+          <div class="info-group">
+            <label>อีเมล</label>
+            <div class="info-value" id="p-email">-</div>
+          </div>
+
+          <div class="info-group">
+            <label>เบอร์โทรศัพท์</label>
+            <div class="info-value" id="p-phone">-</div>
+          </div>
+
+          <div class="info-group full-width">
+            <label>สำนัก / ฝ่าย</label>
+            <div class="info-value" id="p-dept">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-footer">
+        <a href="/logout" class="btn-logout">ออกจากระบบ</a>
+      </div>
+    </div>
+
+    <script>
+      // ตัวแปรเก็บ Role ของคนปัจจุบัน (1=User, 2=Admin)
+      let currentUserRole = 1;
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadProfileData();
+      });
+
+      function loadProfileData() {
+        // เรียก API ไปที่ /api/my-profile เพื่อเอาข้อมูลละเอียด
+        fetch("/api/my-profile")
+          .then((res) => res.json())
+          .then((user) => {
+            if (user.error) {
+              alert("กรุณา Login ใหม่");
+              window.location.href = "/";
+              return;
+            }
+
+            // 1. เก็บ Role ไว้ใช้ตอนกดปิด (ถ้า API ส่งมา)
+            // ถ้า API my-profile ไม่ส่ง role ให้ดึงจาก /api/user อีกรอบก็ได้
+            // แต่สมมติว่าเราเช็คจากหน้า Dashboard logic
+            // *เทคนิค:* เราเช็คจาก RoleID ในฐานข้อมูลที่ส่งมา
+            if (user.RoleID == 2) {
+              currentUserRole = 2;
+            }
+
+            // 2. แสดงข้อมูลบนหน้าเว็บ
+            document.getElementById("p-fullname").innerText =
+              user.fname + " " + user.lname;
+            document.getElementById("p-role").innerText =
+              user.RoleID == 2 ? "Admin / ผู้ดูแลระบบ" : "User / พนักงาน";
+            document.getElementById("p-emp-id").innerText = user.EMP_NUM || "-";
+            document.getElementById("p-username").innerText =
+              user.username || "-";
+            document.getElementById("p-email").innerText = user.email || "-";
+            document.getElementById("p-phone").innerText = user.phone || "-";
+
+            // แสดงแผนก
+            const dept = user.DepartmentName || "-";
+            const inst = user.InstitutionName || "-";
+            document.getElementById("p-dept").innerText = `${dept} (${inst})`;
+
+            // รูปภาพ
+            const imgEl = document.getElementById("p-img");
+            if (user.image) {
+              imgEl.src = `/uploads/${user.image}`;
+            }
+            imgEl.onerror = () => {
+              imgEl.src = "/static/default.png";
+            };
+          })
+          .catch((err) => console.error(err));
+
+        // เช็ค Role เพิ่มเติมจาก Session (เพื่อความชัวร์)
+        fetch("/api/user")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.role == 2) currentUserRole = 2;
+          });
+      }
+
+      // ✅ ฟังก์ชันกดปุ่มปิด
+      function closeProfile(event) {
+        event.preventDefault(); // กันไม่ให้มันดีดไปลิงก์มั่วๆ
+
+        if (currentUserRole === 2) {
+          // ถ้าเป็น Admin -> กลับไปหน้า Admin
+          window.location.href = "/admin";
+        } else {
+          // ถ้าเป็น User -> กลับไปหน้า Dashboard ปกติ
+          window.location.href = "/dashboard";
+        }
+      }
+    </script>
+  </body>
+</html>

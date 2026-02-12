@@ -126,9 +126,10 @@ router.post("/register", upload.single("image"), (req, res) => {
     phone,
     username,
     password,
+    confirm_password, // 👈 รับค่า confirm_password มา
   } = req.body;
 
-  // 2. รับชื่อไฟล์รูป (ถ้าไม่ได้อัปโหลดมา ให้เป็น null)
+  // 2. รับชื่อไฟล์รูป
   const imageFilename = req.file ? req.file.filename : null;
 
   // 3. Validation ข้อมูลสำคัญ
@@ -136,11 +137,15 @@ router.post("/register", upload.single("image"), (req, res) => {
     return res.redirect("/register?error=กรุณากรอกข้อมูลสำคัญให้ครบ");
   }
 
+  // ✅ 3.1 เช็คว่ารหัสผ่านตรงกันไหม
+  if (password !== confirm_password) {
+    return res.redirect("/register?error=รหัสผ่านยืนยันไม่ถูกต้อง");
+  }
+
   // 4. เข้ารหัสรหัสผ่าน
   const hashPassword = bcrypt.hashSync(password, 10);
 
   // 5. เตรียม SQL Insert
-  // ⚠️ ต้องแน่ใจว่าใน Database มีคอลัมน์ CreateBy แล้วนะครับ
   const sql = `
         INSERT INTO TB_T_Employee 
         (
@@ -155,7 +160,7 @@ router.post("/register", upload.single("image"), (req, res) => {
         (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), 'System')
     `;
 
-  // 6. ค่าที่จะใส่ (เรียงตามลำดับ SQL ข้างบน)
+  // 6. ค่าที่จะใส่
   const values = [
     emp_num,
     fname,
@@ -170,18 +175,29 @@ router.post("/register", upload.single("image"), (req, res) => {
     imageFilename,
   ];
 
-  // 7. รันคำสั่ง SQL
+  // 7. รันคำสั่ง SQL (พร้อมดัก Error 1062 ค่าซ้ำ)
   db.query(sql, values, (err, result) => {
     if (err) {
-      console.error("Register SQL Error:", err); // ปริ้น Error ออกมาดูถ้ามีปัญหา
+      console.error("Register SQL Error:", err);
 
-      if (err.code === "ER_DUP_ENTRY") {
-        return res.redirect(
-          "/register?error=รหัสพนักงานหรือชื่อผู้ใช้นี้มีในระบบแล้ว",
-        );
+      // ✅ ดัก Error ค่าซ้ำ (Duplicate Entry)
+      if (err.code === "ER_DUP_ENTRY" || err.errno === 1062) {
+        if (err.sqlMessage.includes("username")) {
+          return res.redirect(
+            "/register?error=ชื่อผู้ใช้งาน (Username) นี้มีคนใช้แล้ว",
+          );
+        }
+        if (err.sqlMessage.includes("EMP_NUM")) {
+          return res.redirect("/register?error=รหัสพนักงานนี้มีในระบบแล้ว");
+        }
+        // ✅ 3. เช็ค Email (เพิ่มตรงนี้)
+        if (err.sqlMessage.includes("email")) {
+          return res.redirect("/register?error=อีเมลนี้มีผู้ใช้งานแล้ว");
+        }
+        return res.redirect("/register?error=ข้อมูลซ้ำกับที่มีในระบบ");
       }
 
-      // ส่งข้อความ Error กลับไปหน้าเว็บด้วย จะได้รู้ว่าผิดตรงไหน
+      // Error อื่นๆ
       return res.redirect("/register?error=บันทึกไม่ผ่าน: " + err.sqlMessage);
     }
 
@@ -189,29 +205,6 @@ router.post("/register", upload.single("image"), (req, res) => {
     res.redirect("/?success=สมัครสมาชิกเรียบร้อย กรุณาเข้าสู่ระบบ");
   });
 });
-
-// --- REGISTER ---
-router.get("/register", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public", "register.html"));
-});
-
-router.post("/register", (req, res) => {
-  const { emp_num, username, password, fname, lname, email, phone } = req.body;
-  if (!password) return res.redirect("/register?error=กรุณากรอกรหัสผ่าน");
-
-  const hash = bcrypt.hashSync(password, 10);
-  const sql = `INSERT INTO TB_T_Employee (EMP_NUM, username, password, fname, lname, email, phone, RoleID, InstitutionID, DepartmentID, EMPStatusID) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1, 1, 1)`;
-
-  db.query(
-    sql,
-    [emp_num, username, hash, fname, lname, email, phone],
-    (err) => {
-      if (err) return res.redirect("/register?error=สมัครไม่สำเร็จ");
-      res.redirect("/?success=สมัครสมาชิกเรียบร้อย");
-    },
-  );
-});
-
 // --- FORGOT ---
 router.get("/forgot", (req, res) => {
   res.sendFile(path.join(__dirname, "../public", "forgot.html"));
@@ -248,6 +241,19 @@ router.get("/logout", (req, res) => {
   }
   // ล้าง Session และกลับหน้าแรก
   req.session.destroy(() => res.redirect("/"));
+});
+
+router.get("/api/user", (req, res) => {
+  if (req.session.login) {
+    res.json({
+      loggedIn: true,
+      fullname: req.session.user.fullname, // ชื่อจริง
+      image: req.session.user.image, // ✅ ต้องเพิ่มบรรทัดนี้ (ส่งชื่อรูปไปด้วย)
+      role: req.session.user.role,
+    });
+  } else {
+    res.json({ loggedIn: false });
+  }
 });
 
 module.exports = router;

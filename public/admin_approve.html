@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Approval - BORROW SYSTEM</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/index.css" />
+
+    <style>
+      /* CSS เฉพาะหน้าแอดมิน */
+      .admin-sidebar {
+        background-color: #2c3e50;
+      }
+
+      .approve-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        border-left: 5px solid #f39c12;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+      .req-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-grow: 1;
+      }
+      .req-icon {
+        font-size: 30px;
+        width: 50px;
+        height: 50px;
+        background: #fdf2e9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+      }
+      .req-details h3 {
+        margin: 0;
+        font-size: 16px;
+        color: #333;
+      }
+      .req-details p {
+        margin: 2px 0;
+        font-size: 13px;
+        color: #666;
+      }
+      .req-reason {
+        background: #f9f9f9;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        color: #555;
+        display: inline-block;
+        margin-top: 5px;
+      }
+      .action-group {
+        display: flex;
+        gap: 10px;
+      }
+      .btn-action {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 30px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+        color: white;
+      }
+      .btn-approve {
+        background-color: #27ae60;
+      }
+      .btn-reject {
+        background-color: #c0392b;
+      }
+
+      /* เพิ่ม CSS เพื่อให้ User Profile แสดงผลถูกต้อง */
+      .profile-link {
+        text-decoration: none;
+        color: inherit;
+      }
+      .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: white;
+        padding: 5px 15px;
+        border-radius: 30px;
+        border: 1px solid #ddd;
+        cursor: pointer;
+      }
+      .user-profile:hover {
+        background-color: #f5f5f5;
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand-title">ADMIN PANEL</div>
+      <ul class="menu-list">
+        <li><a href="/admin" class="menu-item">📊 ภาพรวมระบบ</a></li>
+
+        <li>
+          <a href="/admin/approve" class="menu-item active"
+            >📝 รายการรออนุมัติ</a
+          >
+        </li>
+
+        <li><a href="/admin/device" class="menu-item">📦 จัดการอุปกรณ์</a></li>
+
+        <li>
+          <a href="/admin/history" class="menu-item">📜 ประวัติการยืม-คืน</a>
+        </li>
+
+        <li><a href="/admin/others" class="menu-item">... อื่นๆ</a></li>
+      </ul>
+      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+    </aside>
+
+    <main class="main-content">
+      <header class="header-bar">
+        <div>
+          <h1 class="page-title">รายการรออนุมัติ</h1>
+          <p style="color: #666">จัดการคำขอยืมอุปกรณ์จากสมาชิก</p>
+        </div>
+
+        <a href="/profile" class="profile-link">
+          <div class="user-profile">
+            <span class="user-name" id="user-name">Loading...</span>
+            <img
+              src="/static/default.png"
+              class="avatar"
+              id="header-avatar"
+              style="
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+                margin-left: 10px;
+              "
+            />
+          </div>
+        </a>
+      </header>
+
+      <div id="pending-container">
+        <p>🔄 กำลังโหลดข้อมูล...</p>
+      </div>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        loadPending();
+        loadAdminData(); // เรียกฟังก์ชันโหลดชื่อรูป
+      });
+
+      // ✅ ฟังก์ชันดึงชื่อและรูป (จำเป็นต้องมีเพื่อให้มันไม่ขึ้น Loading...)
+      function loadAdminData() {
+        fetch("/api/user")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.loggedIn) {
+              document.getElementById("user-name").innerText = data.fullname;
+              const imgEl = document.getElementById("header-avatar");
+              if (data.image) {
+                imgEl.src = `/uploads/${data.image}`;
+              }
+              imgEl.onerror = () => {
+                imgEl.src = "/static/default.png";
+              };
+            }
+          });
+      }
+
+      function loadPending() {
+        const container = document.getElementById("pending-container");
+        fetch("/api/admin/pending")
+          .then((res) => res.json())
+          .then((data) => {
+            container.innerHTML = "";
+            if (data.length === 0) {
+              container.innerHTML = `<div style="text-align:center; padding:50px; color:#aaa;"><h2>✅ ไม่มีรายการค้าง</h2><p>ไม่มีคำขอยืมที่รออนุมัติ</p></div>`;
+              return;
+            }
+            data.forEach((item) => {
+              const bDate = new Date(item.borrowdate).toLocaleDateString(
+                "th-TH",
+              );
+              const dDate = new Date(item.duedate).toLocaleDateString("th-TH");
+              const borrowerName = item.fname
+                ? `${item.fname} ${item.lname}`
+                : item.username;
+
+              container.innerHTML += `
+                            <div class="approve-card">
+                                <div class="req-info">
+                                    <div class="req-icon">📦</div>
+                                    <div class="req-details">
+                                        <h3>${borrowerName} <span style="font-size:12px; color:#888;">(แผนก: ${item.department_id || "-"})</span></h3>
+                                        <p><strong>ขอเบิก:</strong> ${item.devicename} <span style="color:#f27044;">[${item.stickerid}]</span></p>
+                                        <p>📅 ${bDate} ➔ ${dDate}</p>
+                                        <div class="req-reason">💬 เหตุผล: ${item.purpose}</div>
+                                    </div>
+                                </div>
+                                <div class="action-group">
+                                    <button class="btn-action btn-approve" onclick="actionRequest(${item.TSTID}, 'approve', ${item.DVID})">✅ อนุมัติ</button>
+                                    <button class="btn-action btn-reject" onclick="actionRequest(${item.TSTID}, 'reject', ${item.DVID})">❌ ไม่อนุมัติ</button>
+                                </div>
+                            </div>`;
+            });
+          })
+          .catch((err) => {
+            container.innerHTML = "<p style='color:red'>โหลดข้อมูลล้มเหลว</p>";
+          });
+      }
+
+      function actionRequest(tstid, action, dvid) {
+        if (
+          !confirm(
+            action === "approve"
+              ? 'ยืนยันการ "อนุมัติ"?'
+              : 'ยืนยันการ "ไม่อนุมัติ"?',
+          )
+        )
+          return;
+        fetch("/api/admin/action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tstid, action, dvid }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              alert("บันทึกเรียบร้อย!");
+              loadPending();
+            } else {
+              alert("เกิดข้อผิดพลาด");
+            }
+          });
+      }
+    </script>
+  </body>
+</html>

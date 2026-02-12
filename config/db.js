@@ -6,6 +6,7 @@ const db = mysql.createConnection({
   password: "",
   database: "borrow_system",
   port: 3307,
+  multipleStatements: true,
 });
 
 db.connect((err) => {

@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Devices - Admin</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/index.css" />
+
+    <style>
+      /* ปุ่มเพิ่ม */
+      .btn-add-header {
+        background: #27ae60;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: 0.2s;
+      }
+      .btn-add-header:hover {
+        background: #219150;
+        transform: translateY(-2px);
+      }
+
+      /* Badge สถานะในตาราง */
+      .status-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .st-ok {
+        background: #d4edda;
+        color: #155724;
+      }
+      .st-busy {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      /* --- สไตล์ของ Modal เพิ่มอุปกรณ์แบบใหม่ --- */
+      .modal-content {
+        max-width: 600px; /* ขยายให้กว้างขึ้น */
+        width: 90%;
+      }
+
+      /* จัดฟอร์มเป็น 2 คอลัมน์ */
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 5px;
+        display: block;
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+        background-color: #f9f9f9;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        border-color: #27ae60;
+        background-color: #fff;
+        outline: none;
+      }
+
+      /* ปุ่มบันทึก */
+      .btn-confirm {
+        width: 100%;
+        padding: 12px;
+        background-color: #27ae60;
+        border: none;
+        color: white;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .btn-confirm:hover {
+        background-color: #219150;
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar admin-sidebar">
+      <div class="brand-title">ADMIN PANEL</div>
+      <ul class="menu-list">
+        <li><a href="/admin" class="menu-item">📊 ภาพรวมระบบ</a></li>
+        <li>
+          <a href="/admin/approve" class="menu-item">📝 รายการรออนุมัติ</a>
+        </li>
+        <li>
+          <a href="/admin/device" class="menu-item active">📦 จัดการอุปกรณ์</a>
+        </li>
+        <li>
+          <a href="/admin/history" class="menu-item">📜 ประวัติการยืม-คืน</a>
+        </li>
+        <li><a href="/admin/others" class="menu-item">... อื่นๆ</a></li>
+      </ul>
+      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+    </aside>
+
+    <main class="main-content">
+      <header class="header-bar">
+        <div>
+          <h1 class="page-title">จัดการอุปกรณ์</h1>
+          <p style="color: #666; font-size: 14px">
+            เพิ่ม ลบ แก้ไข รายการครุภัณฑ์ในระบบ
+          </p>
+        </div>
+
+        <a
+          href="/profile"
+          class="profile-link"
+          style="text-decoration: none; color: inherit"
+        >
+          <div class="user-profile">
+            <span class="user-name" id="user-name">Loading...</span>
+            <img
+              src="/static/default.png"
+              class="avatar"
+              id="header-avatar"
+              style="
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+                margin-left: 10px;
+              "
+            />
+          </div>
+        </a>
+      </header>
+
+      <div class="dashboard-bottom" style="display: block">
+        <div class="panel table-panel" style="width: 100%">
+          <div
+            class="panel-header"
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <span>📦 รายการอุปกรณ์ทั้งหมด</span>
+            <button onclick="openModal()" class="btn-add-header">
+              + เพิ่มอุปกรณ์ใหม่
+            </button>
+          </div>
+
+          <div class="panel-body">
+            <table class="recent-table">
+              <thead>
+                <tr>
+                  <th>ชื่ออุปกรณ์</th>
+                  <th>รหัสครุภัณฑ์</th>
+                  <th>สถานะ</th>
+                  <th>จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="device-list">
+                <tr>
+                  <td colspan="4" style="text-align: center; padding: 20px">
+                    กำลังโหลด...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div id="addModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h2 style="margin-bottom: 20px; text-align: center">
+          เพิ่มอุปกรณ์ใหม่
+        </h2>
+
+        <form onsubmit="addDevice(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>ชื่ออุปกรณ์ *</label>
+              <input
+                type="text"
+                id="d-name"
+                required
+                placeholder="เช่น Notebook Dell"
+              />
+            </div>
+            <div class="form-group">
+              <label>รหัสครุภัณฑ์ (Sticker ID) *</label>
+              <input
+                type="text"
+                id="d-sticker"
+                required
+                placeholder="เช่น NB-001"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Serial Number</label>
+              <input type="text" id="d-serial" placeholder="เช่น SN12345678" />
+            </div>
+            <div class="form-group">
+              <label>สถานะเริ่มต้น</label>
+              <select id="d-status">
+                <option value="1">พร้อมใช้งาน</option>
+                <option value="3">ส่งซ่อม</option>
+                <option value="4">ชำรุด</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>ยี่ห้อ (Brand)</label>
+              <select id="d-brand">
+                <option value="1">กำลังโหลด...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>รุ่น (Model)</label>
+              <select id="d-model">
+                <option value="1">กำลังโหลด...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>หมวดหมู่ (Category)</label>
+              <select id="d-category">
+                <option value="1">กำลังโหลด...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>ประเภท (Type)</label>
+              <select id="d-type">
+                <option value="1">กำลังโหลด...</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-confirm">บันทึกข้อมูล</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        loadDevices();
+        loadAdminProfile();
+        loadMasterData(); // ✅ เรียกฟังก์ชันโหลด Dropdown
+      });
+
+      function loadAdminProfile() {
+        fetch("/api/user")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.loggedIn) {
+              document.getElementById("user-name").innerText = data.fullname;
+              const imgEl = document.getElementById("header-avatar");
+              if (data.image) imgEl.src = `/uploads/${data.image}`;
+              imgEl.onerror = () => {
+                imgEl.src = "/static/default.png";
+              };
+            }
+          });
+      }
+
+      // ✅ ฟังก์ชันดึงยี่ห้อ รุ่น หมวดหมู่ มาใส่ Dropdown
+      function loadMasterData() {
+        fetch("/api/admin/master-data")
+          .then((res) => res.json())
+          .then((data) => {
+            populateSelect("d-brand", data.brands, "BrandID", "BrandName");
+            populateSelect("d-model", data.models, "ModelID", "ModelName");
+            populateSelect(
+              "d-category",
+              data.categories,
+              "CategoryID",
+              "CategoryName",
+            );
+            populateSelect("d-type", data.types, "TypeID", "TypeName");
+          })
+          .catch((err) => console.error("Load Master Data Failed:", err));
+      }
+
+      // ตัวช่วยสร้าง Option ใน Select
+      function populateSelect(elementId, items, valueField, textField) {
+        const select = document.getElementById(elementId);
+        select.innerHTML = ""; // ล้างค่าเก่า
+
+        if (!items || items.length === 0) {
+          select.innerHTML = `<option value="1">- ไม่ระบุ -</option>`;
+          return;
+        }
+
+        items.forEach((item) => {
+          select.innerHTML += `<option value="${item[valueField]}">${item[textField]}</option>`;
+        });
+      }
+
+      function loadDevices() {
+        const tbody = document.getElementById("device-list");
+        fetch("/api/admin/devices")
+          .then((res) => res.json())
+          .then((data) => {
+            tbody.innerHTML = "";
+            if (data.length === 0) {
+              tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">🚫 ไม่พบข้อมูลอุปกรณ์</td></tr>`;
+              return;
+            }
+
+            data.forEach((item) => {
+              const statusClass = item.DVStatusID == 1 ? "st-ok" : "st-busy";
+              const statusText =
+                item.StatusNameDV ||
+                (item.DVStatusID == 1 ? "พร้อมใช้งาน" : "ไม่ว่าง");
+
+              tbody.innerHTML += `
+                            <tr>
+                                <td><strong>${item.devicename}</strong></td>
+                                <td style="color:#666;">${item.stickerid}</td>
+                                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                                <td>
+                                    <button onclick="deleteDevice(${item.DVID})" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">ลบ</button>
+                                </td>
+                            </tr>
+                        `;
+            });
+          });
+      }
+
+      // ✅ ฟังก์ชันบันทึกข้อมูลแบบใหม่ (ส่งครบทุกช่อง)
+      function addDevice(e) {
+        e.preventDefault();
+
+        // รับค่าจากฟอร์ม
+        const payload = {
+          devicename: document.getElementById("d-name").value,
+          stickerid: document.getElementById("d-sticker").value,
+          serialnumber: document.getElementById("d-serial").value,
+          DVStatusID: document.getElementById("d-status").value,
+          BrandID: document.getElementById("d-brand").value,
+          ModelID: document.getElementById("d-model").value,
+          CategoryID: document.getElementById("d-category").value,
+          TypeID: document.getElementById("d-type").value,
+        };
+
+        fetch("/api/admin/device/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              alert("เพิ่มสำเร็จ!");
+              closeModal();
+              loadDevices();
+              // เคลียร์ค่าฟอร์ม
+              document.getElementById("d-name").value = "";
+              document.getElementById("d-sticker").value = "";
+              document.getElementById("d-serial").value = "";
+            } else {
+              alert("เพิ่มไม่สำเร็จ: " + data.msg);
+            }
+          });
+      }
+
+      function deleteDevice(dvid) {
+        if (!confirm("ยืนยันการลบ?")) return;
+        fetch("/api/admin/device/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dvid }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              alert("ลบสำเร็จ!");
+              loadDevices();
+            } else {
+              alert("ลบไม่ได้");
+            }
+          });
+      }
+
+      function openModal() {
+        document.getElementById("addModal").style.display = "flex";
+      }
+      function closeModal() {
+        document.getElementById("addModal").style.display = "none";
+      }
+      window.onclick = (e) => {
+        if (e.target == document.getElementById("addModal")) closeModal();
+      };
+    </script>
+  </body>
+</html>

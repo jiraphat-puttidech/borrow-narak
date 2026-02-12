@@ -1,14 +1,10 @@
-/* public/js/dashboard.js (ฉบับสมบูรณ์: หน้าหลัก + ประวัติ + คืนของ) */
+/* public/js/dashboard.js (ฉบับแก้ไข: เอารูปสินค้าออกชั่วคราว) */
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 Dashboard Script Loaded");
   checkLogin();
 
-  // ----------------------------------------------------
-  // 🔍 ตัวเช็คว่าเราอยู่หน้าไหน (Router แบบง่าย)
-  // ----------------------------------------------------
-
-  // 1. ถ้าเจอ Grid สินค้า -> แปลว่าอยู่ "หน้าหลัก"
+  // 1. ถ้าเจอ Grid สินค้า -> แปลว่าอยู่ "หน้าหลัก/สินค้า"
   if (document.getElementById("device-grid")) {
     loadDevices();
   }
@@ -18,7 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
     loadHistory();
   }
 
-  // 3. ตั้งค่า Date Picker (ถ้ามี)
+  // 3. (Dashboard Stats) ถ้าเจอ Grid สถิติ
+  if (document.querySelector(".stats-grid")) {
+    loadDashboardStats();
+  }
+
+  // 4. ตั้งค่า Date Picker
   const dateInput = document.getElementById("borrow-duedate");
   if (dateInput) {
     const today = new Date().toISOString().split("T")[0];
@@ -32,17 +33,86 @@ function checkLogin() {
     .then((res) => res.json())
     .then((data) => {
       if (!data.loggedIn) {
-        window.location.href = "/"; // ไม่ล็อกอิน ดีดออก
+        window.location.href = "/";
       } else {
-        // แสดงชื่อผู้ใช้ (ถ้ามี element นี้)
-        const nameEl = document.getElementById("user-name");
+        const nameEl =
+          document.getElementById("user-name") ||
+          document.getElementById("header-name");
         if (nameEl) nameEl.innerText = data.fullname;
+
+        // รูปโปรไฟล์มุมขวาบน (ยังเก็บไว้)
+        const imgEl =
+          document.querySelector(".avatar") ||
+          document.getElementById("header-avatar");
+        if (imgEl) {
+          const imgSrc = data.image
+            ? `/uploads/${data.image}`
+            : "/static/default.png";
+          imgEl.src = imgSrc;
+          imgEl.onerror = () => {
+            imgEl.src = "/static/default.png";
+          };
+        }
       }
     })
     .catch((err) => console.error("Login Check Error:", err));
 }
 
-/* ================= 2. ระบบโหลดข้อมูลอุปกรณ์ (หน้าหลัก) ================= */
+/* ================= 2. ระบบโหลดสถิติ (Dashboard) ================= */
+function loadDashboardStats() {
+  fetch("/api/dashboard-stats")
+    .then((res) => res.json())
+    .then((data) => {
+      if (!data.recentTrans) return;
+
+      if (document.getElementById("stat-trans"))
+        document.getElementById("stat-trans").innerText = data.totalTrans || 0;
+      if (document.getElementById("stat-pending"))
+        document.getElementById("stat-pending").innerText =
+          data.pendingReturn || 0;
+      if (document.getElementById("stat-users"))
+        document.getElementById("stat-users").innerText =
+          data.totalMembers || 0;
+      if (document.getElementById("stat-devices"))
+        document.getElementById("stat-devices").innerText =
+          data.totalDevices || 0;
+
+      const tbody = document.getElementById("recent-list");
+      if (tbody) {
+        tbody.innerHTML = "";
+        if (data.recentTrans.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999;">ยังไม่มีรายการเคลื่อนไหว</td></tr>`;
+          return;
+        }
+        data.recentTrans.forEach((item) => {
+          const date = new Date(item.transactiondate).toLocaleDateString(
+            "th-TH",
+          );
+          let statusBadge = "";
+          if (item.BorrowTransStatusID == 3)
+            statusBadge = '<span style="color:green;">คืนแล้ว</span>';
+          else if (item.BorrowTransStatusID == 2)
+            statusBadge = '<span style="color:red;">กำลังยืม</span>';
+          else statusBadge = '<span style="color:orange;">รออนุมัติ</span>';
+
+          const borrowerName = item.fname || item.username;
+
+          tbody.innerHTML += `
+            <tr>
+                <td style="padding:10px;">${item.transaction_num || "-"}</td>
+                <td style="padding:10px;">${item.devicename}</td>
+                <td style="padding:10px;">${borrowerName}</td>
+                <td style="padding:10px;">${statusBadge}</td>
+                <td style="padding:10px;">${date}</td>
+            </tr>
+          `;
+        });
+      }
+    })
+    .catch((err) => console.error("Stats Error:", err));
+}
+
+/* ================= 3. ระบบโหลดข้อมูลอุปกรณ์ (เอาส่วนรูปออก) ================= */
 function loadDevices() {
   const grid = document.getElementById("device-grid");
   if (!grid) return;
@@ -65,27 +135,28 @@ function loadDevices() {
       devices.forEach((item) => {
         const isAvailable = item.DVStatusID === 1;
         const statusClass = isAvailable ? "status-available" : "status-busy";
-        const statusText = isAvailable ? "✅ ว่างพร้อมยืม" : "❌ ไม่ว่าง";
+        const statusText = isAvailable
+          ? "✅ ว่างพร้อมยืม"
+          : "❌ ไม่ว่าง / รออนุมัติ";
+        const btnText = isAvailable ? "📝 ส่งคำขอยืม" : "ถูกใช้งานอยู่";
+
         const btnAttr = isAvailable
           ? `onclick="borrowItem(${item.DVID})"`
           : 'disabled style="background-color:#ccc; cursor:not-allowed;"';
-        const btnText = isAvailable ? "ทำรายการเบิก" : "ถูกใช้งานอยู่";
-        const imgSrc =
-          item.image ||
-          item.sticker ||
-          "https://via.placeholder.com/150?text=No+Image";
 
+        // ✅ ตัดส่วน <img> ออก เหลือแค่ชื่อและสถานะ
         grid.innerHTML += `
             <div class="device-card">
-                <div class="card-img-wrapper" style="text-align:center; padding:10px;">
-                    <img src="${imgSrc}" style="max-width:100%; height:150px; object-fit:contain;">
-                </div>
-                <div class="card-body" style="padding:15px;">
-                    <h3 style="font-size:18px; margin-bottom:5px;">${item.devicename}</h3>
-                    <p style="color:#777; font-size:13px; margin-bottom:10px;">รหัส: ${item.stickerid}</p>
-                    <span class="status-badge ${statusClass}" style="display:inline-block; padding:5px 10px; border-radius:15px; font-size:12px; margin-bottom:15px;">
-                        ${statusText}
-                    </span>
+                <div class="card-body" style="padding:20px;">
+                    <h3 style="font-size:18px; margin-bottom:10px;">${item.devicename}</h3>
+                    <p style="color:#777; font-size:13px; margin-bottom:15px;">รหัสครุภัณฑ์: ${item.stickerid}</p>
+                    
+                    <div style="margin-bottom:20px;">
+                        <span class="status-badge ${statusClass}" style="display:inline-block; padding:5px 10px; border-radius:15px; font-size:12px;">
+                            ${statusText}
+                        </span>
+                    </div>
+
                     <button class="btn-borrow" ${btnAttr} style="width:100%; padding:10px; border:none; border-radius:5px; color:white; font-weight:bold; cursor:pointer;">
                         ${btnText}
                     </button>
@@ -99,7 +170,7 @@ function loadDevices() {
     });
 }
 
-/* ================= 3. ระบบ Modal & ยืมของ (หน้าหลัก) ================= */
+/* ================= 4. ระบบ Modal & ยืมของ ================= */
 function borrowItem(dvid) {
   const modal = document.getElementById("borrowModal");
   const inputId = document.getElementById("borrow-dvid");
@@ -148,10 +219,10 @@ window.onclick = function (event) {
   if (event.target == modal) modal.style.display = "none";
 };
 
-/* ================= 4. ระบบประวัติ & คืนของ (หน้า History) ================= */
+/* ================= 5. ระบบประวัติ (เอาส่วนรูปออกเช่นกัน) ================= */
 function loadHistory() {
   const tbody = document.getElementById("history-list");
-  if (!tbody) return; // ถ้าไม่มีตาราง ก็ไม่ต้องทำอะไร
+  if (!tbody) return;
 
   tbody.innerHTML =
     '<tr><td colspan="5" style="text-align:center;">🔄 กำลังโหลดข้อมูล...</td></tr>';
@@ -159,7 +230,7 @@ function loadHistory() {
   fetch("/api/my-borrowing")
     .then((res) => res.json())
     .then((data) => {
-      tbody.innerHTML = ""; // ล้างข้อความโหลด
+      tbody.innerHTML = "";
 
       if (data.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#888;">🚫 ไม่มีรายการที่กำลังยืมอยู่</td></tr>`;
@@ -171,24 +242,26 @@ function loadHistory() {
           "th-TH",
         );
         const dueDate = new Date(item.duedate).toLocaleDateString("th-TH");
-        const imgSrc =
-          item.image || item.sticker || "https://via.placeholder.com/50";
 
+        let returnBtn = "";
+        if (item.BorrowTransStatusID == 1) {
+          returnBtn =
+            '<span style="color:#f39c12; font-size:12px;">รอรับของ</span>';
+        } else {
+          returnBtn = `<button onclick="returnItem(${item.TSTID}, ${item.DVID})" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">คืนของ</button>`;
+        }
+
+        // ✅ ตัดส่วน <img> ออก
         tbody.innerHTML += `
             <tr>
-                <td><img src="${imgSrc}" style="height:50px; object-fit:contain;"></td>
+                <td style="text-align:center; font-size:20px;">📦</td>
                 <td>
                     <strong>${item.devicename}</strong><br>
                     <small style="color:#666">${item.stickerid}</small>
                 </td>
                 <td>${borrowDate}</td>
                 <td style="color:#d35400; font-weight:bold;">${dueDate}</td>
-                <td>
-                    <button onclick="returnItem(${item.TSTID}, ${item.DVID})" 
-                        style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">
-                        คืนของ
-                    </button>
-                </td>
+                <td>${returnBtn}</td>
             </tr>
         `;
       });
@@ -200,29 +273,23 @@ function loadHistory() {
 }
 
 function returnItem(tstid, dvid) {
-  // 1. log ดูว่าปุ่มทำงานไหม
-  console.log("🔘 กดปุ่มคืนของ:", tstid, dvid);
-
   if (!confirm("ยืนยันที่จะคืนอุปกรณ์นี้?")) return;
 
   fetch("/api/return", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ tstid, dvid }), // ส่ง ID ไปคู่กัน
+    body: JSON.stringify({ tstid, dvid }),
   })
     .then((res) => res.json())
     .then((data) => {
-      console.log("📩 Server ตอบกลับ:", data); // ดูว่า Server ตอบอะไร
       if (data.success) {
         alert("✅ คืนอุปกรณ์เรียบร้อย!");
-        loadHistory(); // โหลดตารางใหม่
-        // หรือใช้ location.reload(); ถ้าอยากรีเฟรชทั้งหน้า
+        loadHistory();
       } else {
         alert("❌ เกิดข้อผิดพลาด: " + data.message);
       }
     })
     .catch((err) => {
-      console.error("Fetch Error:", err);
       alert("Server connection failed");
     });
 }
