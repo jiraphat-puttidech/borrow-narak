@@ -73,6 +73,10 @@
         background: #cce5ff;
         color: #004085;
       } /* กำลังใช้งาน */
+      .bg-danger {
+        background: #f8d7da;
+        color: #721c24;
+      } /* ไม่อนุมัติ */
     </style>
   </head>
   <body>
@@ -196,14 +200,23 @@
               // เช็คสถานะ (ถ้า Admin ยังไม่อนุมัติ จะคืนของไม่ได้ หรือจะให้คืนก็ได้แล้วแต่ Policy)
               // ในที่นี้ผมให้กดคืนได้ตลอด เพื่อความสะดวก
               let statusHtml = "";
-              let btnDisabled = "";
+              let btnAction = "";
 
               if (item.Due_statusID == 5) {
                 // 5 = รออนุมัติ
                 statusHtml = `<span class="badge bg-warning">⏳ รออนุมัติ</span>`;
+                // รออนุมัติ: ไม่ควรให้กดคืนของ (ซ่อนปุ่ม หรือ disable)
+                btnAction = `<button class="btn-return" style="background:#ccc; cursor:not-allowed;" disabled>⏳ รอผล</button>`;
+              } else if (item.Due_statusID == 6) {
+                // 6 = ไม่อนุมัติ (เพิ่มส่วนนี้)
+                statusHtml = `<span class="badge bg-danger">❌ ไม่อนุมัติ</span>`;
+                // ไม่อนุมัติ: ให้ปุ่มกดรับทราบ เพื่อลบรายการออก
+                btnAction = `<button class="btn-return" style="background:#6c757d;" onclick="acknowledgeItem(${item.TSTID})">🗑️ รับทราบ</button>`;
               } else {
                 // อื่นๆ = กำลังใช้งาน
                 statusHtml = `<span class="badge bg-info">📦 กำลังใช้งาน</span>`;
+                // อนุมัติแล้ว: โชว์ปุ่มคืนของปกติ
+                btnAction = `<button class="btn-return" onclick="returnItem(${item.TSTID}, ${item.DVID})">↩️ ส่งคืน</button>`;
               }
 
               tbody.innerHTML += `
@@ -217,13 +230,27 @@
                       <td style="color:#e74c3c; font-weight:bold;">${dueDate}</td>
                       <td>${statusHtml}</td>
                       <td>
-                        <button class="btn-return" onclick="returnItem(${item.TSTID}, ${item.DVID})">
-                            ↩️ ส่งคืน
-                        </button>
+                        ${btnAction}
                       </td>
                   </tr>
               `;
             });
+          });
+      }
+
+      function acknowledgeItem(tstid) {
+        if (!confirm("กดรับทราบเพื่อลบรายการนี้ออกจากหน้าจอ?")) return;
+
+        fetch("/api/acknowledge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tstid }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              loadActiveItems(); // โหลดรายการใหม่ (รายการนี้จะหายไป)
+            }
           });
       }
 

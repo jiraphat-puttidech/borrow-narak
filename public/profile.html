@@ -9,12 +9,123 @@
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
+    <style>
+      /* ปุ่มแก้ไข */
+      .btn-edit {
+        background: #ffc107;
+        color: #333;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-family: "Kanit";
+        font-weight: 500;
+        transition: 0.2s;
+        text-decoration: none;
+        display: inline-block;
+      }
+      .btn-edit:hover {
+        background: #ffca2c;
+        transform: translateY(-2px);
+      }
+
+      /* Modal Styles (หน้าต่างเด้ง) */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content {
+        background-color: white;
+        padding: 25px;
+        border-radius: 10px;
+        width: 400px;
+        max-width: 90%;
+        position: relative;
+        animation: slideDown 0.3s;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+      .close-modal {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #aaa;
+      }
+      .close-modal:hover {
+        color: #000;
+      }
+      @keyframes slideDown {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 14px;
+        color: #333;
+      }
+      .form-group input {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: "Kanit";
+      }
+      .btn-save {
+        width: 100%;
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-family: "Kanit";
+      }
+      .btn-save:hover {
+        background: #218838;
+      }
+
+      /* เพิ่มสีสำหรับ Error */
+      .error-msg {
+        color: red;
+        font-size: 12px;
+        display: none;
+        margin-top: 5px;
+      }
+
+      /* ปรับ Footer ให้มีปุ่มเรียงกัน */
+      .profile-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+    </style>
   </head>
   <body>
     <div class="profile-container">
       <div class="profile-header">
         <h1 style="margin: 0">ข้อมูลผู้ใช้งาน</h1>
-
         <a href="#" onclick="closeProfile(event)" class="btn-close">✕ ปิด</a>
       </div>
 
@@ -56,20 +167,106 @@
       </div>
 
       <div class="profile-footer">
+        <button class="btn-edit" onclick="openEditModal()">
+          ✏️ แก้ไขข้อมูล
+        </button>
         <a href="/logout" class="btn-logout">ออกจากระบบ</a>
       </div>
     </div>
 
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal" onclick="closeEditModal()">&times;</span>
+        <h2 style="margin-top: 0; text-align: center; color: #333">
+          ✏️ แก้ไขข้อมูล
+        </h2>
+        <form
+          id="editForm"
+          onsubmit="submitEdit(event)"
+          enctype="multipart/form-data"
+        >
+          <div class="form-group" style="text-align: center">
+            <label>เปลี่ยนรูปโปรไฟล์</label>
+            <input type="file" name="image" accept="image/*" />
+          </div>
+
+          <div class="form-group" style="display: flex; gap: 10px">
+            <div style="flex: 1">
+              <label>ชื่อจริง</label>
+              <input type="text" name="fname" id="e-fname" required />
+            </div>
+            <div style="flex: 1">
+              <label>นามสกุล</label>
+              <input type="text" name="lname" id="e-lname" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>อีเมล</label>
+            <input type="email" name="email" id="e-email" required />
+          </div>
+
+          <div class="form-group">
+            <label>เบอร์โทรศัพท์</label>
+            <input
+              type="text"
+              name="phone"
+              id="e-phone"
+              required
+              pattern="[0-9]{10}"
+              title="กรอกตัวเลข 10 หลัก"
+            />
+          </div>
+
+          <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee" />
+
+          <div class="form-group">
+            <label>รหัสผ่านเดิม (จำเป็นต้องกรอก หากเปลี่ยนรหัส)</label>
+            <input
+              type="password"
+              name="old_password"
+              id="old_pass"
+              placeholder="กรอกรหัสเดิมเพื่อยืนยัน"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>รหัสผ่านใหม่ (ถ้าไม่เปลี่ยนให้เว้นว่าง)</label>
+            <input
+              type="password"
+              name="new_password"
+              id="new_pass"
+              placeholder="รหัสผ่านใหม่"
+            />
+          </div>
+          <div class="form-group">
+            <label>ยืนยันรหัสผ่านใหม่</label>
+            <input
+              type="password"
+              id="confirm_pass"
+              placeholder="กรอกรหัสผ่านใหม่อีกครั้ง"
+            />
+            <small id="pass-error" class="error-msg"
+              >❌ รหัสผ่านไม่ตรงกัน</small
+            >
+          </div>
+
+          <button type="submit" class="btn-save">
+            💾 บันทึกการเปลี่ยนแปลง
+          </button>
+        </form>
+      </div>
+    </div>
+
     <script>
-      // ตัวแปรเก็บ Role ของคนปัจจุบัน (1=User, 2=Admin)
       let currentUserRole = 1;
+      let currentUserData = {};
 
       document.addEventListener("DOMContentLoaded", () => {
         loadProfileData();
       });
 
       function loadProfileData() {
-        // เรียก API ไปที่ /api/my-profile เพื่อเอาข้อมูลละเอียด
         fetch("/api/my-profile")
           .then((res) => res.json())
           .then((user) => {
@@ -79,15 +276,11 @@
               return;
             }
 
-            // 1. เก็บ Role ไว้ใช้ตอนกดปิด (ถ้า API ส่งมา)
-            // ถ้า API my-profile ไม่ส่ง role ให้ดึงจาก /api/user อีกรอบก็ได้
-            // แต่สมมติว่าเราเช็คจากหน้า Dashboard logic
-            // *เทคนิค:* เราเช็คจาก RoleID ในฐานข้อมูลที่ส่งมา
+            currentUserData = user;
             if (user.RoleID == 2) {
               currentUserRole = 2;
             }
 
-            // 2. แสดงข้อมูลบนหน้าเว็บ
             document.getElementById("p-fullname").innerText =
               user.fname + " " + user.lname;
             document.getElementById("p-role").innerText =
@@ -98,12 +291,10 @@
             document.getElementById("p-email").innerText = user.email || "-";
             document.getElementById("p-phone").innerText = user.phone || "-";
 
-            // แสดงแผนก
             const dept = user.DepartmentName || "-";
             const inst = user.InstitutionName || "-";
             document.getElementById("p-dept").innerText = `${dept} (${inst})`;
 
-            // รูปภาพ
             const imgEl = document.getElementById("p-img");
             if (user.image) {
               imgEl.src = `/uploads/${user.image}`;
@@ -113,26 +304,86 @@
             };
           })
           .catch((err) => console.error(err));
-
-        // เช็ค Role เพิ่มเติมจาก Session (เพื่อความชัวร์)
-        fetch("/api/user")
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.role == 2) currentUserRole = 2;
-          });
       }
 
-      // ✅ ฟังก์ชันกดปุ่มปิด
       function closeProfile(event) {
-        event.preventDefault(); // กันไม่ให้มันดีดไปลิงก์มั่วๆ
-
+        event.preventDefault();
         if (currentUserRole === 2) {
-          // ถ้าเป็น Admin -> กลับไปหน้า Admin
           window.location.href = "/admin";
         } else {
-          // ถ้าเป็น User -> กลับไปหน้า Dashboard ปกติ
           window.location.href = "/dashboard";
         }
+      }
+
+      function openEditModal() {
+        document.getElementById("e-fname").value = currentUserData.fname || "";
+        document.getElementById("e-lname").value = currentUserData.lname || "";
+        document.getElementById("e-email").value = currentUserData.email || "";
+        document.getElementById("e-phone").value = currentUserData.phone || "";
+
+        // ✅ แก้ตรงนี้: เคลียร์ค่ารหัสผ่านเดิมด้วย
+        document.getElementById("old_pass").value = "";
+        document.getElementById("new_pass").value = "";
+        document.getElementById("confirm_pass").value = "";
+        document.getElementById("pass-error").style.display = "none";
+
+        document.getElementById("editModal").style.display = "flex";
+      }
+
+      function closeEditModal() {
+        document.getElementById("editModal").style.display = "none";
+      }
+
+      window.onclick = function (event) {
+        const modal = document.getElementById("editModal");
+        if (event.target == modal) {
+          closeEditModal();
+        }
+      };
+
+      function submitEdit(e) {
+        e.preventDefault();
+
+        // ✅ แก้ตรงนี้: เพิ่มการเช็ครหัสเดิม
+        const oldPass = document.getElementById("old_pass").value;
+        const newPass = document.getElementById("new_pass").value;
+        const confirmPass = document.getElementById("confirm_pass").value;
+        const errorMsg = document.getElementById("pass-error");
+
+        if (newPass.trim() !== "") {
+          if (oldPass.trim() === "") {
+            alert("⚠️ กรุณากรอกรหัสผ่านเดิมเพื่อยืนยัน");
+            document.getElementById("old_pass").focus();
+            return;
+          }
+          if (newPass !== confirmPass) {
+            errorMsg.style.display = "block";
+            alert("❌ รหัสผ่านไม่ตรงกัน กรุณากรอกใหม่");
+            return;
+          }
+        }
+        errorMsg.style.display = "none";
+
+        const form = document.getElementById("editForm");
+        const formData = new FormData(form);
+
+        if (!confirm("ยืนยันการแก้ไขข้อมูล?")) return;
+
+        fetch("/api/profile/update", {
+          method: "POST",
+          body: formData,
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              alert("✅ แก้ไขข้อมูลสำเร็จ!");
+              closeEditModal();
+              loadProfileData();
+            } else {
+              alert("❌ เกิดข้อผิดพลาด: " + data.message);
+            }
+          })
+          .catch((err) => alert("Server Error"));
       }
     </script>
   </body>

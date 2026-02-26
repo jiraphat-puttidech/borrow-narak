@@ -171,18 +171,25 @@
                 "th-TH",
               );
               const dDate = new Date(item.duedate).toLocaleDateString("th-TH");
-              const rDate = item.returndate
-                ? new Date(item.returndate).toLocaleDateString("th-TH")
-                : "-";
+
+              // จัดการวันที่คืน: ถ้าไม่อนุมัติ (6) ไม่ต้องโชว์วันที่คืน (แม้จะมีค่าจากการกดรับทราบ)
+              let rDate = "-";
+              if (item.Due_statusID == 6) {
+                rDate = `<span style="color:#999; font-size:12px;">(ยกเลิก)</span>`;
+              } else if (item.returndate) {
+                rDate = new Date(item.returndate).toLocaleDateString("th-TH");
+              }
 
               let badge = "";
-              if (item.BorrowTransStatusID == 1)
+              // เช็ค Due_statusID ก่อน เพื่อความแม่นยำ
+              if (item.Due_statusID == 5)
                 badge = `<span class="badge bg-wait">รออนุมัติ</span>`;
+              else if (item.Due_statusID == 6)
+                badge = `<span class="badge bg-reject">ไม่อนุมัติ</span>`;
               else if (item.BorrowTransStatusID == 2)
                 badge = `<span class="badge bg-borrow">กำลังยืม</span>`;
               else if (item.BorrowTransStatusID == 3)
                 badge = `<span class="badge bg-return">คืนแล้ว</span>`;
-              else badge = `<span class="badge bg-reject">ปฏิเสธ/ยกเลิก</span>`;
 
               const userName = item.fname
                 ? `${item.fname} ${item.lname}`

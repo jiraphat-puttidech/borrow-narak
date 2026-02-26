@@ -3,13 +3,36 @@ const router = express.Router();
 const path = require("path");
 const db = require("../config/db");
 
+// ✅ 1. เพิ่ม Library สำหรับการอัปโหลดและเข้ารหัส (จำเป็นสำหรับแก้ไขโปรไฟล์)
+const multer = require("multer");
+const bcrypt = require("bcryptjs");
+const fs = require("fs");
+
+// ✅ 2. ตั้งค่าการอัปโหลดรูปภาพ (Multer)
+const uploadDir = path.join(__dirname, "../public/uploads");
+// เช็คว่ามีโฟลเดอร์ไหม ถ้าไม่มีให้สร้าง
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // ตั้งชื่อไฟล์กันซ้ำ: emp-เวลา-เลขสุ่ม.นามสกุล
+    const uniqueSuffix = Date.now() + Math.round(Math.random() * 1e9);
+    cb(null, "emp-" + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage: storage });
+
 /* ================= PAGE ROUTES ================= */
 router.get("/dashboard", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "index.html"));
 });
 
-// ✅ 1. เพิ่มหน้า Tracking (สถานะการยืม-คืน)
 router.get("/tracking", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "tracking.html"));
@@ -59,6 +82,11 @@ router.get("/api/dashboard-stats", (req, res) => {
     "SELECT COUNT(*) AS count FROM TB_T_BorrowTrans WHERE returndate IS NULL";
   const q3 = "SELECT COUNT(*) AS count FROM TB_T_Employee";
   const q4 = "SELECT COUNT(*) AS count FROM TB_T_Device";
+
+  // เพิ่มดึง User ล่าสุดเพื่อให้หน้า Dashboard แสดงผลถูกต้อง
+  const qUsers =
+    "SELECT username, fname, lname, image, RoleID FROM TB_T_Employee ORDER BY CreateDate DESC LIMIT 5";
+
   const qRecent = `
         SELECT t.*, d.devicename, e.username, e.fname
         FROM TB_T_BorrowTrans t
@@ -67,16 +95,20 @@ router.get("/api/dashboard-stats", (req, res) => {
         ORDER BY t.transactiondate DESC LIMIT 5
     `;
 
-  db.query(`${q1}; ${q2}; ${q3}; ${q4}; ${qRecent}`, (err, results) => {
-    if (err) return res.json({});
-    res.json({
-      totalTrans: results[0][0].count,
-      pendingReturn: results[1][0].count,
-      totalMembers: results[2][0].count,
-      totalDevices: results[3][0].count,
-      recentTrans: results[4],
-    });
-  });
+  db.query(
+    `${q1}; ${q2}; ${q3}; ${q4}; ${qRecent}; ${qUsers}`,
+    (err, results) => {
+      if (err) return res.json({});
+      res.json({
+        totalTrans: results[0][0].count,
+        pendingReturn: results[1][0].count,
+        totalMembers: results[2][0].count,
+        totalDevices: results[3][0].count,
+        recentTrans: results[4],
+        recentUsers: results[5], // ส่งรายชื่อสมาชิกใหม่ไปด้วย
+      });
+    },
+  );
 });
 
 router.get("/api/devices", (req, res) => {
@@ -192,16 +224,14 @@ router.post("/api/borrow", (req, res) => {
   );
 });
 
-// ✅ 2. แก้ชื่อ API เป็น active-borrow (เพื่อให้ตรงกับ tracking.html)
 router.get("/api/my-active-borrow", (req, res) => {
   if (!req.session.login) return res.json([]);
-  // ดึงรายการที่ยังไม่คืน (returndate IS NULL)
   const sql = `
         SELECT t.TSTID, t.DVID, t.borrowdate, t.duedate, t.Due_statusID,
                d.devicename, d.stickerid, d.sticker AS image
         FROM TB_T_BorrowTrans t
         JOIN TB_T_Device d ON t.DVID = d.DVID
-        WHERE t.EMPID = ? AND t.returndate IS NULL 
+        WHERE t.EMPID = ? AND t.returndate IS NULL
         ORDER BY t.borrowdate DESC
     `;
   db.query(sql, [req.session.userID], (err, results) => {
@@ -210,12 +240,10 @@ router.get("/api/my-active-borrow", (req, res) => {
   });
 });
 
-// ✅ 3. เพิ่ม API my-history-all (เพื่อให้ตรงกับ history.html)
 router.get("/api/my-history-all", (req, res) => {
   if (!req.session.login) return res.json([]);
-  // ดึงทั้งหมด (ไม่สนว่าคืนหรือยัง)
   const sql = `
-        SELECT t.TSTID, t.borrowdate, t.returndate, t.BorrowTransStatusID,
+        SELECT t.TSTID, t.borrowdate, t.returndate, t.BorrowTransStatusID, t.Due_statusID,
                d.devicename, d.stickerid, d.sticker AS image
         FROM TB_T_BorrowTrans t
         JOIN TB_T_Device d ON t.DVID = d.DVID
@@ -225,6 +253,19 @@ router.get("/api/my-history-all", (req, res) => {
   db.query(sql, [req.session.userID], (err, results) => {
     if (err) return res.status(500).json({ error: "DB Error" });
     res.json(results);
+  });
+});
+
+// ✅ API สำหรับกด "รับทราบ" ผลการไม่อนุมัติ (เพื่อให้รายการหายไปจากหน้า Active)
+router.post("/api/acknowledge", (req, res) => {
+  if (!req.session.login)
+    return res.status(401).json({ error: "Unauthorized" });
+  const { tstid } = req.body;
+  // อัปเดต returndate เป็นปัจจุบัน เพื่อให้หลุดจากเงื่อนไข returndate IS NULL
+  const sql = `UPDATE TB_T_BorrowTrans SET returndate = NOW() WHERE TSTID = ? AND Due_statusID = 6`;
+  db.query(sql, [tstid], (err, result) => {
+    if (err) return res.json({ success: false, message: err.message });
+    res.json({ success: true });
   });
 });
 
@@ -265,6 +306,86 @@ router.get("/api/my-profile", (req, res) => {
     if (err) return res.status(500).json({ error: "Database error" });
     res.json(rows[0]);
   });
+});
+
+// ✅ 3. API อัปเดตโปรไฟล์ (แบบปลอดภัย: เช็ครหัสเดิมก่อน)
+router.post("/api/profile/update", upload.single("image"), (req, res) => {
+  if (!req.session.login) {
+    return res.json({ success: false, message: "Session หมดอายุ" });
+  }
+
+  const { fname, lname, email, phone, old_password, new_password } = req.body;
+  const empid = req.session.userID;
+
+  // ฟังก์ชันช่วยอัปเดตข้อมูล (ใช้ซ้ำได้)
+  const executeUpdate = (passwordHash = null) => {
+    let sql = "UPDATE TB_T_Employee SET fname=?, lname=?, email=?, phone=?";
+    let params = [fname, lname, email, phone];
+
+    if (req.file) {
+      sql += ", image=?";
+      params.push(req.file.filename);
+    }
+
+    if (passwordHash) {
+      sql += ", password=?";
+      params.push(passwordHash);
+    }
+
+    sql += " WHERE EMPID=?";
+    params.push(empid);
+
+    db.query(sql, params, (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.json({ success: false, message: "Database Error" });
+      }
+      // อัปเดต Session
+      req.session.user.fullname = `${fname} ${lname}`;
+      if (req.file) req.session.user.image = req.file.filename;
+
+      res.json({ success: true });
+    });
+  };
+
+  // --- เริ่มต้น Logic ---
+
+  // กรณี: ต้องการเปลี่ยนรหัสผ่าน (User กรอกช่อง new_password มา)
+  if (new_password && new_password.trim() !== "") {
+    // 1. ต้องกรอกรหัสเดิมมาด้วย
+    if (!old_password || old_password.trim() === "") {
+      return res.json({ success: false, message: "กรุณากรอกรหัสผ่านเดิม" });
+    }
+
+    // 2. ดึงรหัสผ่านปัจจุบันจาก DB มาเทียบ
+    db.query(
+      "SELECT password FROM TB_T_Employee WHERE EMPID = ?",
+      [empid],
+      (err, users) => {
+        if (err || users.length === 0)
+          return res.json({ success: false, message: "User not found" });
+
+        const currentUser = users[0];
+
+        // 3. ใช้ bcrypt เช็คว่ารหัสเดิมถูกต้องไหม
+        const isMatch = bcrypt.compareSync(old_password, currentUser.password);
+
+        if (!isMatch) {
+          return res.json({
+            success: false,
+            message: "รหัสผ่านเดิมไม่ถูกต้อง!",
+          }); // ❌ ถ้ารหัสผิด ดีดกลับ
+        }
+
+        // 4. ถ้ารหัสเดิมถูก -> เข้ารหัสใหม่ แล้วบันทึก
+        const newHash = bcrypt.hashSync(new_password, 10);
+        executeUpdate(newHash);
+      },
+    );
+  } else {
+    // กรณี: ไม่เปลี่ยนรหัส (เปลี่ยนแค่ชื่อ/รูป) -> บันทึกเลย
+    executeUpdate(null);
+  }
 });
 
 module.exports = router;

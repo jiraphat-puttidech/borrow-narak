@@ -168,9 +168,15 @@
               const borrowDate = new Date(item.borrowdate).toLocaleDateString(
                 "th-TH",
               );
-              const returnDate = item.returndate
-                ? new Date(item.returndate).toLocaleDateString("th-TH")
-                : "-";
+
+              let returnDate = "-";
+              if (item.Due_statusID == 6) {
+                returnDate = `<span style="color:#ccc;">-</span>`; // ไม่อนุมัติ ไม่ต้องโชว์วันคืน
+              } else if (item.returndate) {
+                returnDate = new Date(item.returndate).toLocaleDateString(
+                  "th-TH",
+                );
+              }
 
               // 2. จัดการรูปภาพ
               const img = item.image
@@ -179,9 +185,11 @@
 
               // 3. จัดการสถานะ (Badge)
               let statusHtml = "";
-              if (item.BorrowTransStatusID == 3) {
+              if (item.Due_statusID == 6) {
+                statusHtml = `<span class="badge bg-danger">❌ ไม่อนุมัติ</span>`;
+              } else if (item.BorrowTransStatusID == 3) {
                 statusHtml = `<span class="badge bg-success">✅ คืนแล้ว</span>`;
-              } else if (item.BorrowTransStatusID == 1) {
+              } else if (item.Due_statusID == 5) {
                 statusHtml = `<span class="badge bg-warning">⏳ รออนุมัติ</span>`;
               } else {
                 statusHtml = `<span class="badge bg-warning">📦 กำลังยืม</span>`;

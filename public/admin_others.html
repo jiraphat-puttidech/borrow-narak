@@ -64,6 +64,11 @@
       .arrow {
         color: #ccc;
       }
+      /* Admin Sidebar Style (เพิ่มเติมจาก index.css ถ้าจำเป็น) */
+      .admin-sidebar .menu-item.active {
+        background-color: #34495e; /* สีเข้มสำหรับ Admin */
+        color: white;
+      }
     </style>
   </head>
   <body>
@@ -88,7 +93,7 @@
         <div>
           <h1 class="page-title">การตั้งค่าและอื่นๆ</h1>
           <p style="color: #666; font-size: 14px">
-            จัดการบัญชีและข้อมูลส่วนตัว
+            จัดการบัญชีและข้อมูลส่วนตัว (Admin)
           </p>
         </div>
 
@@ -117,13 +122,7 @@
           <ul class="settings-list">
             <li>
               <a href="/profile">
-                <span>👤 แก้ไขข้อมูลส่วนตัว</span>
-                <span class="arrow">&gt;</span>
-              </a>
-            </li>
-            <li>
-              <a href="#">
-                <span>🔒 เปลี่ยนรหัสผ่าน</span>
+                <span>👤 จัดการข้อมูลส่วนตัวและรหัสผ่าน</span>
                 <span class="arrow">&gt;</span>
               </a>
             </li>
@@ -134,7 +133,7 @@
         <div class="settings-box">
           <ul class="settings-list">
             <li>
-              <a href="#">
+              <a href="#" onclick="alert('อยู่ในระหว่างการจัดทำ')">
                 <span>📖 คู่มือการใช้งานสำหรับผู้ดูแล</span>
                 <span class="arrow">&gt;</span>
               </a>
@@ -160,12 +159,20 @@
             if (data.loggedIn) {
               document.getElementById("user-name").innerText = data.fullname;
               const imgEl = document.getElementById("header-avatar");
-              if (data.image) imgEl.src = `/uploads/${data.image}`;
+              // จัดการรูปโปรไฟล์ให้ถูกต้อง
+              const imgSrc = data.image
+                ? `/uploads/${data.image}`
+                : "/static/default.png";
+              imgEl.src = imgSrc;
               imgEl.onerror = () => {
                 imgEl.src = "/static/default.png";
               };
+            } else {
+              // ถ้าไม่ได้ Login ให้เด้งออก
+              window.location.href = "/";
             }
-          });
+          })
+          .catch((err) => console.error("Error loading profile:", err));
       }
     </script>
   </body>

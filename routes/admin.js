@@ -82,11 +82,11 @@ router.post("/api/admin/action", checkAdmin, (req, res) => {
 
   if (action === "approve") {
     // อนุมัติ: สถานะยืม=2, สถานะกำหนดส่ง=2, อุปกรณ์=2(ถูกยืม)
-    sqlTrans = `UPDATE TB_T_BorrowTrans SET BorrowTransStatusID = 2, Due_statusID = 2, notes_admin = 'อนุมัติโดย ${adminName}' WHERE TSTID = ?`;
+    sqlTrans = `UPDATE TB_T_BorrowTrans SET BorrowTransStatusID = 2, Due_statusID = 2, notes_admin = 'อนุมัติโดย ${adminName}', ModifyDate = NOW() WHERE TSTID = ?`;
     sqlDevice = `UPDATE TB_T_Device SET DVStatusID = 2 WHERE DVID = ?`;
   } else {
     // ปฏิเสธ: สถานะยืม=1(คืนค่าเดิม), สถานะกำหนดส่ง=6(ไม่อนุมัติ), อุปกรณ์=1(ว่าง)
-    sqlTrans = `UPDATE TB_T_BorrowTrans SET BorrowTransStatusID = 1, Due_statusID = 6, notes_admin = 'ปฏิเสธโดย ${adminName}' WHERE TSTID = ?`;
+    sqlTrans = `UPDATE TB_T_BorrowTrans SET BorrowTransStatusID = 1, Due_statusID = 6, notes_admin = 'ปฏิเสธโดย ${adminName}', ModifyDate = NOW() WHERE TSTID = ?`;
     sqlDevice = `UPDATE TB_T_Device SET DVStatusID = 1 WHERE DVID = ?`;
   }
 
