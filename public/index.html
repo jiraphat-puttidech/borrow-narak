@@ -5,155 +5,229 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>หน้าหลัก - User Dashboard</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <link rel="stylesheet" href="/static/index.css" />
 
     <style>
+      /* CSS เฉพาะ Layout ของหน้านี้ (ดึงสีจาก index.css มาใช้) */
       .welcome-section {
-        background: linear-gradient(135deg, #007bff 0%, #00d2ff 100%);
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-hover) 100%
+        );
         color: white;
-        padding: 30px;
-        border-radius: 15px;
+        padding: 35px 40px;
+        border-radius: var(--radius-lg);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 30px;
-        box-shadow: 0 10px 20px rgba(0, 123, 255, 0.2);
+        margin-bottom: 35px;
+        box-shadow: var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+      }
+      .welcome-section::after {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
       }
       .welcome-text h1 {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 600;
+        margin: 0 0 8px;
+        font-size: 32px;
+        font-weight: 700;
+        z-index: 2;
+        position: relative;
       }
       .welcome-text p {
-        margin: 5px 0 0;
+        margin: 0;
+        font-size: 16px;
         opacity: 0.9;
+        z-index: 2;
+        position: relative;
       }
 
-      /* Quick Actions Grid */
+      /* ✅ CSS สำหรับกล่องสถิติส่วนตัว และสีไอคอน */
+      .stats-badge-container {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+        position: relative;
+        z-index: 2;
+      }
+      .stat-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-size: 14px;
+        font-weight: 500;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        display: flex;
+        align-items: center;
+      }
+      .stat-badge i {
+        margin-right: 8px;
+        font-size: 16px;
+      }
+      .stat-badge strong {
+        font-size: 18px;
+        color: #fff;
+        margin-left: 6px;
+        font-weight: 700;
+      }
+
       .quick-actions {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
       }
       .action-card {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
+        background: var(--surface);
+        padding: 24px;
+        border-radius: var(--radius-md);
         text-align: center;
-        transition:
-          transform 0.2s,
-          box-shadow 0.2s;
+        transition: all 0.3s ease;
         cursor: pointer;
-        border: 1px solid #eee;
+        border: 1px solid var(--border);
         text-decoration: none;
-        color: #333;
+        color: var(--text-main);
         display: block;
+        box-shadow: var(--shadow-sm);
       }
       .action-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        border-color: #007bff;
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary);
       }
       .action-icon {
-        font-size: 40px;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         display: block;
+      }
+      .action-icon i {
+        color: var(--primary);
+        font-size: 42px;
+        transition: 0.3s;
+      }
+      .action-card:hover .action-icon i {
+        transform: scale(1.1);
       }
       .action-title {
         font-weight: 600;
         font-size: 16px;
       }
 
-      /* Status Cards (แทนตาราง) */
       .status-section-title {
-        font-size: 20px;
-        font-weight: 600;
-        margin-bottom: 20px;
-        border-left: 5px solid #007bff;
-        padding-left: 10px;
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 24px;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+      }
+      .status-section-title::before {
+        content: "";
+        display: inline-block;
+        width: 6px;
+        height: 24px;
+        background: var(--primary);
+        margin-right: 12px;
+        border-radius: 4px;
       }
 
       .active-orders-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
       }
-
       .order-card {
-        background: white;
-        border-radius: 12px;
+        background: var(--surface);
+        border-radius: var(--radius-md);
         overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        border: 1px solid #eee;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
         display: flex;
         flex-direction: column;
+        transition: transform 0.2s;
+      }
+      .order-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-3px);
       }
       .order-header {
-        padding: 15px;
-        background: #f8f9fa;
-        border-bottom: 1px solid #eee;
+        padding: 16px 20px;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
       .order-id {
-        font-weight: bold;
-        color: #555;
+        font-weight: 600;
+        color: var(--text-main);
       }
       .order-date {
-        font-size: 12px;
-        color: #888;
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 500;
       }
-
       .order-body {
-        padding: 15px;
+        padding: 20px;
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: 16px;
       }
       .order-img {
-        width: 60px;
-        height: 60px;
-        border-radius: 8px;
+        width: 65px;
+        height: 65px;
+        border-radius: var(--radius-sm);
         object-fit: cover;
-        background: #eee;
+        border: 1px solid var(--border);
       }
       .order-info h4 {
-        margin: 0 0 5px;
-        font-size: 16px;
+        margin: 0 0 6px;
+        font-size: 18px;
+        color: var(--text-main);
       }
       .order-info p {
         margin: 0;
-        font-size: 13px;
-        color: #666;
+        font-size: 14px;
+        color: var(--text-muted);
+      }
+      .order-footer {
+        padding: 16px 20px 20px;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
       }
 
-      /* Timeline Status */
-      .order-footer {
-        padding: 15px;
-        background: #fff;
-        border-top: 1px solid #f0f0f0;
-      }
       .status-timeline {
         display: flex;
         justify-content: space-between;
         position: relative;
         margin-top: 10px;
       }
-      /* เส้นเชื่อม */
       .status-timeline::before {
         content: "";
         position: absolute;
-        top: 8px;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: #eee;
+        top: 10px;
+        left: 15%;
+        right: 15%;
+        height: 3px;
+        background: var(--border);
         z-index: 1;
+        border-radius: 2px;
       }
       .status-step {
         position: relative;
@@ -162,43 +236,43 @@
         width: 33.33%;
       }
       .step-dot {
-        width: 16px;
-        height: 16px;
-        background: #eee;
+        width: 20px;
+        height: 20px;
+        background: var(--surface);
         border-radius: 50%;
-        margin: 0 auto 5px;
-        border: 2px solid white;
+        margin: 0 auto 8px;
+        border: 3px solid var(--border);
+        transition: all 0.3s;
       }
       .step-text {
-        font-size: 10px;
-        color: #999;
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 500;
       }
-
-      /* Status Colors */
       .status-step.active .step-dot {
-        background: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+        border-color: var(--primary);
+        background: var(--primary);
+        box-shadow: 0 0 0 4px var(--primary-light);
       }
       .status-step.active .step-text {
-        color: #007bff;
-        font-weight: bold;
+        color: var(--primary);
+        font-weight: 600;
       }
-
       .status-step.completed .step-dot {
-        background: #28a745;
+        border-color: var(--success);
+        background: var(--success);
       }
       .status-step.completed .step-text {
-        color: #28a745;
+        color: var(--success);
       }
 
-      /* Empty State */
       .empty-state {
-        grid-column: 1 / -1;
         text-align: center;
-        padding: 50px;
-        background: white;
-        border-radius: 12px;
-        color: #999;
+        padding: 60px 20px;
+        background: var(--surface);
+        border-radius: var(--radius-md);
+        border: 1px dashed var(--border);
+        grid-column: 1 / -1;
       }
     </style>
   </head>
@@ -206,14 +280,41 @@
     <aside class="sidebar">
       <div class="brand-title">BORROW SYSTEM</div>
       <ul class="menu-list">
-        <li><a href="/dashboard" class="menu-item active">🏠 หน้าหลัก</a></li>
-        <li><a href="/tracking" class="menu-item">📦 สถานะการยืม-คืน</a></li>
-        <li><a href="/history" class="menu-item">📜 ประวัติทั้งหมด</a></li>
-        <li><a href="/category" class="menu-item">📂 หมวดหมู่สินค้า</a></li>
-        <li><a href="/product" class="menu-item">🛍️ สินค้า</a></li>
-        <li><a href="/others" class="menu-item">... อื่นๆ</a></li>
+        <li>
+          <a href="/dashboard" class="menu-item active"
+            ><i class="fas fa-home fa-fw" style="margin-right: 8px"></i>
+            หน้าหลัก</a
+          >
+        </li>
+        <li>
+          <a href="/tracking" class="menu-item"
+            ><i class="fas fa-box fa-fw" style="margin-right: 8px"></i>
+            สถานะการยืม-คืน</a
+          >
+        </li>
+        <li>
+          <a href="/history" class="menu-item"
+            ><i class="fas fa-history fa-fw" style="margin-right: 8px"></i>
+            ประวัติทั้งหมด</a
+          >
+        </li>
+        <li>
+          <a href="/product" class="menu-item"
+            ><i class="fas fa-laptop fa-fw" style="margin-right: 8px"></i>
+            สินค้า</a
+          >
+        </li>
+        <li>
+          <a href="/others" class="menu-item"
+            ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 8px"></i>
+            อื่นๆ</a
+          >
+        </li>
       </ul>
-      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+      <a href="/logout" class="menu-item logout-link"
+        ><i class="fas fa-sign-out-alt fa-fw" style="margin-right: 8px"></i>
+        ออกจากระบบ</a
+      >
     </aside>
 
     <main class="main-content">
@@ -221,15 +322,28 @@
         <div class="welcome-text">
           <h1 id="welcome-msg">สวัสดีครับ 👋</h1>
           <p>ยินดีต้อนรับสู่ระบบยืม-คืนอุปกรณ์ Thai PBS</p>
+          <div class="stats-badge-container">
+            <div class="stat-badge">
+              <i class="fas fa-box-open"></i> กำลังยืม:
+              <strong id="stat-active">0</strong>
+            </div>
+            <div class="stat-badge">
+              <i class="fas fa-check-circle"></i> คืนสำเร็จ:
+              <strong id="stat-returned">0</strong>
+            </div>
+          </div>
         </div>
-        <div class="user-profile">
+        <div
+          class="user-profile"
+          style="background: transparent; border: none; box-shadow: none"
+        >
           <img
             src="/static/default.png"
             class="avatar"
             id="header-avatar"
             style="
-              width: 60px;
-              height: 60px;
+              width: 65px;
+              height: 65px;
               border-radius: 50%;
               border: 3px solid rgba(255, 255, 255, 0.5);
             "
@@ -239,25 +353,24 @@
 
       <div class="quick-actions">
         <a href="/product" class="action-card">
-          <span class="action-icon">🛍️</span>
+          <span class="action-icon"><i class="fas fa-desktop"></i></span>
           <span class="action-title">ยืมอุปกรณ์ใหม่</span>
         </a>
         <a href="/tracking" class="action-card">
-          <span class="action-icon">📦</span>
+          <span class="action-icon"><i class="fas fa-shipping-fast"></i></span>
           <span class="action-title">ต้องคืนเร็วๆ นี้</span>
         </a>
         <a href="/history" class="action-card">
-          <span class="action-icon">📜</span>
+          <span class="action-icon"><i class="fas fa-history"></i></span>
           <span class="action-title">ประวัติการยืม</span>
         </a>
         <a href="/profile" class="action-card">
-          <span class="action-icon">👤</span>
+          <span class="action-icon"><i class="fas fa-user-circle"></i></span>
           <span class="action-title">ข้อมูลส่วนตัว</span>
         </a>
       </div>
 
       <div class="status-section-title">รายการที่กำลังดำเนินการ (Active)</div>
-
       <div class="active-orders-grid" id="active-orders-container">
         <div class="empty-state">
           <p>🔄 กำลังโหลดข้อมูล...</p>
@@ -269,19 +382,16 @@
       document.addEventListener("DOMContentLoaded", () => {
         loadUserData();
         loadActiveOrders();
+        loadPersonalStats(); // ✅ เรียกฟังก์ชันสถิติ
       });
 
-      // 1. โหลดข้อมูลผู้ใช้ (ชื่อ + รูป)
       function loadUserData() {
         fetch("/api/user")
           .then((res) => res.json())
           .then((data) => {
             if (data.loggedIn) {
-              // ใส่ชื่อ
               document.getElementById("welcome-msg").innerText =
                 `สวัสดีครับ, ${data.fullname} 👋`;
-
-              // ใส่รูป
               const imgEl = document.getElementById("header-avatar");
               const imgSrc = data.image
                 ? `/uploads/${data.image}`
@@ -296,84 +406,97 @@
           });
       }
 
-      // 2. โหลดรายการที่ยืมอยู่ (ใช้ Card แทนตาราง)
       function loadActiveOrders() {
-        // เรียก API ที่เรามีอยู่แล้ว
         fetch("/api/my-active-borrow")
           .then((res) => res.json())
           .then((data) => {
             const container = document.getElementById(
               "active-orders-container",
             );
-            container.innerHTML = ""; // ล้าง Loading
-
+            container.innerHTML = "";
             if (data.length === 0) {
-              container.innerHTML = `
-                        <div class="empty-state">
-                            <span style="font-size:40px; display:block; margin-bottom:10px;">🎉</span>
-                            <p>ไม่มีรายการค้างยืมในขณะนี้</p>
-                            <a href="/product" style="color:#007bff; text-decoration:none;">ไปยืมอุปกรณ์กันเถอะ!</a>
-                        </div>
-                    `;
+              container.innerHTML = `<div class="empty-state"><span style="font-size:50px; display:block; margin-bottom:15px;">🎉</span><h3 style="margin:0 0 10px; color:var(--text-main);">ไม่มีรายการค้างยืมในขณะนี้</h3><a href="/product" style="display:inline-block; padding:10px 20px; background:var(--primary); color:white; border-radius:var(--radius-sm); text-decoration:none; margin-top:10px; font-weight: 600;">ไปยืมอุปกรณ์กันเถอะ!</a></div>`;
               return;
             }
 
             data.forEach((item) => {
-              const dateTxt = new Date(item.duedate).toLocaleDateString(
-                "th-TH",
-              );
+              const dueDateObj = new Date(item.duedate);
+              const dateTxt = dueDateObj.toLocaleDateString("th-TH");
               const imgPath = item.image
                 ? `/uploads/${item.image}`
                 : "/static/default.png";
 
-              // Logic คำนวณสถานะ Timeline
-              // Due_statusID: 5=รออนุมัติ, 2=กำลังยืม(อนุมัติแล้ว), 6=ไม่อนุมัติ
-              let step1Class = "completed"; // ยื่นคำขอ (เสร็จเสมอ)
-              let step2Class = ""; // อนุมัติ
-              let step3Class = ""; // คืนของ
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              dueDateObj.setHours(0, 0, 0, 0);
+
+              if (item.Due_statusID == 6) {
+                container.innerHTML += `
+                    <div class="order-card" style="border-color: var(--danger);">
+                        <div class="order-header" style="background: var(--danger-bg);"><span class="order-id">#${item.TSTID}</span><span class="order-date" style="color:var(--danger); font-weight:bold;">❌ ไม่อนุมัติ</span></div>
+                        <div class="order-body"><img src="${imgPath}" class="order-img"><div class="order-info"><h4>${item.devicename}</h4><p>รหัส: ${item.stickerid}</p><p style="color:var(--danger); font-size:13px; margin-top:6px; font-weight:500;">คำขอยืมถูกปฏิเสธโดยแอดมิน</p></div></div>
+                        <div class="order-footer"><button onclick="location.href='/tracking'" style="width:100%; padding:10px; background:var(--border); color:var(--text-main); border:none; border-radius:var(--radius-sm); font-weight:600; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='var(--border)'">ดูรายละเอียด / กดรับทราบ</button></div>
+                    </div>`;
+                return;
+              }
+
+              let step1Class = "completed",
+                step2Class = "",
+                step3Class = "",
+                dueDateStyle = "color: var(--text-muted);",
+                overdueBadge = "";
 
               if (item.Due_statusID == 5) {
-                step2Class = "active"; // รออนุมัติ
-              } else if (item.Due_statusID == 2) {
-                step1Class = "completed";
+                step2Class = "active";
+              } else if (item.Due_statusID == 2 || item.Due_statusID == 3) {
                 step2Class = "completed";
-                step3Class = "active"; // อนุมัติแล้ว รอคืน
+                step3Class = "active";
+                if (item.Due_statusID == 3 || today > dueDateObj) {
+                  dueDateStyle = "color: var(--danger); font-weight: bold;";
+                  overdueBadge = `<span style="background: var(--danger); color: white; padding: 3px 8px; border-radius: 6px; font-size: 11px; margin-left: 5px;">⚠️ เกินกำหนด</span>`;
+                }
               }
 
               container.innerHTML += `
                         <div class="order-card">
-                            <div class="order-header">
-                                <span class="order-id">#${item.TSTID}</span>
-                                <span class="order-date" style="color:red;">กำหนดคืน: ${dateTxt}</span>
-                            </div>
-                            <div class="order-body">
-                                <img src="${imgPath}" class="order-img">
-                                <div class="order-info">
-                                    <h4>${item.devicename}</h4>
-                                    <p>รหัส: ${item.stickerid}</p>
-                                </div>
-                            </div>
+                            <div class="order-header"><span class="order-id">#${item.TSTID}</span><span class="order-date" style="${dueDateStyle}">กำหนดคืน: ${dateTxt} ${overdueBadge}</span></div>
+                            <div class="order-body"><img src="${imgPath}" class="order-img"><div class="order-info"><h4>${item.devicename}</h4><p>รหัส: ${item.stickerid}</p></div></div>
                             <div class="order-footer">
                                 <div class="status-timeline">
-                                    <div class="status-step ${step1Class}">
-                                        <div class="step-dot"></div>
-                                        <div class="step-text">ยื่นคำขอ</div>
-                                    </div>
-                                    <div class="status-step ${step2Class}">
-                                        <div class="step-dot"></div>
-                                        <div class="step-text">อนุมัติ/รับของ</div>
-                                    </div>
-                                    <div class="status-step ${step3Class}">
-                                        <div class="step-dot"></div>
-                                        <div class="step-text">คืนของ</div>
-                                    </div>
+                                    <div class="status-step ${step1Class}"><div class="step-dot"></div><div class="step-text">ยื่นคำขอ</div></div>
+                                    <div class="status-step ${step2Class}"><div class="step-dot"></div><div class="step-text">อนุมัติ/รับของ</div></div>
+                                    <div class="status-step ${step3Class}"><div class="step-dot"></div><div class="step-text">คืนของ</div></div>
                                 </div>
-                                ${item.Due_statusID == 2 ? `<button onclick="location.href='/tracking'" style="width:100%; margin-top:15px; padding:8px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer;">แจ้งคืนของ</button>` : ""}
+                                ${item.Due_statusID == 2 || item.Due_statusID == 3 ? `<div style="text-align:center; margin-top:20px; padding:10px; background:var(--warning-bg); color:var(--warning); border-radius:var(--radius-sm); font-size:13px; font-weight:600;">🚶‍♂️ นำอุปกรณ์สภาพสมบูรณ์ ส่งคืนที่แอดมิน</div>` : ""}
                             </div>
-                        </div>
-                    `;
+                        </div>`;
             });
           });
+      }
+
+      // ✅ ฟังก์ชันคำนวณสถิติส่วนตัว
+      function loadPersonalStats() {
+        // นับจำนวนรายการที่กำลังยืม (ไม่นับอันที่ถูกปฏิเสธ)
+        fetch("/api/my-active-borrow")
+          .then((res) => res.json())
+          .then((data) => {
+            const activeCount = data.filter(
+              (item) => item.Due_statusID != 6,
+            ).length;
+            document.getElementById("stat-active").innerText = activeCount;
+          })
+          .catch((err) => console.error("Error loading active stats:", err));
+
+        // นับจำนวนรายการที่คืนสำเร็จแล้ว
+        fetch("/api/my-history-all")
+          .then((res) => res.json())
+          .then((data) => {
+            const returnedCount = data.filter(
+              (item) => item.BorrowTransStatusID == 3 || item.Due_statusID == 4,
+            ).length;
+            document.getElementById("stat-returned").innerText = returnedCount;
+          })
+          .catch((err) => console.error("Error loading history stats:", err));
       }
     </script>
   </body>

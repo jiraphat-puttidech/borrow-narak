@@ -5,191 +5,520 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Approval - BORROW SYSTEM</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="/static/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-      /* CSS เฉพาะหน้าแอดมิน */
-      .admin-sidebar {
-        background-color: #2c3e50;
+      .tab-container {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 25px;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 10px;
+      }
+      .tab-btn {
+        background: none;
+        border: none;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 10px 20px;
+        border-radius: var(--radius-sm);
+        transition: 0.3s;
+      }
+      .tab-btn.active {
+        background: var(--primary-light);
+        color: var(--primary);
+      }
+      .tab-btn:hover:not(.active) {
+        color: var(--text-main);
+        background: var(--bg);
+      }
+
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 24px;
       }
 
       .approve-card {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        border-left: 5px solid #f39c12;
+        background: var(--surface);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        transition: 0.3s;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .approve-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary);
+      }
+
+      .ac-header {
+        background: var(--bg);
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--border);
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
+        font-size: 14px;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+      .ac-body {
+        padding: 20px;
+        display: flex;
         gap: 15px;
       }
-      .req-info {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        flex-grow: 1;
+      .ac-img {
+        width: 70px;
+        height: 70px;
+        border-radius: var(--radius-sm);
+        object-fit: cover;
+        border: 1px solid var(--border);
       }
-      .req-icon {
-        font-size: 30px;
-        width: 50px;
-        height: 50px;
-        background: #fdf2e9;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 10px;
+      .ac-info {
+        flex: 1;
       }
-      .req-details h3 {
-        margin: 0;
+      .ac-info h4 {
+        margin: 0 0 5px;
         font-size: 16px;
-        color: #333;
+        color: var(--text-main);
       }
-      .req-details p {
-        margin: 2px 0;
+      .ac-info p {
+        margin: 0 0 8px;
         font-size: 13px;
-        color: #666;
+        color: var(--text-muted);
       }
-      .req-reason {
-        background: #f9f9f9;
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 12px;
-        color: #555;
-        display: inline-block;
-        margin-top: 5px;
+      .ac-info .user-name {
+        color: var(--primary);
+        font-weight: 600;
       }
-      .action-group {
+
+      .ac-footer {
+        padding: 15px 20px;
+        border-top: 1px solid var(--border);
+        background: var(--surface);
         display: flex;
         gap: 10px;
       }
-      .btn-action {
-        padding: 8px 20px;
+
+      .btn-approve,
+      .btn-reject,
+      .btn-receive,
+      .btn-inspect {
+        flex: 1;
+        padding: 10px;
         border: none;
-        border-radius: 30px;
-        font-weight: bold;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
         cursor: pointer;
         transition: 0.2s;
         color: white;
       }
-      .btn-approve {
-        background-color: #27ae60;
+
+      /* ✅ ปุ่มตรวจสอบที่เพิ่มเข้ามา */
+      .btn-inspect {
+        background: #f39c12;
       }
-      .btn-reject {
-        background-color: #c0392b;
+      .btn-inspect:hover {
+        background: #d35400;
+        box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
       }
 
-      /* เพิ่ม CSS เพื่อให้ User Profile แสดงผลถูกต้อง */
-      .profile-link {
-        text-decoration: none;
-        color: inherit;
+      .btn-approve {
+        background: var(--success);
       }
-      .user-profile {
+      .btn-approve:hover {
+        background: #27ae60;
+        box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+      }
+      .btn-reject {
+        background: var(--danger);
+      }
+      .btn-reject:hover {
+        background: #c0392b;
+        box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+      }
+      .btn-receive {
+        background: var(--info);
+      }
+      .btn-receive:hover {
+        background: #2980b9;
+        box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+      }
+
+      .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px;
+        background: var(--surface);
+        border-radius: var(--radius-md);
+        border: 1px dashed var(--border);
+        color: var(--text-muted);
+      }
+
+      /* ✅ สไตล์ของ Modal เช็คข้อมูลอุปกรณ์ */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content {
+        background-color: white;
+        border-radius: 20px;
+        max-width: 800px;
+        width: 90%;
+        position: relative;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        display: flex;
+        overflow: hidden;
+      }
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #aaa;
+        z-index: 10;
+        background: white;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
         display: flex;
         align-items: center;
-        gap: 10px;
-        background: white;
-        padding: 5px 15px;
-        border-radius: 30px;
-        border: 1px solid #ddd;
-        cursor: pointer;
+        justify-content: center;
       }
-      .user-profile:hover {
-        background-color: #f5f5f5;
+      .close-btn:hover {
+        color: #333;
+      }
+      .info-left {
+        width: 40%;
+        background: #f8f9fa;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid var(--border);
+      }
+      .info-left img {
+        width: 100%;
+        max-width: 200px;
+        height: auto;
+        object-fit: contain;
+        margin-bottom: 15px;
+        border-radius: 10px;
+      }
+      .info-right {
+        width: 60%;
+        padding: 30px;
+      }
+      .info-right h3 {
+        margin: 0 0 5px;
+        color: var(--primary);
+        font-size: 22px;
+      }
+      .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 20px;
+      }
+      .detail-item {
+        display: flex;
+        flex-direction: column;
+      }
+      .detail-label {
+        font-size: 11px;
+        color: #888;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .detail-value {
+        font-size: 14px;
+        color: var(--text-main);
+        font-weight: 500;
+      }
+      @media (max-width: 768px) {
+        .modal-content {
+          flex-direction: column;
+        }
+        .info-left,
+        .info-right {
+          width: 100%;
+        }
+        .info-left {
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+        }
       }
     </style>
   </head>
   <body>
-    <aside class="sidebar">
-      <div class="brand-title">ADMIN PANEL</div>
+    <aside
+      class="sidebar admin-sidebar"
+      style="background: #1a202c; color: white"
+    >
+      <div class="brand-title" style="color: #f6ad55; font-weight: 700">
+        ADMIN PANEL
+      </div>
       <ul class="menu-list">
-        <li><a href="/admin" class="menu-item">📊 ภาพรวมระบบ</a></li>
-
         <li>
-          <a href="/admin/approve" class="menu-item active"
-            >📝 รายการรออนุมัติ</a
+          <a href="/admin" class="menu-item"
+            ><i class="fas fa-home fa-fw" style="margin-right: 10px"></i>
+            หน้าหลักแอดมิน</a
           >
         </li>
 
-        <li><a href="/admin/device" class="menu-item">📦 จัดการอุปกรณ์</a></li>
-
         <li>
-          <a href="/admin/history" class="menu-item">📜 ประวัติการยืม-คืน</a>
+          <a href="/admin/approve" class="menu-item active"
+            ><i
+              class="fas fa-check-double fa-fw"
+              style="margin-right: 10px"
+            ></i>
+            อนุมัติการยืม</a
+          >
         </li>
 
-        <li><a href="/admin/others" class="menu-item">... อื่นๆ</a></li>
+        <li>
+          <a href="/admin/device" class="menu-item"
+            ><i class="fas fa-laptop fa-fw" style="margin-right: 10px"></i>
+            จัดการอุปกรณ์</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/users" class="menu-item"
+            ><i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
+            จัดการผู้ใช้งาน</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/history" class="menu-item"
+            ><i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
+            ประวัติทั้งหมด</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/log" class="menu-item"
+            ><i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
+            ประวัติ Log</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/others" class="menu-item"
+            ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 10px"></i>
+            อื่นๆ</a
+          >
+        </li>
       </ul>
-      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+
+      <a
+        href="/logout"
+        class="menu-item logout-link"
+        style="border-top: 1px solid #2d3748; padding-top: 20px"
+      >
+        <i class="fas fa-sign-out-alt fa-fw" style="margin-right: 10px"></i>
+        ออกจากระบบ
+      </a>
     </aside>
 
     <main class="main-content">
       <header class="header-bar">
         <div>
-          <h1 class="page-title">รายการรออนุมัติ</h1>
-          <p style="color: #666">จัดการคำขอยืมอุปกรณ์จากสมาชิก</p>
+          <h1 class="page-title">รายการรออนุมัติ / รอรับคืน</h1>
+          <p style="color: var(--text-muted); font-size: 14px">
+            พิจารณาคำขอยืมและตรวจสอบอุปกรณ์รับคืน
+          </p>
         </div>
-
-        <a href="/profile" class="profile-link">
-          <div class="user-profile">
-            <span class="user-name" id="user-name">Loading...</span>
-            <img
-              src="/static/default.png"
-              class="avatar"
-              id="header-avatar"
-              style="
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                object-fit: cover;
-                margin-left: 10px;
-              "
-            />
-          </div>
-        </a>
+        <div class="user-profile" onclick="location.href = '/admin/others'">
+          <span class="user-name" id="user-name">Admin</span>
+          <img src="/static/default.png" class="avatar" id="header-avatar" />
+        </div>
       </header>
 
-      <div id="pending-container">
-        <p>🔄 กำลังโหลดข้อมูล...</p>
+      <div class="tab-container">
+        <button
+          class="tab-btn active"
+          id="tab-pending"
+          onclick="switchTab('pending')"
+        >
+          ⏳ รออนุมัติให้ยืม
+        </button>
+        <button class="tab-btn" id="tab-return" onclick="switchTab('return')">
+          📥 รอรับอุปกรณ์คืนเข้าคลัง
+        </button>
+      </div>
+
+      <div id="pending-section">
+        <div id="pending-list" class="card-grid">
+          <div class="empty-state">กำลังโหลดข้อมูล...</div>
+        </div>
+      </div>
+
+      <div id="return-section" style="display: none">
+        <div id="return-list" class="card-grid">
+          <div class="empty-state">กำลังโหลดข้อมูล...</div>
+        </div>
       </div>
     </main>
 
+    <div id="inspectModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeInspectModal()">&times;</span>
+        <div class="info-left">
+          <img
+            id="m-img"
+            src="/static/default.png"
+            onerror="this.src = '/static/default.png'"
+          />
+          <span
+            style="font-weight: 600; color: var(--text-main); margin-top: 10px"
+            >เลขที่รายการ:
+            <span id="m-trans" style="color: var(--primary)">-</span></span
+          >
+        </div>
+        <div class="info-right">
+          <h3 id="m-name">ชื่ออุปกรณ์</h3>
+          <p style="color: #888; font-size: 13px; margin: 0 0 15px 0">
+            รหัสครุภัณฑ์:
+            <span id="m-sticker" style="font-weight: 600; color: #333">-</span>
+          </p>
+
+          <div
+            style="
+              background: #f1f5f9;
+              padding: 15px;
+              border-radius: 8px;
+              border-left: 4px solid var(--primary);
+            "
+          >
+            <div style="margin-bottom: 8px">
+              <span class="detail-label">ผู้ทำรายการ:</span>
+              <span
+                id="m-user"
+                class="detail-value"
+                style="color: var(--primary)"
+                >-</span
+              >
+            </div>
+            <div style="margin-bottom: 8px">
+              <span class="detail-label">วัตถุประสงค์:</span>
+              <span id="m-purpose" class="detail-value">-</span>
+            </div>
+            <div>
+              <span class="detail-label">สถานที่นำไปใช้:</span>
+              <span id="m-location" class="detail-value">-</span>
+            </div>
+          </div>
+
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-label">IT CODE</span
+              ><span class="detail-value" id="m-itcode">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">SERIAL NUMBER</span
+              ><span class="detail-value" id="m-serial">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">ยี่ห้อ (BRAND)</span
+              ><span class="detail-value" id="m-brand">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">รุ่น (MODEL)</span
+              ><span class="detail-value" id="m-model">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">วันที่ยืม</span
+              ><span class="detail-value" id="m-bdate">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">กำหนดส่งคืน</span
+              ><span
+                class="detail-value"
+                id="m-ddate"
+                style="color: var(--danger)"
+                >-</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
+      // ✅ เพิ่มตัวแปรเก็บข้อมูลชั่วคราวให้ Modal ดึงไปใช้
+      let currentPendingData = [];
+      let currentReturnData = [];
+
       document.addEventListener("DOMContentLoaded", () => {
+        loadAdminProfile();
         loadPending();
-        loadAdminData(); // เรียกฟังก์ชันโหลดชื่อรูป
+        loadPendingReturn();
       });
 
-      // ✅ ฟังก์ชันดึงชื่อและรูป (จำเป็นต้องมีเพื่อให้มันไม่ขึ้น Loading...)
-      function loadAdminData() {
+      function loadAdminProfile() {
         fetch("/api/user")
           .then((res) => res.json())
           .then((data) => {
             if (data.loggedIn) {
               document.getElementById("user-name").innerText = data.fullname;
-              const imgEl = document.getElementById("header-avatar");
-              if (data.image) {
-                imgEl.src = `/uploads/${data.image}`;
-              }
-              imgEl.onerror = () => {
-                imgEl.src = "/static/default.png";
-              };
-            }
+              if (data.image)
+                document.getElementById("header-avatar").src =
+                  `/uploads/${data.image}`;
+            } else window.location.href = "/";
           });
       }
 
+      function switchTab(tab) {
+        if (tab === "pending") {
+          document.getElementById("pending-section").style.display = "block";
+          document.getElementById("return-section").style.display = "none";
+          document.getElementById("tab-pending").classList.add("active");
+          document.getElementById("tab-return").classList.remove("active");
+          loadPending();
+        } else {
+          document.getElementById("pending-section").style.display = "none";
+          document.getElementById("return-section").style.display = "block";
+          document.getElementById("tab-pending").classList.remove("active");
+          document.getElementById("tab-return").classList.add("active");
+          loadPendingReturn();
+        }
+      }
+
       function loadPending() {
-        const container = document.getElementById("pending-container");
         fetch("/api/admin/pending")
           .then((res) => res.json())
           .then((data) => {
+            currentPendingData = data; // ✅ เก็บข้อมูลไว้ใช้ตอนเปิด Modal
+            const container = document.getElementById("pending-list");
             container.innerHTML = "";
             if (data.length === 0) {
-              container.innerHTML = `<div style="text-align:center; padding:50px; color:#aaa;"><h2>✅ ไม่มีรายการค้าง</h2><p>ไม่มีคำขอยืมที่รออนุมัติ</p></div>`;
+              container.innerHTML = `<div class="empty-state"><h3>🎉 เยี่ยมมาก!</h3><p>ไม่มีรายการรออนุมัติค้างอยู่เลย</p></div>`;
               return;
             }
             data.forEach((item) => {
@@ -197,56 +526,194 @@
                 "th-TH",
               );
               const dDate = new Date(item.duedate).toLocaleDateString("th-TH");
-              const borrowerName = item.fname
-                ? `${item.fname} ${item.lname}`
-                : item.username;
+              const imgSrc =
+                item.image &&
+                item.image !== "default.png" &&
+                !item.image.includes("http")
+                  ? `/uploads/${item.image}`
+                  : item.image && item.image.includes("http")
+                    ? item.image
+                    : "/static/default.png";
 
               container.innerHTML += `
-                            <div class="approve-card">
-                                <div class="req-info">
-                                    <div class="req-icon">📦</div>
-                                    <div class="req-details">
-                                        <h3>${borrowerName} <span style="font-size:12px; color:#888;">(แผนก: ${item.department_id || "-"})</span></h3>
-                                        <p><strong>ขอเบิก:</strong> ${item.devicename} <span style="color:#f27044;">[${item.stickerid}]</span></p>
-                                        <p>📅 ${bDate} ➔ ${dDate}</p>
-                                        <div class="req-reason">💬 เหตุผล: ${item.purpose}</div>
-                                    </div>
-                                </div>
-                                <div class="action-group">
-                                    <button class="btn-action btn-approve" onclick="actionRequest(${item.TSTID}, 'approve', ${item.DVID})">✅ อนุมัติ</button>
-                                    <button class="btn-action btn-reject" onclick="actionRequest(${item.TSTID}, 'reject', ${item.DVID})">❌ ไม่อนุมัติ</button>
-                                </div>
-                            </div>`;
+                <div class="approve-card">
+                  <div class="ac-header"><span>#${item.TSTID}</span><span>ยื่นเมื่อ: ${bDate}</span></div>
+                  <div class="ac-body">
+                    <img src="${imgSrc}" class="ac-img" onerror="this.src='/static/default.png'">
+                    <div class="ac-info">
+                      <h4>${item.devicename}</h4>
+                      <p>รหัส: ${item.stickerid}</p>
+                      <p>ผู้ยืม: <span class="user-name">${item.fname || item.username}</span></p>
+                      <p>วัตถุประสงค์: <strong>${item.purpose}</strong></p>
+                      <p style="color:var(--danger); font-weight:600;">กำหนดคืน: ${dDate}</p>
+                    </div>
+                  </div>
+                  <div class="ac-footer">
+                    <button class="btn-inspect" onclick="openInspectModal(${item.TSTID}, 'pending')">👁️ ตรวจสอบ</button>
+                    <button class="btn-approve" onclick="actionRequest(${item.TSTID}, 'approve', ${item.DVID})">✅ อนุมัติ</button>
+                    <button class="btn-reject" onclick="actionRequest(${item.TSTID}, 'reject', ${item.DVID})">❌ ไม่อนุมัติ</button>
+                  </div>
+                </div>`;
             });
-          })
-          .catch((err) => {
-            container.innerHTML = "<p style='color:red'>โหลดข้อมูลล้มเหลว</p>";
           });
       }
 
-      function actionRequest(tstid, action, dvid) {
-        if (
-          !confirm(
-            action === "approve"
-              ? 'ยืนยันการ "อนุมัติ"?'
-              : 'ยืนยันการ "ไม่อนุมัติ"?',
-          )
-        )
-          return;
-        fetch("/api/admin/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tstid, action, dvid }),
-        })
+      function loadPendingReturn() {
+        fetch("/api/admin/pending-return")
           .then((res) => res.json())
           .then((data) => {
-            if (data.success) {
-              alert("บันทึกเรียบร้อย!");
-              loadPending();
-            } else {
-              alert("เกิดข้อผิดพลาด");
+            currentReturnData = data; // ✅ เก็บข้อมูลไว้ใช้ตอนเปิด Modal
+            const container = document.getElementById("return-list");
+            container.innerHTML = "";
+            if (data.length === 0) {
+              container.innerHTML = `<div class="empty-state"><h3>📦 ไม่มีรายการรอรับคืน</h3><p>พนักงานส่งคืนอุปกรณ์ครบหมดแล้ว</p></div>`;
+              return;
             }
+            data.forEach((item) => {
+              const dDate = new Date(item.duedate).toLocaleDateString("th-TH");
+              let overdueBadge = "";
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const dueObj = new Date(item.duedate);
+              dueObj.setHours(0, 0, 0, 0);
+              if (item.Due_statusID == 3 || today > dueObj)
+                overdueBadge = `<span style="background:var(--danger); color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">⚠️ เกินกำหนด</span>`;
+
+              container.innerHTML += `
+                <div class="approve-card" style="border-left: 4px solid var(--info);">
+                  <div class="ac-header"><span>#${item.TSTID}</span><span>รหัส: ${item.stickerid}</span></div>
+                  <div class="ac-body">
+                    <div class="ac-info">
+                      <h4>${item.devicename}</h4>
+                      <p>ผู้ถือของ: <span class="user-name">${item.fname || item.username}</span></p>
+                      <p>กำหนดคืน: <strong>${dDate}</strong> ${overdueBadge}</p>
+                    </div>
+                  </div>
+                  <div class="ac-footer">
+                    <button class="btn-inspect" onclick="openInspectModal(${item.TSTID}, 'return')">👁️ ตรวจสอบของ</button>
+                    <button class="btn-receive" onclick="receiveReturn(${item.TSTID}, ${item.DVID})">📥 ยืนยันรับอุปกรณ์คืนเข้าคลัง</button>
+                  </div>
+                </div>`;
+            });
           });
+      }
+
+      // ✅ เพิ่มฟังก์ชันเปิด/ปิด หน้าต่าง Modal
+      function openInspectModal(tstid, type) {
+        const sourceData =
+          type === "pending" ? currentPendingData : currentReturnData;
+        const item = sourceData.find((d) => d.TSTID === tstid);
+
+        if (!item) return;
+
+        // นำข้อมูลไปแปะใน Modal
+        document.getElementById("m-trans").innerText =
+          item.transaction_num || item.TSTID;
+        document.getElementById("m-name").innerText = item.devicename || "-";
+        document.getElementById("m-sticker").innerText = item.stickerid || "-";
+        document.getElementById("m-user").innerText =
+          item.fname || item.username || "-";
+        document.getElementById("m-purpose").innerText = item.purpose || "-";
+        document.getElementById("m-location").innerText = item.location || "-";
+
+        // ข้อมูลเชิงลึกจาก DB (ถ้า API หลังบ้านส่งมาแล้ว)
+        document.getElementById("m-itcode").innerText = item.it_code || "-";
+        document.getElementById("m-serial").innerText =
+          item.serialnumber || "-";
+        document.getElementById("m-brand").innerText = item.BrandName || "-";
+        document.getElementById("m-model").innerText = item.ModelName || "-";
+
+        document.getElementById("m-bdate").innerText = new Date(
+          item.borrowdate,
+        ).toLocaleDateString("th-TH");
+        document.getElementById("m-ddate").innerText = new Date(
+          item.duedate,
+        ).toLocaleDateString("th-TH");
+
+        const imgSrc =
+          item.image &&
+          item.image !== "default.png" &&
+          !item.image.includes("http")
+            ? `/uploads/${item.image}`
+            : item.image && item.image.includes("http")
+              ? item.image
+              : "/static/default.png";
+        document.getElementById("m-img").src = imgSrc;
+
+        document.getElementById("inspectModal").style.display = "flex";
+      }
+
+      function closeInspectModal() {
+        document.getElementById("inspectModal").style.display = "none";
+      }
+
+      window.onclick = function (event) {
+        const modal = document.getElementById("inspectModal");
+        if (event.target == modal) closeInspectModal();
+      };
+
+      // ฟังก์ชันกด อนุมัติ/ไม่อนุมัติ/รับของ (ของเดิม)
+      function actionRequest(tstid, action, dvid) {
+        const title =
+          action === "approve"
+            ? "✅ ยืนยันการอนุมัติ?"
+            : "❌ ยืนยันการไม่อนุมัติ?";
+        const btnColor = action === "approve" ? "#2ecc71" : "#e74c3c";
+        Swal.fire({
+          title: title,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: btnColor,
+          confirmButtonText: "ตกลง",
+          cancelButtonText: "ยกเลิก",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            fetch("/api/admin/action", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ tstid, action, dvid }),
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.success) {
+                  Swal.fire("สำเร็จ", "", "success");
+                  loadPending();
+                }
+              });
+          }
+        });
+      }
+
+      function receiveReturn(tstid, dvid) {
+        Swal.fire({
+          title: `ตรวจสอบอุปกรณ์เรียบร้อย?`,
+          text: `ยืนยันว่าได้รับอุปกรณ์คืนในสภาพสมบูรณ์และนำกลับเข้าคลังแล้ว`,
+          icon: "info",
+          showCancelButton: true,
+          confirmButtonColor: "#3498db",
+          confirmButtonText: "รับคืนเข้าคลัง",
+          cancelButtonText: "ยกเลิก",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            fetch("/api/admin/receive-return", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ tstid, dvid }),
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.success) {
+                  Swal.fire({
+                    icon: "success",
+                    title: "รับของคืนเรียบร้อย!",
+                    timer: 1500,
+                    showConfirmButton: false,
+                  });
+                  loadPendingReturn();
+                }
+              });
+          }
+        });
       }
     </script>
   </body>

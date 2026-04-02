@@ -4,129 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ข้อมูลส่วนตัว - Thai PBS</title>
-    <link rel="stylesheet" href="/static/profile.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
-    <style>
-      /* ปุ่มแก้ไข */
-      .btn-edit {
-        background: #ffc107;
-        color: #333;
-        border: none;
-        padding: 8px 15px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-family: "Kanit";
-        font-weight: 500;
-        transition: 0.2s;
-        text-decoration: none;
-        display: inline-block;
-      }
-      .btn-edit:hover {
-        background: #ffca2c;
-        transform: translateY(-2px);
-      }
-
-      /* Modal Styles (หน้าต่างเด้ง) */
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        align-items: center;
-        justify-content: center;
-      }
-      .modal-content {
-        background-color: white;
-        padding: 25px;
-        border-radius: 10px;
-        width: 400px;
-        max-width: 90%;
-        position: relative;
-        animation: slideDown 0.3s;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      }
-      .close-modal {
-        position: absolute;
-        top: 15px;
-        right: 20px;
-        font-size: 24px;
-        cursor: pointer;
-        color: #aaa;
-      }
-      .close-modal:hover {
-        color: #000;
-      }
-      @keyframes slideDown {
-        from {
-          transform: translateY(-50px);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-
-      .form-group {
-        margin-bottom: 15px;
-      }
-      .form-group label {
-        display: block;
-        margin-bottom: 5px;
-        font-size: 14px;
-        color: #333;
-      }
-      .form-group input {
-        width: 100%;
-        padding: 8px;
-        box-sizing: border-box;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-family: "Kanit";
-      }
-      .btn-save {
-        width: 100%;
-        background: #28a745;
-        color: white;
-        border: none;
-        padding: 10px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-        font-family: "Kanit";
-      }
-      .btn-save:hover {
-        background: #218838;
-      }
-
-      /* เพิ่มสีสำหรับ Error */
-      .error-msg {
-        color: red;
-        font-size: 12px;
-        display: none;
-        margin-top: 5px;
-      }
-
-      /* ปรับ Footer ให้มีปุ่มเรียงกัน */
-      .profile-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-    </style>
+    <link rel="stylesheet" href="/static/profile.css" />
   </head>
   <body>
     <div class="profile-container">
       <div class="profile-header">
-        <h1 style="margin: 0">ข้อมูลผู้ใช้งาน</h1>
-        <a href="#" onclick="closeProfile(event)" class="btn-close">✕ ปิด</a>
+        <h1>👤 ข้อมูลผู้ใช้งาน</h1>
+        <a href="#" onclick="closeProfile(event)" class="btn-close"
+          >✕ ปิดหน้าต่าง</a
+        >
       </div>
 
       <div class="profile-body">
@@ -185,9 +75,18 @@
           onsubmit="submitEdit(event)"
           enctype="multipart/form-data"
         >
-          <div class="form-group" style="text-align: center">
+          <div class="form-group">
             <label>เปลี่ยนรูปโปรไฟล์</label>
-            <input type="file" name="image" accept="image/*" />
+            <input
+              type="file"
+              name="image"
+              accept="image/*"
+              style="
+                background: #fff;
+                border: 1px dashed var(--primary);
+                cursor: pointer;
+              "
+            />
           </div>
 
           <div class="form-group" style="display: flex; gap: 10px">
@@ -277,14 +176,22 @@
             }
 
             currentUserData = user;
-            if (user.RoleID == 2) {
-              currentUserRole = 2;
-            }
+
+            // ✅ แก้ไข: เก็บ Role จริงๆ ของ User เพื่อเอาไว้เช็คปุ่มกลับ
+            currentUserRole = user.RoleID;
 
             document.getElementById("p-fullname").innerText =
               user.fname + " " + user.lname;
-            document.getElementById("p-role").innerText =
-              user.RoleID == 2 ? "Admin / ผู้ดูแลระบบ" : "User / พนักงาน";
+
+            // ✅ แก้ไข: แสดงชื่อ Role ให้รองรับ Super Admin
+            let roleText = "User / พนักงานทั่วไป";
+            if (user.RoleID == 3) {
+              roleText = "Super Admin / ผู้ดูแลระบบสูงสุด";
+            } else if (user.RoleID == 2) {
+              roleText = "Admin / ผู้ดูแลระบบ";
+            }
+            document.getElementById("p-role").innerText = roleText;
+
             document.getElementById("p-emp-id").innerText = user.EMP_NUM || "-";
             document.getElementById("p-username").innerText =
               user.username || "-";
@@ -308,7 +215,8 @@
 
       function closeProfile(event) {
         event.preventDefault();
-        if (currentUserRole === 2) {
+        // ✅ แก้ไข: ให้ทั้ง Admin (2) และ Super Admin (3) กลับไปหน้า /admin
+        if (currentUserRole === 2 || currentUserRole === 3) {
           window.location.href = "/admin";
         } else {
           window.location.href = "/dashboard";
@@ -321,7 +229,6 @@
         document.getElementById("e-email").value = currentUserData.email || "";
         document.getElementById("e-phone").value = currentUserData.phone || "";
 
-        // ✅ แก้ตรงนี้: เคลียร์ค่ารหัสผ่านเดิมด้วย
         document.getElementById("old_pass").value = "";
         document.getElementById("new_pass").value = "";
         document.getElementById("confirm_pass").value = "";
@@ -344,7 +251,6 @@
       function submitEdit(e) {
         e.preventDefault();
 
-        // ✅ แก้ตรงนี้: เพิ่มการเช็ครหัสเดิม
         const oldPass = document.getElementById("old_pass").value;
         const newPass = document.getElementById("new_pass").value;
         const confirmPass = document.getElementById("confirm_pass").value;

@@ -5,56 +5,198 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard - BORROW SYSTEM</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="/static/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      /* CSS สำหรับ Dashboard Admin แบบ Bento Grid */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+      .stat-card {
+        color: white;
+        padding: 24px;
+        border-radius: var(--radius-lg);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s;
+      }
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+      }
+      .stat-info h3 {
+        font-size: 16px;
+        margin-bottom: 5px;
+        font-weight: 500;
+        opacity: 0.9;
+      }
+      .stat-info h1 {
+        font-size: 42px;
+        margin: 0;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .stat-info p {
+        font-size: 13px;
+        margin-top: 8px;
+        opacity: 0.8;
+      }
+      .stat-icon {
+        font-size: 70px;
+        opacity: 0.2;
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .stat-card.blue {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+      }
+      .stat-card.red {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+      }
+      .stat-card.yellow {
+        background: linear-gradient(135deg, #f39c12, #d35400);
+      }
+      .stat-card.cyan {
+        background: linear-gradient(135deg, #1abc9c, #16a085);
+      }
+
+      .dashboard-bottom {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 24px;
+        margin-bottom: 30px;
+      }
+      .chart-container {
+        height: 300px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .recent-users {
+        list-style: none;
+        padding: 0;
+      }
+      .recent-users li {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .recent-users li:last-child {
+        border-bottom: none;
+      }
+
+      @media (max-width: 1024px) {
+        .dashboard-bottom {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
   <body>
-    <aside class="sidebar">
-      <div class="brand-title">ADMIN PANEL</div>
+    <aside
+      class="sidebar admin-sidebar"
+      style="background: #1a202c; color: white"
+    >
+      <div class="brand-title" style="color: #f6ad55; font-weight: 700">
+        ADMIN PANEL
+      </div>
       <ul class="menu-list">
-        <li><a href="/admin" class="menu-item active">📊 ภาพรวมระบบ</a></li>
-
         <li>
-          <a href="/admin/approve" class="menu-item">📝 รายการรออนุมัติ</a>
+          <a href="/admin" class="menu-item active"
+            ><i class="fas fa-home fa-fw" style="margin-right: 10px"></i>
+            หน้าหลักแอดมิน</a
+          >
         </li>
 
-        <li><a href="/admin/device" class="menu-item">📦 จัดการอุปกรณ์</a></li>
-
         <li>
-          <a href="/admin/history" class="menu-item">📜 ประวัติการยืม-คืน</a>
+          <a href="/admin/approve" class="menu-item"
+            ><i
+              class="fas fa-check-double fa-fw"
+              style="margin-right: 10px"
+            ></i>
+            อนุมัติการยืม</a
+          >
         </li>
 
-        <li><a href="/admin/others" class="menu-item">... อื่นๆ</a></li>
+        <li>
+          <a href="/admin/device" class="menu-item"
+            ><i class="fas fa-laptop fa-fw" style="margin-right: 10px"></i>
+            จัดการอุปกรณ์</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/users" class="menu-item"
+            ><i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
+            จัดการผู้ใช้งาน</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/history" class="menu-item"
+            ><i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
+            ประวัติทั้งหมด</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/log" class="menu-item"
+            ><i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
+            ประวัติ Log</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/others" class="menu-item"
+            ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 10px"></i>
+            อื่นๆ</a
+          >
+        </li>
       </ul>
-      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+
+      <a
+        href="/logout"
+        class="menu-item logout-link"
+        style="border-top: 1px solid #2d3748; padding-top: 20px"
+      >
+        <i class="fas fa-sign-out-alt fa-fw" style="margin-right: 10px"></i>
+        ออกจากระบบ
+      </a>
     </aside>
 
     <main class="main-content">
       <header class="header-bar">
         <div>
-          <h1 class="page-title">แดชบอร์ดผู้ดูแลระบบ</h1>
-          <p style="color: #666; font-size: 14px">
-            ภาพรวมสถานะของระบบยืม-คืนอุปกรณ์
+          <h1 class="page-title">Admin Dashboard</h1>
+          <p style="color: var(--text-muted); font-size: 14px">
+            ภาพรวมระบบยืม-คืนอุปกรณ์
           </p>
         </div>
-
-        <a href="/profile" class="profile-link">
+        <a href="/admin/others" class="profile-link">
           <div class="user-profile">
             <span class="user-name" id="user-name">Loading...</span>
-            <img
-              src="/uploads/default.png"
-              class="avatar"
-              id="header-avatar"
-              style="
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                object-fit: cover;
-                margin-left: 10px;
-              "
-            />
+            <img src="/static/default.png" class="avatar" id="header-avatar" />
           </div>
         </a>
       </header>
@@ -62,80 +204,82 @@
       <div class="stats-grid">
         <div class="stat-card blue">
           <div class="stat-info">
-            <h3>รายการยืม/คืน</h3>
+            <h3>รายการยืมทั้งหมด</h3>
             <h1 id="stat-trans">0</h1>
-            <p>รายการเคลื่อนไหวทั้งหมด</p>
+            <p>อัปเดตล่าสุด</p>
           </div>
-          <div class="stat-icon">⇄</div>
+          <div class="stat-icon">📄</div>
         </div>
-
         <div class="stat-card red">
           <div class="stat-info">
-            <h3>รายการค้างคืน</h3>
+            <h3>กำลังถูกยืม (รอคืน)</h3>
             <h1 id="stat-pending">0</h1>
-            <p>รายการที่ยังไม่ได้คืน</p>
-          </div>
-          <div class="stat-icon">🔔</div>
-        </div>
-
-        <div class="stat-card yellow">
-          <div class="stat-info">
-            <h3>รายการสมาชิก</h3>
-            <h1 id="stat-users">0</h1>
-            <p>จำนวนสมาชิกในระบบ</p>
-          </div>
-          <div class="stat-icon">👤</div>
-        </div>
-
-        <div class="stat-card cyan">
-          <div class="stat-info">
-            <h3>รายการสินค้า</h3>
-            <h1 id="stat-devices">0</h1>
-            <p>จำนวนสินค้าทั้งหมด</p>
+            <p>อุปกรณ์อยู่นอกคลัง</p>
           </div>
           <div class="stat-icon">📦</div>
+        </div>
+        <div class="stat-card cyan">
+          <div class="stat-info">
+            <h3>อุปกรณ์ในระบบ</h3>
+            <h1 id="stat-devices">0</h1>
+            <p>รวมทุกหมวดหมู่</p>
+          </div>
+          <div class="stat-icon">💻</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-info">
+            <h3>จำนวนสมาชิก</h3>
+            <h1 id="stat-users">0</h1>
+            <p>ผู้ใช้งานระบบ</p>
+          </div>
+          <div class="stat-icon">👥</div>
         </div>
       </div>
 
       <div class="dashboard-bottom">
-        <div class="panel user-panel">
-          <div class="panel-header">✉️ ผู้ใช้เข้าสู่ระบบล่าสุด</div>
+        <div class="panel">
+          <div class="panel-header">📊 สถานะอุปกรณ์ทั้งหมด</div>
           <div class="panel-body">
-            <ul class="recent-users">
-              <li>
-                <img src="/static/default.png" class="mini-avatar" />
-                <div>
-                  <strong>admin</strong><br />
-                  <small>Admin</small>
-                </div>
-              </li>
-              <li>
-                <img src="/static/default.png" class="mini-avatar" />
-                <div>
-                  <strong>user01</strong><br />
-                  <small>User</small>
-                </div>
-              </li>
+            <div class="chart-container">
+              <canvas id="statusChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">🔥 5 อันดับอุปกรณ์ที่ถูกยืมบ่อยสุด</div>
+          <div class="panel-body">
+            <div class="chart-container">
+              <canvas id="topDevicesChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-bottom">
+        <div class="panel">
+          <div class="panel-header">👤 สมาชิกที่สมัครล่าสุด</div>
+          <div class="panel-body">
+            <ul class="recent-users" id="recent-users-list">
+              <li style="color: #999">กำลังโหลด...</li>
             </ul>
           </div>
         </div>
-
-        <div class="panel table-panel">
-          <div class="panel-header">📝 การเคลื่อนไหวล่าสุด</div>
-          <div class="panel-body">
+        <div class="panel table-panel" style="flex: 2">
+          <div class="panel-header">📜 รายการเคลื่อนไหวล่าสุด (5 รายการ)</div>
+          <div class="panel-body" style="padding: 0">
             <table class="recent-table">
               <thead>
                 <tr>
-                  <th>รหัส</th>
-                  <th>ชื่อสินค้า</th>
-                  <th>ผู้ทำรายการ</th>
+                  <th>เลขที่รายการ</th>
+                  <th>อุปกรณ์</th>
+                  <th>ผู้ยืม</th>
                   <th>สถานะ</th>
                   <th>วันที่</th>
                 </tr>
               </thead>
               <tbody id="recent-list">
                 <tr>
-                  <td colspan="5">กำลังโหลด...</td>
+                  <td colspan="5" style="text-align: center">กำลังโหลด...</td>
                 </tr>
               </tbody>
             </table>
@@ -145,5 +289,72 @@
     </main>
 
     <script src="/static/js/dashboard.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // loadAdminProfile() ถูกตัดออกไปแล้ว ให้เหลือแค่โหลดกราฟ
+        loadChartData();
+      });
+
+      function loadChartData() {
+        fetch("/api/admin/chart-data")
+          .then((res) => res.json())
+          .then((data) => {
+            renderStatusChart(data.statusData);
+            renderTopDevicesChart(data.topDevices);
+          })
+          .catch((err) => console.error("Error loading chart data:", err));
+      }
+
+      function renderStatusChart(statusData) {
+        const ctx = document.getElementById("statusChart").getContext("2d");
+        new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["ว่างพร้อมยืม", "กำลังถูกยืม"],
+            datasets: [
+              {
+                data: [statusData.available, statusData.borrowed],
+                backgroundColor: ["#10B981", "#EF4444"],
+                hoverOffset: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "bottom" } },
+          },
+        });
+      }
+
+      function renderTopDevicesChart(topDevices) {
+        const ctx = document.getElementById("topDevicesChart").getContext("2d");
+        const labels = topDevices.map((item) => item.devicename);
+        const dataValues = topDevices.map((item) => item.borrow_count);
+
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "จำนวนครั้งที่ถูกยืม",
+                data: dataValues,
+                backgroundColor: "rgba(242, 112, 68, 0.8)",
+                borderColor: "rgba(242, 112, 68, 1)",
+                borderWidth: 1,
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+            plugins: { legend: { display: false } },
+          },
+        });
+      }
+    </script>
   </body>
 </html>

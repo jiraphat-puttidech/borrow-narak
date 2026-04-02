@@ -4,11 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ลงทะเบียนพนักงาน - Borrow System</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/static/register.css" />
   </head>
   <body>
     <div class="register-box">
-      <h2>ลงทะเบียนพนักงานใหม่</h2>
+      <h2>📝 สมัครสมาชิกใหม่</h2>
       <div id="msg-box" style="display: none"></div>
 
       <form
@@ -92,11 +96,7 @@
           </div>
         </div>
 
-        <label>บทบาท (Role)</label>
-        <select name="role_id" required>
-          <option value="1">พนักงานทั่วไป (User)</option>
-          <option value="2">ผู้ดูแลระบบ (Admin)</option>
-        </select>
+        <input type="hidden" name="role_id" value="1" />
 
         <div class="input-group">
           <div class="input-wrapper">
@@ -148,6 +148,12 @@
           ❌ รหัสผ่านไม่ตรงกัน กรุณากรอกใหม่
         </p>
 
+        <div
+          class="g-recaptcha"
+          data-sitekey="6Lfl2p0sAAAAAEJRe4NIzb3C07FDO4T0mBQlXfe3"
+          style="margin-bottom: 15px"
+        ></div>
+
         <button type="submit">สมัครสมาชิก</button>
       </form>
 
@@ -189,5 +195,6 @@
           }
         });
     </script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   </body>
 </html>

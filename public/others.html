@@ -8,28 +8,70 @@
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="/static/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
+      body {
+        margin: 0;
+        font-family: "Kanit", sans-serif;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+        background: var(--bg);
+      }
+
+      .settings-box {
+        max-width: 600px;
+        margin-top: 10px;
+      }
       .settings-list {
         list-style: none;
         padding: 0;
-        background: white;
-        border-radius: 8px;
-        overflow: hidden;
+        margin: 0;
       }
       .settings-list li {
-        border-bottom: 1px solid #eee;
+        margin-bottom: 15px;
       }
       .settings-list a {
-        display: block;
-        padding: 15px 20px;
-        text-decoration: none;
-        color: #333;
         display: flex;
         justify-content: space-between;
+        align-items: center;
+        background: var(--surface);
+        padding: 20px 24px;
+        border-radius: var(--radius-md);
+        text-decoration: none;
+        color: var(--text-main);
+        font-weight: 500;
+        font-size: 16px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s;
       }
       .settings-list a:hover {
-        background: #f9f9f9;
+        transform: translateX(5px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+      .settings-list a.logout-btn {
+        color: var(--danger);
+      }
+      .settings-list a.logout-btn:hover {
+        border-color: var(--danger);
+        background: var(--danger-bg);
+      }
+      .arrow {
+        color: var(--text-muted);
+        font-weight: bold;
+        transition: 0.3s;
+      }
+      .settings-list a:hover .arrow {
+        color: var(--primary);
       }
     </style>
   </head>
@@ -37,70 +79,111 @@
     <aside class="sidebar">
       <div class="brand-title">BORROW SYSTEM</div>
       <ul class="menu-list">
-        <li><a href="/dashboard" class="menu-item">🏠 หน้าหลัก</a></li>
         <li>
-          <a href="/tracking" class="menu-item">📦 สถานะการยืม-คืน</a>
+          <a href="/dashboard" class="menu-item"
+            ><i class="fas fa-home fa-fw" style="margin-right: 8px"></i>
+            หน้าหลัก</a
+          >
         </li>
-        <li><a href="/history" class="menu-item">📜 ประวัติทั้งหมด</a></li>
-        <li><a href="/category" class="menu-item">📂 หมวดหมู่สินค้า</a></li>
-        <li><a href="/product" class="menu-item">🛍️ สินค้า</a></li>
-        <li><a href="/others" class="menu-item active">... อื่นๆ</a></li>
+        <li>
+          <a href="/tracking" class="menu-item"
+            ><i class="fas fa-box fa-fw" style="margin-right: 8px"></i>
+            สถานะการยืม-คืน</a
+          >
+        </li>
+        <li>
+          <a href="/history" class="menu-item"
+            ><i class="fas fa-history fa-fw" style="margin-right: 8px"></i>
+            ประวัติทั้งหมด</a
+          >
+        </li>
+        <li>
+          <a href="/product" class="menu-item"
+            ><i class="fas fa-laptop fa-fw" style="margin-right: 8px"></i>
+            สินค้า</a
+          >
+        </li>
+        <li>
+          <a href="/others" class="menu-item active"
+            ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 8px"></i>
+            อื่นๆ</a
+          >
+        </li>
       </ul>
-      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+      <a href="/logout" class="menu-item logout-link"
+        ><i class="fas fa-sign-out-alt fa-fw" style="margin-right: 8px"></i>
+        ออกจากระบบ</a
+      >
     </aside>
 
     <main class="main-content">
       <header class="header-bar">
-        <h1 class="page-title">การตั้งค่าและอื่นๆ</h1>
+        <div>
+          <h1 class="page-title">เมนูอื่นๆ</h1>
+          <p style="color: var(--text-muted); font-size: 14px">
+            ตั้งค่าและข้อมูลเพิ่มเติมของระบบ
+          </p>
+        </div>
         <a href="/profile" class="profile-link">
           <div class="user-profile">
             <span class="user-name" id="user-name">Loading...</span>
-
-            <img
-              src="/uploads/default.png"
-              class="avatar"
-              style="
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                object-fit: cover;
-                margin-left: 10px;
-              "
-            />
+            <img src="/static/default.png" class="avatar" id="header-avatar" />
           </div>
         </a>
       </header>
 
-      <div style="max-width: 600px; margin-top: 20px">
-        <h3>บัญชีของฉัน</h3>
+      <div class="settings-box">
         <ul class="settings-list">
           <li>
-            <a href="/profile"
-              >👤 จัดการข้อมูลส่วนตัวและรหัสผ่าน <span>&gt;</span></a
+            <a
+              href="#"
+              onclick="
+                showInfo(
+                  event,
+                  '📖 คู่มือการใช้งาน',
+                  'ขณะนี้อยู่ในระหว่างการจัดทำคู่มือการใช้งานครับ',
+                )
+              "
             >
-          </li>
-        </ul>
-
-        <h3 style="margin-top: 20px">ระบบ</h3>
-        <ul class="settings-list">
-          <li>
-            <a href="#" onclick="alert('กำลังจัดทำคู่มือ...')"
-              >📖 คู่มือการใช้งาน <span>&gt;</span></a
-            >
-          </li>
-          <li>
-            <a href="#" onclick="alert('ติดต่อ: 02-xxx-xxxx')"
-              >📞 ติดต่อผู้ดูแลระบบ <span>&gt;</span></a
-            >
+              <span>📖 คู่มือการใช้งาน</span> <span class="arrow">&gt;</span>
+            </a>
           </li>
           <li>
-            <a href="/logout" style="color: red"
-              >🚪 ออกจากระบบ <span>&gt;</span></a
+            <a
+              href="#"
+              onclick="
+                showInfo(
+                  event,
+                  '📞 ติดต่อผู้ดูแลระบบ',
+                  'หากพบปัญหา สามารถติดต่อได้ที่เบอร์: 0972930229 ครับ',
+                )
+              "
             >
+              <span>📞 ติดต่อผู้ดูแลระบบ</span> <span class="arrow">&gt;</span>
+            </a>
+          </li>
+          <li>
+            <a href="/logout" class="logout-btn">
+              <span>🚪 ออกจากระบบ</span> <span class="arrow">&gt;</span>
+            </a>
           </li>
         </ul>
       </div>
     </main>
+
     <script src="/static/js/dashboard.js"></script>
+    <script>
+      // ⚠️ สคริปต์เดิม
+      function showInfo(e, title, text) {
+        e.preventDefault();
+        Swal.fire({
+          icon: "info",
+          title: title,
+          text: text,
+          confirmButtonColor: "var(--primary)",
+          confirmButtonText: "ตกลง",
+        });
+      }
+    </script>
   </body>
 </html>

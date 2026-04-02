@@ -1,113 +1,164 @@
-/* ================= RESET ================= */
+:root {
+  --primary: #f27044;
+  --primary-hover: #d35400;
+  --bg: #f4f7fb;
+  --surface: #ffffff;
+  --text: #161616;
+  --border: #e5e7eb;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
+  font-family: "Kanit", "Poppins", sans-serif;
 }
 
-/* ================= BODY ================= */
 body {
-  height: 100vh;
-  width: 100%;
+  margin: 0;
   display: flex;
-  overflow-x: hidden;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg);
 }
 
-/* ================= LEFT SECTION ================= */
 .left-section {
-  width: 55%;
-  background-color: #ff6b35;
+  flex: 1;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding-left: 10%;
+  background: var(--surface);
   position: relative;
   z-index: 1;
 }
 
-/* ================= RIGHT SECTION ================= */
 .right-section {
-  width: 45%;
+  flex: 1;
+  background: linear-gradient(135deg, var(--primary) 0%, #ff8c5a 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: visible;
-  background: linear-gradient(135deg, #a5929b 0%, #9b8791 100%);
+  overflow: hidden;
 }
 
-/* ================= HERO IMAGE ================= */
 .hero-image {
-  max-width: 85%;
+  max-width: 80%;
   height: auto;
-  transform: translateX(-10%);
   position: relative;
   z-index: 10;
-  opacity: 0.9;
-  filter: drop-shadow(0 25px 45px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 25px 45px rgba(0, 0, 0, 0.2));
 }
 
-/* ================= LOGIN CONTAINER ================= */
 .login-container {
   width: 100%;
-  max-width: 400px;
-  background: rgba(255, 255, 255, 0.18);
+  max-width: 420px;
   padding: 40px;
-  border-radius: 24px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  z-index: 10;
 }
 
-/* ================= FORM ================= */
-label {
+h2 {
+  font-size: 32px;
+  color: var(--text);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+p {
+  color: #7f8c8d;
+  margin-bottom: 30px;
+  font-size: 15px;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
   display: block;
-  color: #333;
-  font-weight: 500;
   margin-bottom: 8px;
+  color: var(--text);
+  font-weight: 600;
   font-size: 14px;
 }
 
-/* ================= INPUT ================= */
-input {
+.input-group input {
   width: 100%;
-  padding: 12px 20px;
-  margin-bottom: 24px;
-  border: 2px solid rgba(109, 87, 87, 0.2);
-  background: transparent;
-  border-radius: 50px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
   outline: none;
-  color: #333;
+  font-size: 15px;
   transition: 0.3s;
 }
 
-input:focus {
-  border-color: #6c7ae0;
-  background: rgba(255, 255, 255, 0.3);
+.input-group input:focus {
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(242, 112, 68, 0.15);
 }
 
-/* ================= BUTTON ================= */
-button {
+.forgot-password {
+  display: block;
+  text-align: right;
+  margin-bottom: 25px;
+  font-size: 14px;
+}
+
+.forgot-password a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+button.login-btn {
   width: 100%;
-  padding: 12px;
-  background-color: #6c7ae0;
+  padding: 14px;
+  background-color: var(--primary);
   color: white;
   border: none;
-  border-radius: 50px;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: 600;
-  letter-spacing: 0.5px;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(108, 122, 224, 0.45);
   transition: 0.3s;
+  box-shadow: 0 4px 15px rgba(242, 112, 68, 0.3);
 }
 
-button:hover {
-  background-color: #5a66c4;
+button.login-btn:hover {
+  background-color: var(--primary-hover);
   transform: translateY(-2px);
 }
 
-/* ================= SOCIAL ICONS ================= */
+.error-msg {
+  background: #fdedec;
+  color: #e74c3c;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid #e74c3c;
+  text-align: center;
+}
+
+.success-msg {
+  background: #e8f8f5;
+  color: #2ecc71;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid #2ecc71;
+  text-align: center;
+}
+
 .social-icons {
   margin-top: 30px;
   display: flex;
@@ -125,7 +176,6 @@ button:hover {
   font-size: 18px;
   text-decoration: none;
   transition: 0.3s;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
 }
 
 .fb {
@@ -142,16 +192,16 @@ button:hover {
   transform: scale(1.1);
 }
 
-/* ================= DECORATION ================= */
 .decorative-circle {
   position: absolute;
   bottom: -60px;
   left: -60px;
   width: 220px;
   height: 220px;
-  background-color: #ff4500;
+  background-color: var(--primary-hover);
   border-radius: 50%;
   z-index: -1;
+  opacity: 0.1;
 }
 
 .decorative-bar {
@@ -160,44 +210,15 @@ button:hover {
   left: -20px;
   width: 180px;
   height: 180px;
-  border: 20px solid #6c7ae0;
-  border-radius: 40px;
+  background-color: var(--primary);
+  border-radius: 20px;
   transform: rotate(45deg);
-  z-index: -2;
-  opacity: 0.45;
+  z-index: -1;
+  opacity: 0.1;
 }
 
-/* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
-  body {
-    flex-direction: column-reverse;
-    height: auto;
-    min-height: 100vh;
-  }
-
-  .left-section,
   .right-section {
-    width: 100%;
-  }
-
-  .right-section {
-    height: 40vh;
-  }
-
-  .left-section {
-    height: 60vh;
-    padding: 30px 20px;
-    border-top-left-radius: 30px;
-    border-top-right-radius: 30px;
-    margin-top: -30px;
-  }
-
-  .login-container {
-    padding: 30px 20px;
-  }
-
-  .hero-image {
-    max-width: 70%;
-    transform: translateX(0);
+    display: none;
   }
 }

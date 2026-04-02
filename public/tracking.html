@@ -8,269 +8,484 @@
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="/static/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-      /* สไตล์ตารางแบบเดียวกับ History แต่เพิ่มปุ่ม */
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-        margin-top: 20px;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-      }
-      th {
-        background-color: #f8f9fa;
-        color: #333;
-        font-weight: 600;
-        padding: 15px;
-        text-align: left;
-        border-bottom: 2px solid #ddd;
-      }
-      td {
-        padding: 15px;
-        border-bottom: 1px solid #eee;
-        vertical-align: middle;
-        color: #555;
-      }
-      tr:hover {
-        background-color: #f9f9f9;
-      }
-
-      /* ปุ่มคืนของ */
-      .btn-return {
-        background: #e74c3c;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: 0.2s;
+      body {
+        margin: 0;
+        font-family: "Kanit", sans-serif;
         display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-      .btn-return:hover {
-        background: #c0392b;
-        transform: translateY(-2px);
+        height: 100vh;
+        overflow: hidden;
+        background: var(--bg);
       }
 
-      /* Badge สถานะ */
       .badge {
-        padding: 5px 10px;
-        border-radius: 15px;
+        padding: 6px 12px;
+        border-radius: 20px;
         font-size: 12px;
         font-weight: 600;
         display: inline-block;
       }
-      .bg-warning {
-        background: #fff3cd;
-        color: #856404;
-      } /* รออนุมัติ */
-      .bg-info {
-        background: #cce5ff;
-        color: #004085;
-      } /* กำลังใช้งาน */
       .bg-danger {
-        background: #f8d7da;
-        color: #721c24;
-      } /* ไม่อนุมัติ */
+        background: var(--danger-bg);
+        color: var(--danger);
+      }
+      .bg-warning {
+        background: var(--warning-bg);
+        color: var(--warning);
+      }
+      .bg-success {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+
+      .btn-info {
+        background: var(--surface);
+        color: var(--text-main);
+        border: 1px solid var(--border);
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+        box-shadow: var(--shadow-sm);
+        transition: 0.2s;
+        font-family: "Kanit", sans-serif;
+      }
+      .btn-info:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        transform: translateY(-2px);
+      }
+
+      /* Modal Style */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content.info-card {
+        background-color: white;
+        border-radius: 20px;
+        max-width: 700px;
+        width: 90%;
+        position: relative;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        display: flex;
+        overflow: hidden;
+      }
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #aaa;
+        z-index: 10;
+        background: white;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .close-btn:hover {
+        color: #333;
+      }
+
+      .info-left {
+        width: 35%;
+        background: #f8f9fa;
+        padding: 40px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid var(--border);
+      }
+      .info-left img {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        margin-top: 20px;
+      }
+      .info-right {
+        width: 65%;
+        padding: 40px 30px;
+      }
+      .info-right h3 {
+        margin: 0;
+        color: var(--primary);
+        font-size: 22px;
+      }
+      .info-right .code {
+        color: #888;
+        font-size: 13px;
+        margin-bottom: 25px;
+        display: block;
+      }
+
+      .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .detail-item {
+        display: flex;
+        flex-direction: column;
+      }
+      .detail-label {
+        font-size: 11px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      .detail-value {
+        font-size: 14px;
+        color: var(--text-main);
+        font-weight: 500;
+      }
+
+      @media (max-width: 600px) {
+        .modal-content.info-card {
+          flex-direction: column;
+        }
+        .info-left,
+        .info-right {
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .info-left {
+          padding: 30px 20px;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+        }
+      }
     </style>
   </head>
   <body>
     <aside class="sidebar">
       <div class="brand-title">BORROW SYSTEM</div>
       <ul class="menu-list">
-        <li><a href="/dashboard" class="menu-item">🏠 หน้าหลัก</a></li>
         <li>
-          <a href="/tracking" class="menu-item active">📦 สถานะการยืม-คืน</a>
+          <a href="/dashboard" class="menu-item"
+            ><i class="fas fa-home fa-fw" style="margin-right: 8px"></i>
+            หน้าหลัก</a
+          >
         </li>
-        <li><a href="/history" class="menu-item">📜 ประวัติทั้งหมด</a></li>
-        <li><a href="/category" class="menu-item">📂 หมวดหมู่สินค้า</a></li>
-        <li><a href="/product" class="menu-item">🛍️ สินค้า</a></li>
-        <li><a href="/others" class="menu-item">... อื่นๆ</a></li>
+        <li>
+          <a href="/tracking" class="menu-item active"
+            ><i class="fas fa-box fa-fw" style="margin-right: 8px"></i>
+            สถานะการยืม-คืน</a
+          >
+        </li>
+        <li>
+          <a href="/history" class="menu-item"
+            ><i class="fas fa-history fa-fw" style="margin-right: 8px"></i>
+            ประวัติทั้งหมด</a
+          >
+        </li>
+        <li>
+          <a href="/product" class="menu-item"
+            ><i class="fas fa-laptop fa-fw" style="margin-right: 8px"></i>
+            สินค้า</a
+          >
+        </li>
+        <li>
+          <a href="/others" class="menu-item"
+            ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 8px"></i>
+            อื่นๆ</a
+          >
+        </li>
       </ul>
-      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+      <a href="/logout" class="menu-item logout-link"
+        ><i class="fas fa-sign-out-alt fa-fw" style="margin-right: 8px"></i>
+        ออกจากระบบ</a
+      >
     </aside>
 
     <main class="main-content">
       <header class="header-bar">
         <div>
-          <h1 class="page-title">สถานะการยืม-คืน</h1>
-          <p style="color: #666; font-size: 14px">
-            รายการอุปกรณ์ที่อยู่กับคุณในขณะนี้
+          <h1 class="page-title">สถานะการยืม-คืน (กำลังดำเนินการ)</h1>
+          <p style="color: var(--text-muted); font-size: 14px">
+            ติดตามอุปกรณ์ที่คุณกำลังยืม หรือรอการอนุมัติ
           </p>
         </div>
-
         <a href="/profile" class="profile-link">
           <div class="user-profile">
             <span class="user-name" id="user-name">Loading...</span>
-            <img
-              src="/static/default.png"
-              class="avatar"
-              id="header-avatar"
-              style="
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                object-fit: cover;
-                margin-left: 10px;
-              "
-            />
+            <img src="/static/default.png" class="avatar" id="header-avatar" />
           </div>
         </a>
       </header>
 
-      <div
-        style="
-          background: white;
-          border-radius: 10px;
-          padding: 20px;
-          margin-top: 20px;
-        "
-      >
-        <table>
-          <thead>
-            <tr>
-              <th width="80">รูป</th>
-              <th>อุปกรณ์</th>
-              <th>วันที่ยืม</th>
-              <th>กำหนดส่ง</th>
-              <th>สถานะ</th>
-              <th width="100">จัดการ</th>
-            </tr>
-          </thead>
-          <tbody id="active-list">
-            <tr>
-              <td colspan="6" align="center">กำลังโหลดข้อมูล...</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="panel table-panel">
+        <div class="panel-header">🔄 รายการค้างดำเนินการของคุณ</div>
+        <div class="panel-body" style="padding: 0">
+          <table class="recent-table">
+            <thead>
+              <tr>
+                <th>รูปภาพ</th>
+                <th>อุปกรณ์</th>
+                <th>วันที่ยืม</th>
+                <th>กำหนดคืน</th>
+                <th>สถานะปัจจุบัน</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="track-list">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 20px">
+                  กำลังโหลดข้อมูล...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
 
+    <div id="infoModal" class="modal">
+      <div class="modal-content info-card">
+        <span class="close-btn" onclick="closeInfoModal()">&times;</span>
+
+        <div class="info-left">
+          <span id="m-status" class="badge">Loading...</span>
+          <img
+            id="m-img"
+            src="/static/default.png"
+            onerror="this.src = '/static/default.png'"
+          />
+        </div>
+
+        <div class="info-right">
+          <h3 id="m-name">ชื่ออุปกรณ์</h3>
+          <span class="code">IT CODE: <span id="m-sticker">-</span></span>
+
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-label">SERIAL NUMBER</span>
+              <span class="detail-value" id="m-serial">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">ยี่ห้อ (Brand) / รุ่น (Model)</span>
+              <span class="detail-value" id="m-brand-model">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">วันที่ขอยืม</span>
+              <span class="detail-value" id="m-bdate">-</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">กำหนดส่งคืน</span>
+              <span
+                class="detail-value"
+                id="m-ddate"
+                style="color: var(--danger); font-weight: 600"
+                >-</span
+              >
+            </div>
+            <div class="detail-item" style="grid-column: span 2">
+              <span class="detail-label">สถานที่นำไปใช้งาน</span>
+              <span class="detail-value" id="m-location">-</span>
+            </div>
+            <div class="detail-item" style="grid-column: span 2">
+              <span class="detail-label">หมายเหตุจากแอดมิน</span>
+              <span
+                class="detail-value"
+                id="m-admin-note"
+                style="color: var(--warning)"
+                >-</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
     <script>
+      let activeItemsData = [];
+
       document.addEventListener("DOMContentLoaded", () => {
-        loadUserProfile();
         loadActiveItems();
       });
 
-      function loadUserProfile() {
-        fetch("/api/user")
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.loggedIn) {
-              document.getElementById("user-name").innerText = data.fullname;
-              if (data.image)
-                document.getElementById("header-avatar").src =
-                  `/uploads/${data.image}`;
-            }
-          });
-      }
-
       function loadActiveItems() {
-        // ✅ เรียก API ดึงเฉพาะของที่ยังไม่คืน
         fetch("/api/my-active-borrow")
           .then((res) => res.json())
           .then((data) => {
-            const tbody = document.getElementById("active-list");
+            activeItemsData = data;
+            const tbody = document.getElementById("track-list");
             tbody.innerHTML = "";
-
             if (data.length === 0) {
-              tbody.innerHTML = `<tr><td colspan="6" align="center" style="padding:30px; color:#999;">
-                ✅ ไม่มีอุปกรณ์ค้างส่งคืน<br>
-                <small>คุณสามารถยืมอุปกรณ์ใหม่ได้ที่หน้าแรก</small>
-              </td></tr>`;
+              tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:#999;">ไม่มีรายการค้างยืม/คืน ในขณะนี้ 🎉</td></tr>`;
               return;
             }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
             data.forEach((item) => {
               const borrowDate = new Date(item.borrowdate).toLocaleDateString(
                 "th-TH",
               );
-              const dueDate = new Date(item.duedate).toLocaleDateString(
-                "th-TH",
-              );
+              const dueDateObj = new Date(item.duedate);
+              dueDateObj.setHours(0, 0, 0, 0);
+              const dueDateStr = dueDateObj.toLocaleDateString("th-TH");
+              const isOverdue = today > dueDateObj; // เช็คว่าเลยกำหนดหรือยัง
+
               const img = item.image
                 ? `/uploads/${item.image}`
                 : "/static/default.png";
 
-              // เช็คสถานะ (ถ้า Admin ยังไม่อนุมัติ จะคืนของไม่ได้ หรือจะให้คืนก็ได้แล้วแต่ Policy)
-              // ในที่นี้ผมให้กดคืนได้ตลอด เพื่อความสะดวก
               let statusHtml = "";
-              let btnAction = "";
+              let btnAction = `<button onclick="openInfoModal(${item.TSTID})" class="btn-info">👁️ ดูข้อมูล</button>`;
 
-              if (item.Due_statusID == 5) {
-                // 5 = รออนุมัติ
-                statusHtml = `<span class="badge bg-warning">⏳ รออนุมัติ</span>`;
-                // รออนุมัติ: ไม่ควรให้กดคืนของ (ซ่อนปุ่ม หรือ disable)
-                btnAction = `<button class="btn-return" style="background:#ccc; cursor:not-allowed;" disabled>⏳ รอผล</button>`;
-              } else if (item.Due_statusID == 6) {
-                // 6 = ไม่อนุมัติ (เพิ่มส่วนนี้)
+              // ✅ เช็คสถานะตาม DB เป๊ะๆ
+              if (item.Due_statusID == 6) {
                 statusHtml = `<span class="badge bg-danger">❌ ไม่อนุมัติ</span>`;
-                // ไม่อนุมัติ: ให้ปุ่มกดรับทราบ เพื่อลบรายการออก
-                btnAction = `<button class="btn-return" style="background:#6c757d;" onclick="acknowledgeItem(${item.TSTID})">🗑️ รับทราบ</button>`;
-              } else {
-                // อื่นๆ = กำลังใช้งาน
-                statusHtml = `<span class="badge bg-info">📦 กำลังใช้งาน</span>`;
-                // อนุมัติแล้ว: โชว์ปุ่มคืนของปกติ
-                btnAction = `<button class="btn-return" onclick="returnItem(${item.TSTID}, ${item.DVID})">↩️ ส่งคืน</button>`;
+                btnAction += ` <button onclick="acknowledgeItem(${item.TSTID})" style="background:#e74c3c; color:white; border:none; padding:7px 12px; border-radius:6px; cursor:pointer; font-family:Kanit;">รับทราบผล</button>`;
+              } else if (item.Due_statusID == 5) {
+                statusHtml = `<span class="badge bg-warning">⏳ รออนุมัติ</span>`;
+              } else if (
+                item.Due_statusID == 3 ||
+                (item.Due_statusID == 2 && isOverdue)
+              ) {
+                // ถ้าเลยวันกำหนดคืน หรือสถานะเป็น 3 (เกินกำหนด)
+                statusHtml = `<span class="badge" style="background:#e74c3c; color:white;">⚠️ เกินกำหนด</span>`;
+              } else if (item.Due_statusID == 2) {
+                // สถานะ 2 และยังไม่เลยวัน
+                statusHtml = `<span class="badge bg-success">✅ กำลังใช้งาน</span>`;
               }
 
               tbody.innerHTML += `
                   <tr>
-                      <td><img src="${img}" style="height:50px; border-radius:5px; object-fit:cover;"></td>
-                      <td>
-                        <strong>${item.devicename}</strong><br>
-                        <small style="color:#888">${item.stickerid}</small>
-                      </td>
+                      <td><img src="${img}" style="height:50px; width:50px; border-radius:5px; object-fit:cover;" onerror="this.src='/static/default.png'"></td>
+                      <td><strong>${item.devicename}</strong><br><small style="color:#888">${item.stickerid}</small></td>
                       <td>${borrowDate}</td>
-                      <td style="color:#e74c3c; font-weight:bold;">${dueDate}</td>
+                      <td style="color:#e74c3c; font-weight:bold;">${dueDateStr}</td>
                       <td>${statusHtml}</td>
-                      <td>
-                        ${btnAction}
-                      </td>
+                      <td>${btnAction}</td>
                   </tr>
               `;
             });
           });
       }
 
-      function acknowledgeItem(tstid) {
-        if (!confirm("กดรับทราบเพื่อลบรายการนี้ออกจากหน้าจอ?")) return;
+      function openInfoModal(tstid) {
+        const item = activeItemsData.find((d) => d.TSTID === tstid);
+        if (!item) return;
 
-        fetch("/api/acknowledge", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tstid }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success) {
-              loadActiveItems(); // โหลดรายการใหม่ (รายการนี้จะหายไป)
-            }
-          });
+        document.getElementById("m-name").innerText = item.devicename || "-";
+        document.getElementById("m-sticker").innerText = item.stickerid || "-";
+        document.getElementById("m-serial").innerText =
+          item.serialnumber || "-";
+        document.getElementById("m-brand-model").innerText =
+          `${item.BrandName || item.BrandID || "-"} / ${item.ModelName || item.ModelID || "-"}`;
+
+        document.getElementById("m-bdate").innerText = new Date(
+          item.borrowdate,
+        ).toLocaleDateString("th-TH");
+        document.getElementById("m-ddate").innerText = new Date(
+          item.duedate,
+        ).toLocaleDateString("th-TH");
+        document.getElementById("m-location").innerText = item.location || "-";
+        document.getElementById("m-admin-note").innerText =
+          item.notes_admin || "-";
+
+        const img = item.image
+          ? `/uploads/${item.image}`
+          : "/static/default.png";
+        document.getElementById("m-img").src = img;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dueDateObj = new Date(item.duedate);
+        dueDateObj.setHours(0, 0, 0, 0);
+        const isOverdue = today > dueDateObj;
+
+        let statusEl = document.getElementById("m-status");
+        if (item.Due_statusID == 6) {
+          statusEl.className = "badge bg-danger";
+          statusEl.innerText = "❌ ไม่อนุมัติ";
+        } else if (item.Due_statusID == 5) {
+          statusEl.className = "badge bg-warning";
+          statusEl.innerText = "⏳ รออนุมัติ";
+        } else if (
+          item.Due_statusID == 3 ||
+          (item.Due_statusID == 2 && isOverdue)
+        ) {
+          statusEl.className = "badge";
+          statusEl.style.cssText = "background:#e74c3c; color:white;";
+          statusEl.innerText = "⚠️ เกินกำหนด";
+        } else if (item.Due_statusID == 2) {
+          statusEl.className = "badge bg-success";
+          statusEl.innerText = "✅ กำลังใช้งาน";
+        }
+
+        document.getElementById("infoModal").style.display = "flex";
       }
 
-      function returnItem(tstid, dvid) {
-        if (!confirm("ยืนยันการส่งคืนอุปกรณ์ใช่หรือไม่?")) return;
+      function closeInfoModal() {
+        document.getElementById("infoModal").style.display = "none";
+      }
 
-        fetch("/api/return", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tstid, dvid }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success) {
-              alert("คืนอุปกรณ์สำเร็จ!");
-              loadActiveItems(); // โหลดรายการใหม่ (รายการนี้จะหายไป)
-            } else {
-              alert("เกิดข้อผิดพลาด: " + (data.message || "ไม่สามารถคืนได้"));
-            }
-          });
+      window.onclick = function (event) {
+        if (event.target == document.getElementById("infoModal")) {
+          closeInfoModal();
+        }
+      };
+
+      function acknowledgeItem(tstid) {
+        Swal.fire({
+          title: "รับทราบผล?",
+          text: "รายการนี้จะถูกซ่อนจากหน้าติดตามสถานะของคุณ",
+          icon: "info",
+          showCancelButton: true,
+          confirmButtonColor: "var(--primary)",
+          cancelButtonColor: "#95a5a6",
+          confirmButtonText: "ตกลง, รับทราบ",
+          cancelButtonText: "ยกเลิก",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            fetch("/api/acknowledge", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ tstid }),
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.success) {
+                  Swal.fire({
+                    icon: "success",
+                    title: "ดำเนินการสำเร็จ",
+                    timer: 1500,
+                    showConfirmButton: false,
+                  });
+                  loadActiveItems();
+                }
+              });
+          }
+        });
       }
     </script>
   </body>

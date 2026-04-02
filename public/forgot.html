@@ -3,43 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <title>Forgot Password</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/static/forgot.css" />
-
-    <style>
-      .error-msg {
-        background-color: #ffe6e6;
-        color: #d63031;
-        border: 1px solid #d63031;
-      }
-      .success-msg {
-        background-color: #e6fffa;
-        color: #00b894;
-        border: 1px solid #00b894;
-      }
-      #msg-box {
-        font-weight: bold;
-        font-size: 14px;
-      }
-    </style>
   </head>
   <body>
     <div class="forgot-box">
-      <h2>ลืมรหัสผ่าน</h2>
-      <p class="subtitle">กรอกข้อมูลเพื่อตั้งรหัสผ่านใหม่</p>
+      <h2>🔒 ลืมรหัสผ่าน</h2>
+      <p class="subtitle">กรุณากรอก Username และ Email เพื่อรีเซ็ต</p>
 
-      <div
-        id="msg-box"
-        style="
-          display: none;
-          padding: 15px;
-          margin-bottom: 20px;
-          text-align: center;
-          border-radius: 5px;
-        "
-      ></div>
+      <div id="msg-box" class="msg-box"></div>
 
-      <form id="resetForm" method="POST" action="/reset-password">
-        <label>Username</label>
+      <form action="/forgot" method="POST" id="resetForm">
+        <label>Username *</label>
         <input
           type="text"
           name="username"
@@ -47,45 +25,34 @@
           placeholder="ชื่อผู้ใช้งานของคุณ"
         />
 
-        <label>Email ที่ลงทะเบียนไว้</label>
+        <label>Email ที่ใช้ลงทะเบียน *</label>
         <input
           type="email"
           name="email"
           required
-          placeholder="เช่น admin@example.com"
+          placeholder="example@thaipbs.or.th"
         />
 
-        <label>รหัสผ่านใหม่</label>
-        <input
-          type="password"
-          name="new_password"
-          id="new_password"
-          required
-          placeholder="ตั้งรหัสใหม่"
-        />
+        <label>ตั้งรหัสผ่านใหม่ *</label>
+        <input type="password" name="new_password" id="new_password" required />
 
-        <label>Confirm Password (ยืนยันรหัสผ่าน)</label>
-        <input
-          type="password"
-          name="confirm_password"
-          id="confirm_password"
-          required
-          placeholder="กรอกรหัสผ่านอีกครั้ง"
-        />
+        <label>ยืนยันรหัสผ่านใหม่ *</label>
+        <input type="password" id="confirm_password" required />
 
         <p
           id="pass-error"
           style="
-            color: red;
             display: none;
-            font-size: 14px;
-            margin-top: -10px;
-            margin-bottom: 10px;
+            color: #e74c3c;
+            font-size: 13px;
+            margin: -5px 0 10px;
+            font-weight: 600;
           "
         >
-          ❌ รหัสผ่านไม่ตรงกัน กรุณากรอกใหม่
+          ❌ รหัสผ่านไม่ตรงกัน
         </p>
-        <button type="submit">บันทึกรหัสผ่านใหม่</button>
+
+        <button type="submit">ยืนยันการเปลี่ยนรหัสผ่าน</button>
       </form>
 
       <div class="back">
@@ -94,7 +61,6 @@
     </div>
 
     <script>
-      // โค้ดเดิม: จัดการ Error/Success จาก Server
       const urlParams = new URLSearchParams(window.location.search);
       const errorMsg = urlParams.get("error");
       const successMsg = urlParams.get("success");
@@ -110,7 +76,6 @@
         msgBox.innerText = successMsg;
       }
 
-      // โค้ดใหม่: เช็คว่ารหัสตรงกันไหมก่อนส่งฟอร์ม
       const form = document.getElementById("resetForm");
       const newPass = document.getElementById("new_password");
       const confirmPass = document.getElementById("confirm_password");
@@ -118,18 +83,16 @@
 
       form.addEventListener("submit", function (e) {
         if (newPass.value !== confirmPass.value) {
-          e.preventDefault(); // ห้ามส่งฟอร์ม
-          passError.style.display = "block"; // โชว์ข้อความ Error
+          e.preventDefault();
+          passError.style.display = "block";
         } else {
           passError.style.display = "none";
         }
       });
 
-      // (เสริม) พิมพ์ใหม่แล้วซ่อน Error
-      confirmPass.addEventListener(
-        "input",
-        () => (passError.style.display = "none"),
-      );
+      confirmPass.addEventListener("input", function () {
+        passError.style.display = "none";
+      });
     </script>
   </body>
 </html>

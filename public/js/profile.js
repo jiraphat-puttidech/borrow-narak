@@ -27,11 +27,17 @@ function fetchProfileData() {
         (data.InstitutionName || "") + " / " + (data.DepartmentName || "");
       setText("p-dept", deptText);
 
-      // 2. จัดการ Role (2=Admin, อื่นๆ=User)
+      // 2. จัดการ Role
       const roleEl = document.getElementById("p-role");
       if (roleEl) {
-        roleEl.innerText =
-          data.RoleID == 2 ? "👑 ผู้ดูแลระบบ" : "👤 พนักงานทั่วไป";
+        // ✅ แก้ไข: รองรับ Super Admin (3), Admin (2), User (1)
+        if (data.RoleID == 3) {
+          roleEl.innerText = "👑 ผู้ดูแลระบบสูงสุด (Super Admin)";
+        } else if (data.RoleID == 2) {
+          roleEl.innerText = "👑 ผู้ดูแลระบบ (Admin)";
+        } else {
+          roleEl.innerText = "👤 พนักงานทั่วไป (User)";
+        }
       }
 
       // 3. จัดการรูปภาพ

@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="th">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login Page Design</title>
+    <title>เข้าสู่ระบบ - BORROW SYSTEM</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Kanit:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
     <link
@@ -13,68 +13,133 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <link rel="stylesheet" href="/static/login.css" />
-
-    <style>
-      #msg-box {
-        padding: 12px;
-        margin-bottom: 20px;
-        border-radius: 8px;
-        text-align: center;
-        font-size: 14px;
-        font-weight: bold;
-      }
-      .error-msg {
-        background-color: #ffe6e6;
-        color: #d63031;
-        border: 1px solid #d63031;
-      }
-      .success-msg {
-        background-color: #e6fffa;
-        color: #00b894;
-        border: 1px solid #00b894;
-      }
-    </style>
   </head>
   <body>
     <div class="left-section">
       <div class="login-container">
+        <h2>เข้าสู่ระบบ</h2>
+        <p>ยินดีต้อนรับสู่ระบบยืม-คืนอุปกรณ์ Thai PBS</p>
+
         <div id="msg-box" style="display: none"></div>
 
-        <form method="POST" action="/login">
-          <label>Username:</label>
-          <input name="username" type="text" required />
+        <form action="/login" method="POST">
+          <div class="input-group">
+            <label>Username</label>
+            <input
+              type="text"
+              name="username"
+              placeholder="กรอกชื่อผู้ใช้งาน"
+              required
+            />
+          </div>
 
-          <label>Password:</label>
-          <input name="password" type="password" required />
+          <div class="input-group">
+            <label>รหัสผ่าน</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="กรอกรหัสผ่าน"
+              required
+            />
+          </div>
 
-          <button type="submit">Login</button>
+          <div class="forgot-password">
+            <a href="/forgot">ลืมรหัสผ่าน?</a>
+          </div>
+          <div
+            class="g-recaptcha"
+            data-sitekey="6Lfl2p0sAAAAAEJRe4NIzb3C07FDO4T0mBQlXfe3"
+            style="margin-bottom: 15px"
+          ></div>
+          <button type="submit" class="login-btn">เข้าสู่ระบบ</button>
         </form>
 
-        <div style="text-align: right; margin-top: 10px">
-          <a
-            href="/forgot"
-            style="font-size: 12px; color: #666; text-decoration: none"
-            >ลืมรหัสผ่าน?</a
-          >
-        </div>
-
-        <p class="register-text" style="margin-top: 15px; font-size: 14px">
+        <p
+          style="
+            margin-top: 25px;
+            text-align: left;
+            font-size: 14px;
+            color: #555;
+          "
+        >
           ยังไม่มีบัญชี?
           <a
             href="/register"
-            style="color: #6c7ae0; text-decoration: none; font-weight: 600"
-            >Register</a
+            style="
+              color: var(--primary);
+              text-decoration: none;
+              font-weight: 600;
+              margin-left: 5px;
+            "
+            >สมัครสมาชิก</a
           >
         </p>
 
-        <div class="social-icons">
-          <a href="#" class="social-btn fb"
-            ><i class="fab fa-facebook-f"></i
-          ></a>
-          <a href="#" class="social-btn wa"><i class="fab fa-whatsapp"></i></a>
-          <a href="#" class="social-btn tg"
-            ><i class="fab fa-telegram-plane"></i
-          ></a>
+        <div
+          class="social-icons"
+          style="
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+          "
+        >
+          <a
+            href="https://www.facebook.com/ThaiPBS"
+            target="_blank"
+            class="social-btn fb"
+            style="
+              background: #3b5998;
+              color: white;
+              width: 38px;
+              height: 38px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              text-decoration: none;
+            "
+          >
+            <i class="fab fa-facebook-f" style="font-size: 16px"></i>
+          </a>
+
+          <a
+            href="https://www.thaipbs.or.th/home"
+            target="_blank"
+            class="social-btn go"
+            style="
+              background: #db4437;
+              color: white;
+              width: 38px;
+              height: 38px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              text-decoration: none;
+            "
+          >
+            <i class="fab fa-google" style="font-size: 16px"></i>
+          </a>
+
+          <a
+            href="https://www.twitter.com/ThaiPBS"
+            target="_blank"
+            class="social-btn tw"
+            style="
+              background: #1da1f2;
+              color: white;
+              width: 38px;
+              height: 38px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              text-decoration: none;
+            "
+          >
+            <i class="fab fa-twitter" style="font-size: 16px"></i>
+          </a>
         </div>
       </div>
 
@@ -83,7 +148,12 @@
     </div>
 
     <div class="right-section">
-      <img src="/static/images/thai.png" alt="Thai PBS" class="hero-image" />
+      <img
+        src="/static/images/thai.png"
+        alt="Thai PBS"
+        class="hero-image"
+        onerror="this.style.display = 'none'"
+      />
     </div>
 
     <script>
@@ -94,13 +164,14 @@
 
       if (errorMsg) {
         msgBox.style.display = "block";
-        msgBox.className = "error-msg"; // สีแดง
+        msgBox.className = "error-msg";
         msgBox.innerText = errorMsg;
       } else if (successMsg) {
         msgBox.style.display = "block";
-        msgBox.className = "success-msg"; // สีเขียว
+        msgBox.className = "success-msg";
         msgBox.innerText = successMsg;
       }
     </script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   </body>
 </html>

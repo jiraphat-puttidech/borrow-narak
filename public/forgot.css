@@ -1,129 +1,128 @@
-* {
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
-  margin: 0;
-  padding: 0;
+:root {
+  --primary: #f27044;
+  --primary-hover: #d35400;
+  --bg: #f8f9fa;
+  --surface: #ffffff;
+  --text: #2c3e50;
+  --border: #edf2f7;
 }
 
 body {
-  height: 100vh;
-  background: linear-gradient(
-    135deg,
-    #ff6b35,
-    #a5929b
-  ); /* สีเดียวกับหน้า Register */
+  margin: 0;
+  background: var(--bg);
+  font-family: "Kanit", sans-serif;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .forgot-box {
-  background: white;
+  background: var(--surface);
   padding: 40px;
-  width: 90%;
-  max-width: 450px; /* กว้างกว่า Register นิดหน่อยเผื่อชื่อยาว */
-  border-radius: 20px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 450px;
+  border: 1px solid var(--border);
 }
 
 h2 {
+  margin: 0 0 5px;
+  font-size: 28px;
+  color: var(--text);
   text-align: center;
-  color: #333;
-  margin-bottom: 10px;
+  font-weight: 700;
 }
 
 .subtitle {
   text-align: center;
-  color: #666;
+  color: #7f8c8d;
   font-size: 14px;
   margin-bottom: 30px;
 }
 
 label {
   font-size: 14px;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
   display: block;
-  color: #333;
-  font-weight: 500;
+  color: var(--text);
+  font-weight: 600;
 }
 
 input {
   width: 100%;
-  padding: 12px 18px;
+  padding: 12px;
   margin-bottom: 18px;
-  border-radius: 50px;
-  border: 2px solid #ddd;
+  border-radius: 8px;
+  border: 1px solid var(--border);
   outline: none;
   transition: 0.3s;
-  background-color: #f9f9f9;
+  background-color: var(--bg);
+  font-family: "Kanit", sans-serif;
+  box-sizing: border-box;
 }
 
 input:focus {
-  border-color: #6c7ae0;
-  background-color: #fff;
-}
-
-/* จัดชื่อ-นามสกุล ให้อยู่บรรทัดเดียวกันแบบสวยๆ */
-.input-group {
-  display: flex;
-  gap: 15px;
-}
-
-.input-group div {
-  width: 50%;
+  border-color: var(--primary);
+  background-color: var(--surface);
+  box-shadow: 0 0 0 3px rgba(242, 112, 68, 0.15);
 }
 
 button {
   width: 100%;
-  padding: 12px;
-  border-radius: 50px;
+  padding: 14px;
+  border-radius: 8px;
   border: none;
-  background: #6c7ae0; /* สีม่วงน้ำเงิน */
+  background: var(--primary);
   color: white;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s;
   margin-top: 10px;
-  box-shadow: 0 4px 15px rgba(108, 122, 224, 0.4);
 }
 
 button:hover {
-  background: #5a66c4;
+  background: var(--primary-hover);
   transform: translateY(-2px);
 }
 
 .back {
   text-align: center;
   margin-top: 20px;
-  font-size: 14px;
 }
 
 .back a {
-  color: #6c7ae0;
+  color: #7f8c8d;
   text-decoration: none;
+  font-size: 14px;
   font-weight: 500;
   transition: 0.3s;
 }
 
 .back a:hover {
-  text-decoration: underline;
-  color: #444;
+  color: var(--primary);
 }
 
-/* Responsive มือถือ */
-@media (max-width: 480px) {
-  .forgot-box {
-    padding: 30px 20px;
-  }
-
-  /* มือถือจอเล็ก ให้ชื่อกับนามสกุลเรียงแนวตั้ง */
-  .input-group {
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .input-group div {
-    width: 100%;
-  }
+.msg-box {
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 20px;
+  font-size: 14px;
+  display: none;
+}
+.error-msg {
+  background: #fdedec;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+}
+.success-msg {
+  background: #e8f8f5;
+  color: #2ecc71;
+  border: 1px solid #2ecc71;
 }

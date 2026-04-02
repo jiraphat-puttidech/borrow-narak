@@ -3,133 +3,598 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Manage Devices - Admin</title>
+    <title>จัดการอุปกรณ์ (Admin) - BORROW SYSTEM</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <link rel="stylesheet" href="/static/index.css" />
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-      /* ปุ่มเพิ่ม */
+      /* ธีมหลัก (สีกรมท่าของ Sidebar และสีส้มของปุ่มตามรูป) */
+      :root {
+        --primary: #ea580c;
+        --primary-hover: #c2410c;
+        --sidebar-bg: #1f2937;
+        --bg: #f4f7fb;
+        --surface: #ffffff;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+      }
+
+      body {
+        margin: 0;
+        background-color: var(--bg);
+        font-family: "Kanit", sans-serif;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      /* ================= Sidebar UI (ธีมมืดตามรูป) ================= */
+      .sidebar {
+        width: 260px;
+        background: var(--sidebar-bg);
+        display: flex;
+        flex-direction: column;
+        padding: 24px 0;
+        z-index: 10;
+      }
+      .brand-title {
+        font-size: 22px;
+        font-weight: 700;
+        text-align: center;
+        color: #ffffff;
+        margin-bottom: 30px;
+        letter-spacing: 1px;
+      }
+      .menu-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex: 1;
+      }
+      .menu-list li {
+        margin: 4px 16px;
+      }
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        color: #9ca3af;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: 0.2s;
+      }
+      .menu-item:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .menu-item.active {
+        background: #374151;
+        color: white;
+        border-left: 4px solid var(--primary);
+      }
+      .logout-link {
+        margin: auto 16px 0;
+        background: #fee2e2;
+        color: #ef4444;
+        justify-content: center;
+        font-weight: 600;
+      }
+
+      /* ================= Main Content & Header ================= */
+      .main-content {
+        flex: 1;
+        padding: 30px 40px;
+        overflow-y: auto;
+        background: #f8fafc;
+      }
+      .header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+      }
+      .page-title {
+        margin: 0 0 5px;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+      .page-subtitle {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin: 0;
+      }
+
+      .user-profile {
+        display: flex;
+        align-items: center;
+        background: var(--surface);
+        padding: 6px 16px;
+        border-radius: 30px;
+        border: 1px solid var(--border);
+      }
+      .user-name {
+        font-weight: 500;
+        font-size: 14px;
+        color: var(--text-main);
+        margin-right: 10px;
+      }
+
+      /* ================= Toolbar & เมนูจัดการ Master Data ================= */
+      .master-data-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .btn-master {
+        background: #ffffff;
+        color: #475569;
+        border: 1px solid #cbd5e1;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        font-family: "Kanit";
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn-master:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+        color: var(--primary);
+      }
+
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .search-box-container {
+        position: relative;
+        width: 400px;
+      }
+      .search-box-container i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+      }
+      .search-box {
+        width: 100%;
+        padding: 10px 15px 10px 40px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        outline: none;
+        font-family: "Kanit";
+        font-size: 14px;
+        background: var(--surface);
+      }
+      .search-box:focus {
+        border-color: #94a3b8;
+      }
+
+      .toolbar-right {
+        display: flex;
+        gap: 10px;
+      }
+      .btn-outline {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-family: "Kanit";
+        color: var(--text-main);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+      }
       .btn-add-header {
-        background: #27ae60;
+        background: var(--primary);
         color: white;
         border: none;
         padding: 8px 20px;
-        border-radius: 30px;
+        border-radius: 8px;
+        font-family: "Kanit";
+        font-weight: 600;
         cursor: pointer;
-        font-size: 14px;
+        transition: 0.2s;
         display: flex;
         align-items: center;
-        gap: 5px;
-        transition: 0.2s;
+        gap: 8px;
       }
       .btn-add-header:hover {
-        background: #219150;
-        transform: translateY(-2px);
+        background: var(--primary-hover);
       }
 
-      /* Badge สถานะในตาราง */
-      .status-badge {
-        padding: 4px 10px;
+      /* ================= Table (ดีไซน์ตามรูปภาพ) ================= */
+      .table-card {
+        background: var(--surface);
         border-radius: 12px;
-        font-size: 12px;
-        font-weight: bold;
+        border: 1px solid var(--border);
+        overflow-x: auto;
       }
-      .st-ok {
-        background: #d4edda;
-        color: #155724;
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+      }
+      th {
+        background: #f8fafc;
+        padding: 16px 20px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        border-bottom: 1px solid var(--border);
+        text-transform: uppercase;
+      }
+      td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--text-main);
+        vertical-align: middle;
+      }
+      tr:hover {
+        background: #f1f5f9;
+      }
+
+      .device-name-col {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        color: #0f172a;
+      }
+      .device-img-mini {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+        border-radius: 6px;
+        background: white;
+        padding: 2px;
+        border: 1px solid #e2e8f0;
+      }
+
+      /* จุดสีสถานะ */
+      .status-wrapper {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        font-size: 12px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+      .st-ready .dot {
+        background: #10b981;
+      }
+      .st-ready {
+        color: #10b981;
+      }
+      .st-busy .dot {
+        background: #ef4444;
       }
       .st-busy {
-        background: #f8d7da;
-        color: #721c24;
+        color: #ef4444;
+      }
+      .st-repair .dot {
+        background: #f59e0b;
+      }
+      .st-repair {
+        color: #f59e0b;
       }
 
-      /* --- สไตล์ของ Modal เพิ่มอุปกรณ์แบบใหม่ --- */
+      /* ไอคอนจัดการ (Edit/Delete) */
+      .action-icons {
+        display: flex;
+        gap: 8px;
+      }
+      .icon-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .icon-btn:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+      }
+      .icon-btn.delete:hover {
+        border-color: #ef4444;
+        color: #ef4444;
+      }
+
+      /* ================= Modals ================= */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Modal เพิ่ม/แก้อุปกรณ์ (2 คอลัมน์ + กล่องรูปใหญ่) */
       .modal-content {
-        max-width: 600px; /* ขยายให้กว้างขึ้น */
+        background: #ffffff;
+        padding: 30px 40px;
+        border-radius: 12px;
         width: 90%;
+        max-width: 700px;
+        position: relative;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
+      .close-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #9ca3af;
+      }
+      .modal h2 {
+        margin-top: 0;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 25px;
+        color: #0f172a;
       }
 
-      /* จัดฟอร์มเป็น 2 คอลัมน์ */
       .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 15px;
-        margin-bottom: 20px;
+        gap: 20px;
       }
-
       .form-group label {
+        display: block;
         font-size: 13px;
         font-weight: 600;
-        color: #555;
-        margin-bottom: 5px;
-        display: block;
+        color: #475569;
+        margin-bottom: 8px;
       }
-
       .form-group input,
       .form-group select {
         width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        font-size: 14px;
-        background-color: #f9f9f9;
-      }
-
-      .form-group input:focus,
-      .form-group select:focus {
-        border-color: #27ae60;
-        background-color: #fff;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: #f8fafc;
+        font-family: "Kanit";
+        font-size: 13px;
+        box-sizing: border-box;
         outline: none;
       }
-
-      /* ปุ่มบันทึก */
-      .btn-confirm {
-        width: 100%;
-        padding: 12px;
-        background-color: #27ae60;
-        border: none;
-        color: white;
-        border-radius: 8px;
-        font-size: 16px;
-        cursor: pointer;
-        font-weight: bold;
+      .form-group input:focus,
+      .form-group select:focus {
+        border-color: #94a3b8;
+        background: #fff;
       }
-      .btn-confirm:hover {
-        background-color: #219150;
+
+      .upload-box {
+        grid-column: span 2;
+        border: 2px dashed #cbd5e1;
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        background: #f8fafc;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-top: 5px;
+      }
+      .upload-box:hover {
+        border-color: #94a3b8;
+        background: #f1f5f9;
+      }
+      .upload-box i {
+        font-size: 30px;
+        color: #94a3b8;
+        margin-bottom: 10px;
+      }
+      .upload-box p {
+        margin: 0;
+        color: #64748b;
+        font-size: 13px;
+      }
+
+      .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 30px;
+      }
+      .btn-cancel {
+        background: #f1f5f9;
+        color: #475569;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: "Kanit";
+      }
+      .btn-save {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: "Kanit";
+      }
+
+      /* Modal จัดการ Master Data (อันเล็ก) */
+      .master-modal-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 12px;
+        max-width: 450px;
+        width: 90%;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+      .master-list-container {
+        max-height: 250px;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+      .master-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-main);
+      }
+      .master-item:last-child {
+        border-bottom: none;
+      }
+      .master-item:nth-child(even) {
+        background: #f8fafc;
+      }
+
+      .master-input-group {
+        display: flex;
+        gap: 10px;
+      }
+      .master-input-group input {
+        flex: 1;
+        padding: 10px 15px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-family: "Kanit";
+      }
+      .master-input-group button {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 0 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: "Kanit";
+        font-weight: 600;
+      }
+
+      div:where(.swal2-container) {
+        font-family: "Kanit", sans-serif;
       }
     </style>
   </head>
   <body>
-    <aside class="sidebar admin-sidebar">
-      <div class="brand-title">ADMIN PANEL</div>
+    <aside
+      class="sidebar admin-sidebar"
+      style="background: #1a202c; color: white"
+    >
+      <div class="brand-title" style="color: #f6ad55; font-weight: 700">
+        ADMIN PANEL
+      </div>
       <ul class="menu-list">
-        <li><a href="/admin" class="menu-item">📊 ภาพรวมระบบ</a></li>
         <li>
-          <a href="/admin/approve" class="menu-item">📝 รายการรออนุมัติ</a>
+          <a href="/admin" class="menu-item"
+            ><i class="fas fa-home fa-fw" style="margin-right: 10px"></i>
+            หน้าหลักแอดมิน</a
+          >
         </li>
-        <li>
-          <a href="/admin/device" class="menu-item active">📦 จัดการอุปกรณ์</a>
-        </li>
-        <li>
-          <a href="/admin/history" class="menu-item">📜 ประวัติการยืม-คืน</a>
-        </li>
-        <li><a href="/admin/others" class="menu-item">... อื่นๆ</a></li>
-      </ul>
-      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
-    </aside>
 
+        <li>
+          <a href="/admin/approve" class="menu-item"
+            ><i
+              class="fas fa-check-double fa-fw"
+              style="margin-right: 10px"
+            ></i>
+            อนุมัติการยืม</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/device" class="menu-item active"
+            ><i class="fas fa-laptop fa-fw" style="margin-right: 10px"></i>
+            จัดการอุปกรณ์</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/users" class="menu-item"
+            ><i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
+            จัดการผู้ใช้งาน</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/history" class="menu-item"
+            ><i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
+            ประวัติทั้งหมด</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/log" class="menu-item"
+            ><i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
+            ประวัติ Log</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/others" class="menu-item"
+            ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 10px"></i>
+            อื่นๆ</a
+          >
+        </li>
+      </ul>
+
+      <a
+        href="/logout"
+        class="menu-item logout-link"
+        style="border-top: 1px solid #2d3748; padding-top: 20px"
+      >
+        <i class="fas fa-sign-out-alt fa-fw" style="margin-right: 10px"></i>
+        ออกจากระบบ
+      </a>
+    </aside>
     <main class="main-content">
       <header class="header-bar">
         <div>
           <h1 class="page-title">จัดการอุปกรณ์</h1>
-          <p style="color: #666; font-size: 14px">
-            เพิ่ม ลบ แก้ไข รายการครุภัณฑ์ในระบบ
-          </p>
+          <p class="page-subtitle">เพิ่ม ลบ แก้ไข รายการครุภัณฑ์ในระบบ</p>
         </div>
-
         <a
           href="/profile"
           class="profile-link"
@@ -142,8 +607,8 @@
               class="avatar"
               id="header-avatar"
               style="
-                width: 40px;
-                height: 40px;
+                width: 35px;
+                height: 35px;
                 border-radius: 50%;
                 object-fit: cover;
                 margin-left: 10px;
@@ -153,123 +618,285 @@
         </a>
       </header>
 
-      <div class="dashboard-bottom" style="display: block">
-        <div class="panel table-panel" style="width: 100%">
-          <div
-            class="panel-header"
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            "
-          >
-            <span>📦 รายการอุปกรณ์ทั้งหมด</span>
-            <button onclick="openModal()" class="btn-add-header">
-              + เพิ่มอุปกรณ์ใหม่
-            </button>
-          </div>
+      <div class="master-data-actions">
+        <button
+          class="btn-master"
+          onclick="openMasterModal('brand', 'ยี่ห้อ (Brand)')"
+        >
+          <i class="fas fa-tags"></i> จัดการยี่ห้อ
+        </button>
+        <button
+          class="btn-master"
+          onclick="openMasterModal('model', 'รุ่น (Model)')"
+        >
+          <i class="fas fa-mobile-alt"></i> จัดการรุ่น
+        </button>
+        <button
+          class="btn-master"
+          onclick="openMasterModal('category', 'หมวดหมู่ (Category)')"
+        >
+          <i class="fas fa-folder-open"></i> จัดการหมวดหมู่
+        </button>
+        <button
+          class="btn-master"
+          onclick="openMasterModal('type', 'ประเภท (Type)')"
+        >
+          <i class="fas fa-laptop"></i> จัดการประเภท
+        </button>
+      </div>
 
-          <div class="panel-body">
-            <table class="recent-table">
-              <thead>
-                <tr>
-                  <th>ชื่ออุปกรณ์</th>
-                  <th>รหัสครุภัณฑ์</th>
-                  <th>สถานะ</th>
-                  <th>จัดการ</th>
-                </tr>
-              </thead>
-              <tbody id="device-list">
-                <tr>
-                  <td colspan="4" style="text-align: center; padding: 20px">
-                    กำลังโหลด...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+      <div class="toolbar">
+        <div class="search-box-container">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            id="search-device"
+            class="search-box"
+            placeholder="ค้นหาด้วยชื่ออุปกรณ์, รหัสสินค้า หรือ ซีเรียลนัมเบอร์..."
+          />
+        </div>
+        <div class="toolbar-right">
+          <button class="btn-outline">
+            <i class="fas fa-filter"></i> หมวดหมู่
+          </button>
+          <button class="btn-outline">
+            <i class="fas fa-filter"></i> สถานะ
+          </button>
+          <button class="btn-add-header" onclick="openModal()">
+            <i class="fas fa-plus"></i> เพิ่มอุปกรณ์ใหม่
+          </button>
         </div>
       </div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>รหัสครุภัณฑ์</th>
+              <th>IT CODE</th>
+              <th>รูป / ชื่ออุปกรณ์ (EN)</th>
+              <th>ชื่อ (TH)</th>
+              <th>ยี่ห้อ</th>
+              <th>รุ่น</th>
+              <th>SERIAL NUMBER</th>
+              <th>หมวดหมู่</th>
+              <th>สถานะ</th>
+              <th>อัปเดตล่าสุด / โดย</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="device-list">
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 20px">
+                กำลังโหลดข้อมูล...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </main>
+
+    <div id="masterModal" class="modal">
+      <div class="master-modal-content">
+        <span class="close-btn" onclick="closeMasterModal()">&times;</span>
+        <h2 id="master-title" style="margin-bottom: 20px; text-align: center">
+          จัดการข้อมูล
+        </h2>
+
+        <div class="master-list-container" id="master-list"></div>
+
+        <div class="master-input-group">
+          <input type="hidden" id="m-type" />
+          <input type="text" id="m-name" placeholder="พิมพ์ชื่อใหม่ที่นี่..." />
+          <button onclick="saveMasterData()">เพิ่ม</button>
+        </div>
+      </div>
+    </div>
 
     <div id="addModal" class="modal">
       <div class="modal-content">
         <span class="close-btn" onclick="closeModal()">&times;</span>
-        <h2 style="margin-bottom: 20px; text-align: center">
-          เพิ่มอุปกรณ์ใหม่
-        </h2>
-
+        <h2>เพิ่มอุปกรณ์ใหม่</h2>
         <form onsubmit="addDevice(event)">
           <div class="form-grid">
             <div class="form-group">
-              <label>ชื่ออุปกรณ์ *</label>
-              <input
-                type="text"
-                id="d-name"
-                required
-                placeholder="เช่น Notebook Dell"
-              />
-            </div>
-            <div class="form-group">
-              <label>รหัสครุภัณฑ์ (Sticker ID) *</label>
-              <input
+              <label>รหัสครุภัณฑ์ (Asset Code) *</label
+              ><input
                 type="text"
                 id="d-sticker"
                 required
-                placeholder="เช่น NB-001"
+                placeholder="เช่น B26-0032"
               />
             </div>
-
             <div class="form-group">
-              <label>Serial Number</label>
-              <input type="text" id="d-serial" placeholder="เช่น SN12345678" />
+              <label>IT Code</label
+              ><input
+                type="text"
+                id="d-it-code"
+                placeholder="เช่น IT-20260219-0270"
+              />
+            </div>
+            <div class="form-group">
+              <label>ชื่ออุปกรณ์ (EN) *</label
+              ><input
+                type="text"
+                id="d-name"
+                required
+                placeholder="เช่น iMac 24"
+              />
+            </div>
+            <div class="form-group">
+              <label>ชื่ออุปกรณ์ (TH)</label
+              ><input
+                type="text"
+                id="d-name-th"
+                placeholder="ชื่อภาษาไทย (ถ้ามี)"
+              />
+            </div>
+            <div class="form-group">
+              <label>ยี่ห้อ (Brand)</label
+              ><select id="d-brand">
+                <option value="1">กำลังโหลด...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>รุ่น (Model)</label
+              ><select id="d-model">
+                <option value="1">กำลังโหลด...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Serial Number (S/N)</label
+              ><input
+                type="text"
+                id="d-serial"
+                placeholder="ระบุ Serial Number"
+              />
+            </div>
+            <div class="form-group">
+              <label>หมวดหมู่ (Category)</label
+              ><select id="d-category">
+                <option value="1">กำลังโหลด...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>ประเภท (Type)</label
+              ><select id="d-type">
+                <option value="1">กำลังโหลด...</option>
+              </select>
             </div>
             <div class="form-group">
               <label>สถานะเริ่มต้น</label>
               <select id="d-status">
-                <option value="1">พร้อมใช้งาน</option>
+                <option value="1">ว่าง/พร้อมใช้งาน</option>
                 <option value="3">ส่งซ่อม</option>
                 <option value="4">ชำรุด</option>
               </select>
             </div>
 
-            <div class="form-group">
-              <label>ยี่ห้อ (Brand)</label>
-              <select id="d-brand">
-                <option value="1">กำลังโหลด...</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>รุ่น (Model)</label>
-              <select id="d-model">
-                <option value="1">กำลังโหลด...</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>หมวดหมู่ (Category)</label>
-              <select id="d-category">
-                <option value="1">กำลังโหลด...</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>ประเภท (Type)</label>
-              <select id="d-type">
-                <option value="1">กำลังโหลด...</option>
-              </select>
-            </div>
+            <label class="upload-box" for="d-image">
+              <i class="fas fa-image"></i>
+              <p>คลิกเพื่ออัปโหลดรูปภาพอุปกรณ์</p>
+              <input
+                type="file"
+                id="d-image"
+                accept="image/*"
+                style="display: none"
+              />
+            </label>
           </div>
-
-          <button type="submit" class="btn-confirm">บันทึกข้อมูล</button>
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeModal()">
+              ยกเลิก
+            </button>
+            <button type="submit" class="btn-save">บันทึกข้อมูล</button>
+          </div>
         </form>
       </div>
     </div>
 
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeEditModal()">&times;</span>
+        <h2>แก้ไขข้อมูลอุปกรณ์</h2>
+        <form onsubmit="submitEditDevice(event)">
+          <input type="hidden" id="e-dvid" />
+          <div class="form-grid">
+            <div class="form-group">
+              <label>รหัสครุภัณฑ์ (Asset Code) *</label
+              ><input type="text" id="e-sticker" required />
+            </div>
+            <div class="form-group">
+              <label>IT Code</label><input type="text" id="e-it-code" />
+            </div>
+            <div class="form-group">
+              <label>ชื่ออุปกรณ์ (EN) *</label
+              ><input type="text" id="e-name" required />
+            </div>
+            <div class="form-group">
+              <label>ชื่ออุปกรณ์ (TH)</label
+              ><input type="text" id="e-name-th" />
+            </div>
+            <div class="form-group">
+              <label>ยี่ห้อ (Brand)</label
+              ><select id="e-brand"></select>
+            </div>
+            <div class="form-group">
+              <label>รุ่น (Model)</label
+              ><select id="e-model"></select>
+            </div>
+            <div class="form-group">
+              <label>Serial Number (S/N)</label
+              ><input type="text" id="e-serial" />
+            </div>
+            <div class="form-group">
+              <label>หมวดหมู่ (Category)</label
+              ><select id="e-category"></select>
+            </div>
+            <div class="form-group">
+              <label>ประเภท (Type)</label
+              ><select id="e-type"></select>
+            </div>
+            <div class="form-group">
+              <label>สถานะ</label>
+              <select id="e-status">
+                <option value="1">ว่าง/พร้อมใช้งาน</option>
+                <option value="2">ถูกยืม</option>
+                <option value="3">ส่งซ่อม</option>
+                <option value="4">ชำรุด</option>
+              </select>
+            </div>
+            <label class="upload-box" for="e-image">
+              <i class="fas fa-camera"></i>
+              <p>เปลี่ยนรูปภาพ (ปล่อยว่างหากใช้รูปเดิม)</p>
+              <input
+                type="file"
+                id="e-image"
+                accept="image/*"
+                style="display: none"
+              />
+            </label>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeEditModal()">
+              ยกเลิก
+            </button>
+            <button type="submit" class="btn-save">อัปเดตข้อมูล</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <script>
+      let allDevices = [];
+      let masterDataCache = {};
+
       document.addEventListener("DOMContentLoaded", () => {
         loadDevices();
         loadAdminProfile();
-        loadMasterData(); // ✅ เรียกฟังก์ชันโหลด Dropdown
+        loadMasterData();
       });
 
       function loadAdminProfile() {
@@ -287,11 +914,11 @@
           });
       }
 
-      // ✅ ฟังก์ชันดึงยี่ห้อ รุ่น หมวดหมู่ มาใส่ Dropdown
       function loadMasterData() {
         fetch("/api/admin/master-data")
           .then((res) => res.json())
           .then((data) => {
+            masterDataCache = data;
             populateSelect("d-brand", data.brands, "BrandID", "BrandName");
             populateSelect("d-model", data.models, "ModelID", "ModelName");
             populateSelect(
@@ -301,20 +928,26 @@
               "CategoryName",
             );
             populateSelect("d-type", data.types, "TypeID", "TypeName");
-          })
-          .catch((err) => console.error("Load Master Data Failed:", err));
+
+            populateSelect("e-brand", data.brands, "BrandID", "BrandName");
+            populateSelect("e-model", data.models, "ModelID", "ModelName");
+            populateSelect(
+              "e-category",
+              data.categories,
+              "CategoryID",
+              "CategoryName",
+            );
+            populateSelect("e-type", data.types, "TypeID", "TypeName");
+          });
       }
 
-      // ตัวช่วยสร้าง Option ใน Select
       function populateSelect(elementId, items, valueField, textField) {
         const select = document.getElementById(elementId);
-        select.innerHTML = ""; // ล้างค่าเก่า
-
+        select.innerHTML = "";
         if (!items || items.length === 0) {
           select.innerHTML = `<option value="1">- ไม่ระบุ -</option>`;
           return;
         }
-
         items.forEach((item) => {
           select.innerHTML += `<option value="${item[valueField]}">${item[textField]}</option>`;
         });
@@ -325,96 +958,390 @@
         fetch("/api/admin/devices")
           .then((res) => res.json())
           .then((data) => {
+            allDevices = data;
             tbody.innerHTML = "";
+
             if (data.length === 0) {
-              tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">🚫 ไม่พบข้อมูลอุปกรณ์</td></tr>`;
+              tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:#999;">🚫 ไม่พบข้อมูลอุปกรณ์</td></tr>`;
               return;
             }
 
             data.forEach((item) => {
-              const statusClass = item.DVStatusID == 1 ? "st-ok" : "st-busy";
-              const statusText =
-                item.StatusNameDV ||
-                (item.DVStatusID == 1 ? "พร้อมใช้งาน" : "ไม่ว่าง");
+              // 1. จัดการจุดสีและข้อความสถานะ
+              let statusClass = "st-ready";
+              let statusText = "ว่าง/พร้อมใช้งาน";
+              if (item.DVStatusID == 2) {
+                statusClass = "st-busy";
+                statusText = "ถูกยืม";
+              } else if (item.DVStatusID == 3) {
+                statusClass = "st-repair";
+                statusText = "ส่งซ่อม";
+              } else if (item.DVStatusID == 4) {
+                statusClass = "st-busy";
+                statusText = "ชำรุด";
+              }
 
+              // 2. จัดการรูปภาพ
+              const imgSrc =
+                item.sticker &&
+                item.sticker !== "default.png" &&
+                !item.sticker.includes("http")
+                  ? `/uploads/${item.sticker}`
+                  : item.sticker && item.sticker.includes("http")
+                    ? item.sticker
+                    : "/static/default.png";
+
+              // 3. ✅ จัดการข้อมูลวันที่และคนแก้ไขล่าสุด (ดึงจาก ModifyDate และ ModifyBy)
+              let lastUpdateInfo = "-";
+              const targetDate = item.ModifyDate || item.CreateDate;
+              const targetUser = item.ModifyBy || item.CreateBy || "-";
+
+              if (targetDate) {
+                const dateStr = new Date(targetDate).toLocaleString("th-TH", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+                lastUpdateInfo = `<div style="line-height:1.2;">${dateStr}<br><small style="color:var(--primary); font-weight:500;">👤 ${targetUser}</small></div>`;
+              }
+
+              // 4. สร้างแถวตารางแบบแยกคอลัมน์ชัดเจน
               tbody.innerHTML += `
-                            <tr>
-                                <td><strong>${item.devicename}</strong></td>
-                                <td style="color:#666;">${item.stickerid}</td>
-                                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                                <td>
-                                    <button onclick="deleteDevice(${item.DVID})" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">ลบ</button>
-                                </td>
-                            </tr>
-                        `;
+    <tr>
+        <td style="color:#0f172a; font-weight:600;">${item.stickerid || "-"}</td>
+        <td style="color:#64748b;">${item.it_code || "-"}</td> <td>
+            <div class="device-name-col">
+                <img src="${imgSrc}" class="device-img-mini" onerror="this.src='/static/default.png'">
+                ${item.devicename || "-"}
+            </div>
+        </td>
+        <td style="color:#475569;">${item.devicename_th || "-"}</td> <td>${item.BrandName || "-"}</td>
+        <td>${item.ModelName || "-"}</td>
+        <td style="font-family: monospace; color: #475569;">${item.serialnumber || "-"}</td>
+        <td style="font-weight:600; font-size:11px;">${item.CategoryName || "-"}</td>
+        <td>
+            <span class="status-wrapper ${statusClass}">
+                <span class="dot"></span> ${statusText}
+            </span>
+        </td>
+        <td style="font-size: 11px; color: #64748b;">${lastUpdateInfo}</td> <td>
+            <div class="action-icons">
+                <button onclick="openEditModal(${item.DVID})" class="icon-btn" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                <button onclick="deleteDevice(${item.DVID})" class="icon-btn delete" title="ลบ"><i class="fas fa-trash-alt"></i></button>
+            </div>
+        </td>
+    </tr>
+    `;
             });
           });
       }
 
-      // ✅ ฟังก์ชันบันทึกข้อมูลแบบใหม่ (ส่งครบทุกช่อง)
-      function addDevice(e) {
-        e.preventDefault();
+      // ระบบจัดการ Master Data
+      function openMasterModal(type, title) {
+        document.getElementById("master-title").innerText = `จัดการ${title}`;
+        document.getElementById("m-type").value = type;
+        document.getElementById("m-name").value = "";
 
-        // รับค่าจากฟอร์ม
-        const payload = {
-          devicename: document.getElementById("d-name").value,
-          stickerid: document.getElementById("d-sticker").value,
-          serialnumber: document.getElementById("d-serial").value,
-          DVStatusID: document.getElementById("d-status").value,
-          BrandID: document.getElementById("d-brand").value,
-          ModelID: document.getElementById("d-model").value,
-          CategoryID: document.getElementById("d-category").value,
-          TypeID: document.getElementById("d-type").value,
-        };
+        const listContainer = document.getElementById("master-list");
+        listContainer.innerHTML = "";
 
-        fetch("/api/admin/device/add", {
+        let items = [];
+        let textField = "";
+
+        if (type === "brand") {
+          items = masterDataCache.brands;
+          textField = "BrandName";
+        } else if (type === "model") {
+          items = masterDataCache.models;
+          textField = "ModelName";
+        } else if (type === "category") {
+          items = masterDataCache.categories;
+          textField = "CategoryName";
+        } else if (type === "type") {
+          items = masterDataCache.types;
+          textField = "TypeName";
+        }
+
+        if (items && items.length > 0) {
+          items.forEach((item) => {
+            if (item[textField] !== "-" && item[textField] !== "") {
+              listContainer.innerHTML += `<div class="master-item"><i class="fas fa-check" style="color:#10b981; margin-right:8px;"></i> ${item[textField]}</div>`;
+            }
+          });
+        } else {
+          listContainer.innerHTML = `<div class="master-item" style="color:#999; text-align:center;">ไม่มีข้อมูล</div>`;
+        }
+
+        document.getElementById("masterModal").style.display = "flex";
+      }
+
+      function closeMasterModal() {
+        document.getElementById("masterModal").style.display = "none";
+      }
+
+      function saveMasterData() {
+        const type = document.getElementById("m-type").value;
+        const name = document.getElementById("m-name").value.trim();
+
+        if (!name) {
+          Swal.fire({
+            icon: "warning",
+            title: "แจ้งเตือน",
+            text: "กรุณาพิมพ์ชื่อที่ต้องการเพิ่ม",
+          });
+          return;
+        }
+
+        fetch("/api/admin/master/add", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ type, name }),
         })
           .then((res) => res.json())
           .then((data) => {
             if (data.success) {
-              alert("เพิ่มสำเร็จ!");
-              closeModal();
-              loadDevices();
-              // เคลียร์ค่าฟอร์ม
-              document.getElementById("d-name").value = "";
-              document.getElementById("d-sticker").value = "";
-              document.getElementById("d-serial").value = "";
+              document.getElementById("m-name").value = "";
+              loadMasterData();
+              setTimeout(() => {
+                const titleMap = {
+                  brand: "ยี่ห้อ (Brand)",
+                  model: "รุ่น (Model)",
+                  category: "หมวดหมู่ (Category)",
+                  type: "ประเภท (Type)",
+                };
+                openMasterModal(type, titleMap[type]);
+              }, 300);
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: `เพิ่มสำเร็จ!`,
+                showConfirmButton: false,
+                timer: 1500,
+              });
             } else {
-              alert("เพิ่มไม่สำเร็จ: " + data.msg);
+              Swal.fire("ผิดพลาด", data.message, "error");
             }
           });
       }
 
-      function deleteDevice(dvid) {
-        if (!confirm("ยืนยันการลบ?")) return;
-        fetch("/api/admin/device/delete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dvid }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success) {
-              alert("ลบสำเร็จ!");
-              loadDevices();
-            } else {
-              alert("ลบไม่ได้");
-            }
-          });
-      }
-
+      // เปิด-ปิด Modal อุปกรณ์
       function openModal() {
         document.getElementById("addModal").style.display = "flex";
       }
       function closeModal() {
         document.getElementById("addModal").style.display = "none";
       }
+
+      function openEditModal(dvid) {
+        const device = allDevices.find((d) => d.DVID == dvid);
+        if (!device) return;
+        document.getElementById("e-dvid").value = device.DVID;
+        document.getElementById("e-name").value = device.devicename;
+        document.getElementById("e-name-th").value = device.devicename_th || ""; // ✅ เพิ่ม (TH)
+        document.getElementById("e-sticker").value = device.stickerid;
+        document.getElementById("e-it-code").value = device.it_code || ""; // ✅ เพิ่ม IT Code
+        document.getElementById("e-serial").value = device.serialnumber || "";
+        document.getElementById("e-status").value = device.DVStatusID;
+        document.getElementById("e-brand").value = device.BrandID || 1;
+        document.getElementById("e-model").value = device.ModelID || 1;
+        document.getElementById("e-category").value = device.CategoryID || 1;
+        document.getElementById("e-type").value = device.TypeID || 1;
+        document.getElementById("editModal").style.display = "flex";
+      }
+      function closeEditModal() {
+        document.getElementById("editModal").style.display = "none";
+      }
+
       window.onclick = (e) => {
         if (e.target == document.getElementById("addModal")) closeModal();
+        if (e.target == document.getElementById("editModal")) closeEditModal();
+        if (e.target == document.getElementById("masterModal"))
+          closeMasterModal();
       };
+
+      // ค้นหา
+      document
+        .getElementById("search-device")
+        .addEventListener("keyup", function () {
+          const filter = this.value.toLowerCase();
+          const rows = document.querySelectorAll("#device-list tr");
+          rows.forEach((row) => {
+            if (row.cells.length < 4) return;
+            const textData = row.textContent.toLowerCase();
+            row.style.display = textData.includes(filter) ? "" : "none";
+          });
+        });
+
+      function addDevice(e) {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append("devicename", document.getElementById("d-name").value);
+        formData.append(
+          "devicename_th",
+          document.getElementById("d-name-th").value,
+        ); // ✅ เพิ่ม (TH)
+        formData.append(
+          "stickerid",
+          document.getElementById("d-sticker").value,
+        );
+        formData.append("it_code", document.getElementById("d-it-code").value); // ✅ เพิ่ม IT Code
+        formData.append(
+          "serialnumber",
+          document.getElementById("d-serial").value,
+        );
+        formData.append(
+          "DVStatusID",
+          document.getElementById("d-status").value,
+        );
+        formData.append("BrandID", document.getElementById("d-brand").value);
+        formData.append("ModelID", document.getElementById("d-model").value);
+        formData.append(
+          "CategoryID",
+          document.getElementById("d-category").value,
+        );
+        formData.append("TypeID", document.getElementById("d-type").value);
+
+        const imageFile = document.getElementById("d-image").files[0];
+        if (imageFile) formData.append("image", imageFile);
+
+        fetch("/api/admin/device/add", { method: "POST", body: formData })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              Swal.fire({
+                icon: "success",
+                title: "เพิ่มอุปกรณ์สำเร็จ!",
+                timer: 1500,
+                showConfirmButton: false,
+              });
+              closeModal();
+              loadDevices();
+            } else {
+              Swal.fire("ผิดพลาด", data.msg, "error");
+            }
+          });
+      }
+
+      function submitEditDevice(e) {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append("dvid", document.getElementById("e-dvid").value);
+        formData.append("devicename", document.getElementById("e-name").value);
+        formData.append(
+          "devicename_th",
+          document.getElementById("e-name-th").value,
+        ); // ✅ เพิ่ม (TH)
+        formData.append(
+          "stickerid",
+          document.getElementById("e-sticker").value,
+        );
+        formData.append("it_code", document.getElementById("e-it-code").value); // ✅ เพิ่ม IT Code
+        formData.append(
+          "serialnumber",
+          document.getElementById("e-serial").value,
+        );
+        formData.append(
+          "DVStatusID",
+          document.getElementById("e-status").value,
+        );
+        formData.append("BrandID", document.getElementById("e-brand").value);
+        formData.append("ModelID", document.getElementById("e-model").value);
+        formData.append(
+          "CategoryID",
+          document.getElementById("e-category").value,
+        );
+        formData.append("TypeID", document.getElementById("e-type").value);
+
+        const imageFile = document.getElementById("e-image").files[0];
+        if (imageFile) formData.append("image", imageFile);
+
+        fetch("/api/admin/device/edit", { method: "POST", body: formData })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              Swal.fire({
+                icon: "success",
+                title: "อัปเดตข้อมูลสำเร็จ!",
+                timer: 1500,
+                showConfirmButton: false,
+              });
+              closeEditModal();
+              loadDevices();
+            } else {
+              Swal.fire("ผิดพลาด", data.msg, "error");
+            }
+          });
+      }
+
+      function deleteDevice(dvid) {
+        Swal.fire({
+          title: "ยืนยันการลบอุปกรณ์?",
+          text: "หากลบแล้ว ประวัติการยืมของอุปกรณ์ชิ้นนี้จะหายไปด้วย!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#ef4444",
+          cancelButtonColor: "#94a3b8",
+          confirmButtonText: "ใช่, ลบทิ้งเลย!",
+          cancelButtonText: "ยกเลิก",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            fetch("/api/admin/device/delete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ dvid }),
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.success) {
+                  Swal.fire(
+                    "ลบสำเร็จ!",
+                    "อุปกรณ์ถูกลบออกจากระบบแล้ว",
+                    "success",
+                  );
+                  loadDevices();
+                } else {
+                  Swal.fire("เกิดข้อผิดพลาด", data.msg, "error");
+                }
+              });
+          }
+        });
+      }
+
+      // ✅ ระบบ Export Excel แบบเป๊ะๆ ตาม DB ของจริง
+      function exportExcel() {
+        if (allDevices.length === 0) {
+          Swal.fire("แจ้งเตือน", "ไม่มีข้อมูลสำหรับ Export", "warning");
+          return;
+        }
+
+        const exportData = allDevices.map((item) => {
+          let statusTxt = "available";
+          if (item.DVStatusID == 2) statusTxt = "borrowed";
+          if (item.DVStatusID == 3) statusTxt = "repair";
+
+          return {
+            รหัสครุภัณฑ์: item.stickerid || "-",
+            "IT Code": item.it_code || "-",
+            "ชื่อ (EN)": item.devicename || "-",
+            "ชื่อ (TH)": item.devicename_th || "-",
+            ยี่ห้อ: item.BrandName || "-",
+            รุ่น: item.ModelName || "-",
+            "Serial Number": item.serialnumber || "-",
+            หมวดหมู่: item.CategoryName || "-",
+            สถานะ: statusTxt,
+          };
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Devices");
+
+        const dateStr = new Date().toISOString().split("T")[0];
+        XLSX.writeFile(workbook, `Equipment_Report_${dateStr}.xlsx`);
+      }
     </script>
   </body>
 </html>

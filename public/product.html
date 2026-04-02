@@ -5,54 +5,324 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>สินค้าทั้งหมด - BORROW SYSTEM</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="/static/index.css" />
+
+    <style>
+      /* Search Bar */
+      .search-box {
+        padding: 12px 24px;
+        border-radius: 30px;
+        border: 1px solid var(--border);
+        outline: none;
+        width: 350px;
+        font-size: 15px;
+        background: var(--surface);
+        color: var(--text-main);
+        box-shadow: var(--shadow-sm);
+        transition: 0.3s;
+      }
+      .search-box:focus {
+        border-color: var(--primary);
+        box-shadow: 0 4px 15px rgba(242, 112, 68, 0.15);
+      }
+
+      /* ✅ CSS ปุ่ม Filter หมวดหมู่ */
+      .category-filters {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+      }
+      .filter-btn {
+        padding: 8px 18px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-muted);
+        cursor: pointer;
+        font-family: "Kanit", sans-serif;
+        font-weight: 500;
+        transition: all 0.3s;
+        font-size: 14px;
+      }
+      .filter-btn:hover,
+      .filter-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        box-shadow: 0 4px 10px rgba(242, 112, 68, 0.2);
+      }
+
+      /* Product Grid & Cards */
+      .device-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 24px;
+      }
+      .device-card {
+        background: var(--surface);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+      }
+      .device-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-hover);
+        border-color: var(--primary);
+      }
+
+      .device-status {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin: 0 auto 15px auto;
+        width: fit-content;
+      }
+      .status-1 {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .status-busy {
+        background: var(--danger-bg);
+        color: var(--danger);
+      }
+
+      .btn-borrow {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        width: 100%;
+      }
+      .btn-borrow:hover {
+        background: var(--primary-hover);
+      }
+      .btn-borrow:disabled {
+        background: var(--border);
+        color: var(--text-muted);
+        cursor: not-allowed;
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+      }
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 28px;
+        cursor: pointer;
+        color: #aaa;
+        line-height: 1;
+      }
+      .close-btn:hover {
+        color: #333;
+      }
+      #borrowModal .modal-content {
+        background: var(--surface);
+        max-width: 500px;
+        width: 90%;
+        padding: 35px;
+        border-top: 6px solid var(--primary);
+        border-radius: var(--radius-md);
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      #borrowModal h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: var(--text-main);
+        font-weight: 700;
+      }
+
+      .item-preview-box {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        padding: 15px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 25px;
+        text-align: center;
+      }
+      .item-preview-box h4 {
+        margin: 0 0 5px;
+        color: var(--primary);
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .item-preview-box p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+      }
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+        color: var(--text-main);
+      }
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-family: "Kanit", sans-serif;
+        box-sizing: border-box;
+        background: var(--surface);
+        color: var(--text-main);
+        transition: 0.3s;
+      }
+      .form-group input:focus,
+      .form-group textarea:focus,
+      .form-group select:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 3px var(--primary-light);
+      }
+      .input-disabled {
+        background-color: var(--bg) !important;
+        cursor: not-allowed;
+        color: var(--text-muted) !important;
+        font-weight: 500;
+      }
+
+      .btn-confirm {
+        width: 100%;
+        padding: 14px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-top: 10px;
+      }
+      .btn-confirm:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(242, 112, 68, 0.2);
+      }
+    </style>
   </head>
   <body>
     <aside class="sidebar">
       <div class="brand-title">BORROW SYSTEM</div>
       <ul class="menu-list">
-        <li><a href="/dashboard" class="menu-item">🏠 หน้าหลัก</a></li>
         <li>
-          <a href="/tracking" class="menu-item">📦 สถานะการยืม-คืน</a>
+          <a href="/dashboard" class="menu-item"
+            ><i class="fas fa-home fa-fw" style="margin-right: 8px"></i>
+            หน้าหลัก</a
+          >
         </li>
-        <li><a href="/history" class="menu-item">📜 ประวัติทั้งหมด</a></li>
-        <li><a href="/category" class="menu-item">📂 หมวดหมู่สินค้า</a></li>
-        <li><a href="/product" class="menu-item active">🛍️ สินค้า</a></li>
-        <li><a href="/others" class="menu-item">... อื่นๆ</a></li>
+        <li>
+          <a href="/tracking" class="menu-item"
+            ><i class="fas fa-box fa-fw" style="margin-right: 8px"></i>
+            สถานะการยืม-คืน</a
+          >
+        </li>
+        <li>
+          <a href="/history" class="menu-item"
+            ><i class="fas fa-history fa-fw" style="margin-right: 8px"></i>
+            ประวัติทั้งหมด</a
+          >
+        </li>
+        <li>
+          <a href="/product" class="menu-item active"
+            ><i class="fas fa-laptop fa-fw" style="margin-right: 8px"></i>
+            สินค้า</a
+          >
+        </li>
+        <li>
+          <a href="/others" class="menu-item"
+            ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 8px"></i>
+            อื่นๆ</a
+          >
+        </li>
       </ul>
-      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+      <a href="/logout" class="menu-item logout-link"
+        ><i class="fas fa-sign-out-alt fa-fw" style="margin-right: 8px"></i>
+        ออกจากระบบ</a
+      >
     </aside>
 
     <main class="main-content">
       <header class="header-bar">
         <div>
-          <h1 class="page-title">รายการอุปกรณ์</h1>
-          <p style="color: #666; font-size: 14px">
+          <h1 class="page-title">รายการอุปกรณ์ IT</h1>
+          <p style="color: var(--text-muted); font-size: 14px">
             ค้นหาและเลือกอุปกรณ์ที่ต้องการส่งคำขอ
           </p>
         </div>
-
         <a href="/profile" class="profile-link">
           <div class="user-profile">
             <span class="user-name" id="user-name">Loading...</span>
-
-            <img
-              src="/uploads/default.png"
-              class="avatar"
-              style="
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                object-fit: cover;
-                margin-left: 10px;
-              "
-            />
+            <img src="/static/default.png" class="avatar" id="header-avatar" />
           </div>
         </a>
       </header>
+
+      <div
+        style="display: flex; justify-content: flex-end; margin-bottom: 20px"
+      >
+        <input
+          type="text"
+          id="search-product"
+          class="search-box"
+          placeholder="🔍 ค้นหาชื่อสินค้า หรือ รหัสครุภัณฑ์..."
+        />
+      </div>
+
+      <div class="category-filters" id="category-filters">
+        <button class="filter-btn active" data-filter="all">ทั้งหมด</button>
+        <button class="filter-btn" data-filter="1">
+          💻 คอมพิวเตอร์/โน้ตบุ๊ก
+        </button>
+        <button class="filter-btn" data-filter="2">📱 สมาร์ทดีไวซ์</button>
+        <button class="filter-btn" data-filter="3">📡 อุปกรณ์เครือข่าย</button>
+        <button class="filter-btn" data-filter="4">🔌 อุปกรณ์เสริม</button>
+      </div>
 
       <div id="device-grid" class="device-grid">
         <p>กำลังโหลดข้อมูล...</p>
@@ -62,26 +332,198 @@
     <div id="borrowModal" class="modal">
       <div class="modal-content">
         <span class="close-btn" onclick="closeModal()">&times;</span>
-        <h2>📝 แบบฟอร์มขอเบิก/ยืม</h2>
+        <h2>📝 แบบฟอร์มขอเบิก/ยืม IT</h2>
+        <div class="item-preview-box">
+          <h4 id="preview-name">ชื่ออุปกรณ์</h4>
+          <p id="preview-sticker">รหัส: -</p>
+        </div>
         <form id="borrowForm" onsubmit="confirmBorrow(event)">
           <input type="hidden" id="borrow-dvid" />
-          <div class="form-group">
-            <label>วันที่คืน (Due Date)</label>
-            <input type="date" id="borrow-duedate" required />
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
+            <div class="form-group">
+              <label>📅 วันที่ยืม (วันนี้)</label>
+              <input
+                type="text"
+                id="borrow-today"
+                class="input-disabled"
+                readonly
+              />
+            </div>
+            <div class="form-group">
+              <label>⏰ กำหนดคืน (Due Date) *</label>
+              <input type="date" id="borrow-duedate" required />
+            </div>
           </div>
+
           <div class="form-group">
-            <label>สถานที่ใช้งาน</label>
-            <input type="text" id="borrow-location" required />
+            <label>📍 สถานที่นำไปใช้งาน *</label>
+            <input
+              type="text"
+              id="borrow-location"
+              placeholder="เช่น ห้องประชุมชั้น 2, Work from Home"
+              required
+            />
           </div>
+
           <div class="form-group">
-            <label>วัตถุประสงค์</label>
-            <textarea id="borrow-purpose" rows="3" required></textarea>
+            <label>💬 วัตถุประสงค์การยืม (IT Context) *</label>
+            <select
+              id="borrow-purpose-select"
+              required
+              onchange="updatePurposeText()"
+            >
+              <option value="">-- กรุณาเลือกเหตุผลการยืม --</option>
+              <option value="เครื่องประจำตัวส่งซ่อม (ยืมเครื่องสำรอง)">
+                🔴 เครื่องประจำตัวส่งซ่อม (ยืมเครื่องสำรอง)
+              </option>
+              <option value="นำไปพรีเซนต์งานนอกสถานที่ / ประชุม">
+                🔵 นำไปพรีเซนต์งานนอกสถานที่ / ประชุม
+              </option>
+              <option value="นำไป Work from Home">
+                🟢 นำไป Work from Home
+              </option>
+              <option value="ใช้ทดสอบระบบ (Test Device)">
+                🟡 ใช้ทดสอบระบบ (Test Device)
+              </option>
+              <option value="อื่นๆ">⚪ อื่นๆ (โปรดระบุ)</option>
+            </select>
+            <textarea
+              id="borrow-purpose"
+              rows="2"
+              placeholder="โปรดระบุรายละเอียดเพิ่มเติม..."
+              style="display: none"
+            ></textarea>
           </div>
-          <button type="submit" class="btn-confirm">ยืนยัน</button>
+
+          <div
+            class="form-group"
+            style="
+              background: var(--warning-bg);
+              padding: 15px;
+              border-radius: var(--radius-sm);
+              border: 1px dashed var(--warning);
+            "
+          >
+            <label
+              style="
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                cursor: pointer;
+                margin: 0;
+                color: var(--text-main);
+                font-weight: 500;
+                font-size: 13px;
+              "
+            >
+              <input
+                type="checkbox"
+                id="it-policy-check"
+                style="width: 20px; height: 20px; margin-top: 2px"
+                required
+              />
+              <span>
+                <strong>ข้อตกลง IT Security:</strong>
+                ข้าพเจ้ายอมรับว่าจะไม่ติดตั้งซอฟต์แวร์ละเมิดลิขสิทธิ์
+                และไม่บันทึกข้อมูลส่วนตัว/รหัสผ่านลงในอุปกรณ์ของบริษัท
+                หากเกิดความเสียหาย ข้าพเจ้ายินดีรับผิดชอบ
+              </span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-confirm">ยื่นคำขอยืมอุปกรณ์</button>
         </form>
       </div>
     </div>
 
     <script src="/static/js/dashboard.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const searchInput = document.getElementById("search-product");
+        const deviceGrid = document.getElementById("device-grid");
+
+        // ระบบค้นหา (Search)
+        function filterProducts(keyword) {
+          const filter = keyword.toLowerCase();
+          const cards = document.querySelectorAll(".device-card");
+          cards.forEach((card) => {
+            const textData = card.textContent.toLowerCase();
+            card.style.display = textData.includes(filter) ? "" : "none";
+          });
+        }
+
+        if (searchInput && deviceGrid) {
+          searchInput.addEventListener("keyup", function () {
+            filterProducts(this.value);
+          });
+        }
+
+        // UI ปุ่ม Filter หมวดหมู่ (กดแล้วเปลี่ยนสี)
+        const filterBtns = document.querySelectorAll(".filter-btn");
+        filterBtns.forEach((btn) => {
+          btn.addEventListener("click", function () {
+            filterBtns.forEach((b) => b.classList.remove("active"));
+            this.classList.add("active");
+            // ตอนนี้ปุ่มกดเปลี่ยนสีได้แล้ว เดี๋ยวเราค่อยมาต่อ API ให้มันกรองของได้จริงครับ
+          });
+        });
+      });
+
+      // ✅ ฟังก์ชันจัดการ Dropdown วัตถุประสงค์
+      function updatePurposeText() {
+        const select = document.getElementById("borrow-purpose-select");
+        const textarea = document.getElementById("borrow-purpose");
+
+        if (select.value === "อื่นๆ") {
+          textarea.style.display = "block";
+          textarea.value = "";
+          textarea.required = true;
+        } else {
+          textarea.style.display = "none";
+          textarea.value = select.value;
+          textarea.required = false;
+        }
+      }
+
+      // ปรับปรุงฟังก์ชันเปิด Modal ให้เคลียร์ข้อมูลเก่าทุกครั้ง
+      function openBorrowModal(dvid, deviceName = "อุปกรณ์", stickerId = "-") {
+        document.getElementById("borrow-dvid").value = dvid;
+        document.getElementById("preview-name").innerText = deviceName;
+        document.getElementById("preview-sticker").innerText =
+          "รหัสครุภัณฑ์: " + stickerId;
+
+        const today = new Date();
+        const options = { year: "numeric", month: "short", day: "numeric" };
+        document.getElementById("borrow-today").value =
+          today.toLocaleDateString("th-TH", options);
+
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+        document.getElementById("borrow-duedate").min =
+          `${year}-${month}-${day}`;
+
+        // เคลียร์ค่าในฟอร์ม
+        document.getElementById("borrow-duedate").value = "";
+        document.getElementById("borrow-location").value = "";
+        document.getElementById("borrow-purpose-select").value = "";
+        document.getElementById("borrow-purpose").value = "";
+        document.getElementById("borrow-purpose").style.display = "none";
+        document.getElementById("it-policy-check").checked = false;
+
+        document.getElementById("borrowModal").style.display = "flex";
+      }
+
+      function closeModal() {
+        document.getElementById("borrowModal").style.display = "none";
+      }
+      window.onclick = function (event) {
+        const modal = document.getElementById("borrowModal");
+        if (event.target == modal) {
+          closeModal();
+        }
+      };
+    </script>
   </body>
 </html>

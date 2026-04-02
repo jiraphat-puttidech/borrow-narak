@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>System Log - Admin</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/static/index.css" />
+
+    <style>
+      /* ลบ :root ออก และจัด Layout ทั่วไปตามโครงเดิม */
+      body {
+        margin: 0;
+        background-color: var(--bg);
+        font-family: "Kanit", sans-serif;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      /* CSS รองรับ Badge จากโค้ด JS ของคุณ (เปลี่ยนสีให้เข้าธีม) */
+      .log-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-block;
+      }
+      .bg-primary {
+        background: var(--info-bg);
+        color: var(--info);
+      }
+      .bg-success {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .bg-danger {
+        background: var(--danger-bg);
+        color: var(--danger);
+      }
+      .bg-warning {
+        background: var(--warning-bg);
+        color: var(--warning);
+      }
+      .bg-dark {
+        background: var(--border);
+        color: var(--text-main);
+      }
+
+      /* ทำให้ Search Box ดูเข้ากับธีม */
+      #search-log:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px var(--primary-light);
+      }
+    </style>
+  </head>
+  <body>
+    <aside
+      class="sidebar admin-sidebar"
+      style="background: #1a202c; color: white"
+    >
+      <div class="brand-title" style="color: #f6ad55; font-weight: 700">
+        ADMIN PANEL
+      </div>
+      <ul class="menu-list">
+        <li>
+          <a href="/admin" class="menu-item"
+            ><i class="fas fa-home fa-fw" style="margin-right: 10px"></i>
+            หน้าหลักแอดมิน</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/approve" class="menu-item"
+            ><i
+              class="fas fa-check-double fa-fw"
+              style="margin-right: 10px"
+            ></i>
+            อนุมัติการยืม</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/device" class="menu-item"
+            ><i class="fas fa-laptop fa-fw" style="margin-right: 10px"></i>
+            จัดการอุปกรณ์</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/users" class="menu-item"
+            ><i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
+            จัดการผู้ใช้งาน</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/history" class="menu-item"
+            ><i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
+            ประวัติทั้งหมด</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/log" class="menu-item active"
+            ><i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
+            ประวัติ Log</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/others" class="menu-item"
+            ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 10px"></i>
+            อื่นๆ</a
+          >
+        </li>
+      </ul>
+
+      <a
+        href="/logout"
+        class="menu-item logout-link"
+        style="border-top: 1px solid #2d3748; padding-top: 20px"
+      >
+        <i class="fas fa-sign-out-alt fa-fw" style="margin-right: 10px"></i>
+        ออกจากระบบ
+      </a>
+    </aside>
+
+    <main class="main-content">
+      <header class="header-bar">
+        <div>
+          <h1 class="page-title">ประวัติการทำงานของระบบ (System Log)</h1>
+          <p style="color: var(--text-muted); font-size: 14px">
+            ตรวจสอบประวัติการทำรายการต่างๆ ภายในระบบ
+          </p>
+        </div>
+
+        <a
+          href="/profile"
+          class="profile-link"
+          style="text-decoration: none; color: inherit"
+        >
+          <div class="user-profile">
+            <span class="user-name" id="user-name">Loading...</span>
+            <img
+              src="/static/default.png"
+              class="avatar"
+              id="header-avatar"
+              style="
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+                margin-left: 10px;
+              "
+            />
+          </div>
+        </a>
+      </header>
+
+      <div class="dashboard-bottom" style="display: block">
+        <div class="panel table-panel" style="width: 100%">
+          <div
+            class="panel-header"
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <span>🔍 รายการ Log ทั้งหมด</span>
+            <input
+              type="text"
+              id="search-log"
+              placeholder="ค้นหาการกระทำ, ผู้ใช้, รายละเอียด..."
+              style="
+                padding: 6px 15px;
+                border-radius: 20px;
+                border: 1px solid var(--border);
+                outline: none;
+                width: 250px;
+                background: var(--surface);
+                color: var(--text-main);
+                transition: 0.3s;
+              "
+            />
+          </div>
+
+          <div class="panel-body">
+            <table class="recent-table">
+              <thead>
+                <tr>
+                  <th>ลำดับ (LogID)</th>
+                  <th>เวลา</th>
+                  <th>ผู้ใช้งาน</th>
+                  <th>ประเภท (Action)</th>
+                  <th>รายละเอียด</th>
+                </tr>
+              </thead>
+              <tbody id="log-list">
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 20px">
+                    กำลังโหลดข้อมูล Log...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        loadAdminProfile();
+        loadSystemLogs();
+      });
+
+      function loadAdminProfile() {
+        fetch("/api/user")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.loggedIn) {
+              document.getElementById("user-name").innerText = data.fullname;
+              const imgEl = document.getElementById("header-avatar");
+              if (data.image) imgEl.src = `/uploads/${data.image}`;
+              imgEl.onerror = () => {
+                imgEl.src = "/static/default.png";
+              };
+            }
+          });
+      }
+
+      function loadSystemLogs() {
+        const tbody = document.getElementById("log-list");
+        // เดี๋ยวเราจะมาสร้าง API ตัวนี้กันในไฟล์หลังบ้านที่คุณจะส่งมาครับ!
+        fetch("/api/admin/logs")
+          .then((res) => res.json())
+          .then((data) => {
+            tbody.innerHTML = "";
+            if (data.length === 0) {
+              tbody.innerHTML =
+                "<tr><td colspan='5' style='text-align:center; padding:30px; color:#999;'>🚫 ไม่พบประวัติระบบ</td></tr>";
+              return;
+            }
+            data.forEach((item) => {
+              const dateTxt = new Date(item.LogDate).toLocaleString("th-TH");
+
+              // กำหนดสีของ Badge ตามประเภท Action
+              let badgeClass = "bg-primary";
+              const action = item.ActionType.toUpperCase();
+              if (action.includes("LOGIN")) badgeClass = "bg-success";
+              if (action.includes("ADD")) badgeClass = "bg-primary";
+              if (action.includes("APPROVE")) badgeClass = "bg-success";
+              if (action.includes("REJECT") || action.includes("DELETE"))
+                badgeClass = "bg-danger";
+              if (action.includes("EDIT") || action.includes("RETURN"))
+                badgeClass = "bg-warning";
+
+              const userName = item.fname
+                ? `${item.fname} (${item.EMP_NUM})`
+                : `User ID: ${item.EMPID}`;
+
+              tbody.innerHTML += `
+                <tr>
+                    <td style="color:#888;">#${item.LogID}</td>
+                    <td>${dateTxt}</td>
+                    <td style="font-weight:bold;">${userName}</td>
+                    <td><span class="log-badge ${badgeClass}">${item.ActionType}</span></td>
+                    <td style="color:#555; font-size:13px;">${item.ActionDetail}</td>
+                </tr>
+              `;
+            });
+          })
+          .catch((err) => {
+            tbody.innerHTML =
+              "<tr><td colspan='5' style='text-align:center; padding:30px; color:red;'>ยังไม่ได้เชื่อมต่อ API Backend หรือไม่มีตาราง Log</td></tr>";
+          });
+      }
+
+      // ระบบค้นหา
+      document
+        .getElementById("search-log")
+        .addEventListener("keyup", function () {
+          const filter = this.value.toLowerCase();
+          const rows = document.querySelectorAll("#log-list tr");
+          rows.forEach((row) => {
+            if (row.cells.length < 5) return;
+            const textData = row.textContent.toLowerCase();
+            row.style.display = textData.includes(filter) ? "" : "none";
+          });
+        });
+    </script>
+  </body>
+</html>

@@ -8,79 +8,232 @@
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="/static/index.css" />
     <style>
-      /* สไตล์ตาราง */
-      table {
+      /* ลบ :root ออกเพื่อดึงสีจาก index.css */
+      body {
+        margin: 0;
+        background-color: var(--bg);
+        font-family: "Kanit", sans-serif;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      /* Sidebar UI */
+      .sidebar {
+        width: 260px;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        padding: 24px 0;
+        z-index: 10;
+      }
+      .brand-title {
+        font-size: 22px;
+        font-weight: 600;
+        text-align: center;
+        color: var(--primary);
+        margin-bottom: 30px;
+        letter-spacing: 0.5px;
+      }
+      .menu-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex: 1;
+      }
+      .menu-list li {
+        margin: 4px 16px;
+      }
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        color: var(--text-muted);
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 400;
+        transition: all 0.2s ease;
+      }
+      .menu-item:hover {
+        background: var(--primary-light);
+        color: var(--primary);
+        transform: translateX(4px);
+      }
+      .menu-item.active {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(242, 112, 68, 0.3);
+      }
+      .logout-link {
+        margin: auto 16px 0;
+        background: var(--danger-bg);
+        color: var(--danger);
+        justify-content: center;
+        font-weight: 600;
+      }
+      .logout-link:hover {
+        background: var(--danger);
+        color: white;
+        transform: none;
+      }
+
+      /* Main Content Layout */
+      .main-content {
+        flex: 1;
+        padding: 30px 40px;
+        overflow-y: auto;
+      }
+      .header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+      }
+      .page-title {
+        margin: 0 0 5px;
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+      .user-profile {
+        display: flex;
+        align-items: center;
+        background: var(--surface);
+        padding: 8px 16px;
+        border-radius: 30px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+        transition: 0.2s;
+      }
+      .user-profile:hover {
+        box-shadow: var(--shadow-md);
+      }
+      .profile-link {
+        text-decoration: none;
+        color: inherit;
+      }
+      .user-name {
+        font-weight: 500;
+        font-size: 15px;
+        color: var(--text-main);
+        margin-right: 10px;
+      }
+
+      .table-panel {
+        background: var(--surface);
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+        overflow: hidden;
+      }
+      .recent-table {
         width: 100%;
         border-collapse: collapse;
-        background: white;
-        margin-top: 20px;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
       }
-      th {
-        background-color: #f8f9fa;
-        color: #333;
-        font-weight: 600;
-        padding: 15px;
+      .recent-table th {
+        background: var(--bg);
+        padding: 14px 20px;
         text-align: left;
-        border-bottom: 2px solid #ddd;
+        font-size: 14px;
+        color: var(--text-muted);
+        font-weight: 600;
+        border-bottom: 1px solid var(--border);
       }
-      td {
-        padding: 15px;
-        border-bottom: 1px solid #eee;
+      .recent-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+        color: var(--text-main);
         vertical-align: middle;
-        color: #555;
       }
-      tr:hover {
-        background-color: #f9f9f9;
+      .recent-table tbody tr:hover {
+        background: var(--primary-light);
+      }
+      .recent-table tbody tr:last-child td {
+        border-bottom: none;
       }
 
       /* Badge สถานะ */
       .badge {
-        padding: 5px 10px;
-        border-radius: 15px;
+        padding: 6px 12px;
+        border-radius: 20px;
         font-size: 12px;
         font-weight: 600;
         display: inline-block;
       }
       .bg-success {
-        background: #d4edda;
-        color: #155724;
-      } /* คืนแล้ว */
+        background: var(--success-bg);
+        color: var(--success);
+      }
       .bg-warning {
-        background: #fff3cd;
-        color: #856404;
-      } /* กำลังยืม/รออนุมัติ */
+        background: var(--warning-bg);
+        color: var(--warning);
+      }
+      .bg-info {
+        background: var(--info-bg);
+        color: var(--info);
+      }
       .bg-danger {
-        background: #f8d7da;
-        color: #721c24;
-      } /* เกินกำหนด (อนาคต) */
+        background: var(--danger-bg);
+        color: var(--danger);
+      }
     </style>
   </head>
   <body>
     <aside class="sidebar">
       <div class="brand-title">BORROW SYSTEM</div>
       <ul class="menu-list">
-        <li><a href="/dashboard" class="menu-item">🏠 หน้าหลัก</a></li>
-        <li><a href="/tracking" class="menu-item">📦 สถานะการยืม-คืน</a></li>
         <li>
-          <a href="/history" class="menu-item active">📜 ประวัติทั้งหมด</a>
+          <a href="/dashboard" class="menu-item"
+            ><i class="fas fa-home fa-fw" style="margin-right: 8px"></i>
+            หน้าหลัก</a
+          >
         </li>
-        <li><a href="/category" class="menu-item">📂 หมวดหมู่สินค้า</a></li>
-        <li><a href="/product" class="menu-item">🛍️ สินค้า</a></li>
-        <li><a href="/others" class="menu-item">... อื่นๆ</a></li>
+        <li>
+          <a href="/tracking" class="menu-item"
+            ><i class="fas fa-box fa-fw" style="margin-right: 8px"></i>
+            สถานะการยืม-คืน</a
+          >
+        </li>
+        <li>
+          <a href="/history" class="menu-item active"
+            ><i class="fas fa-history fa-fw" style="margin-right: 8px"></i>
+            ประวัติทั้งหมด</a
+          >
+        </li>
+        <li>
+          <a href="/product" class="menu-item"
+            ><i class="fas fa-laptop fa-fw" style="margin-right: 8px"></i>
+            สินค้า</a
+          >
+        </li>
+        <li>
+          <a href="/others" class="menu-item"
+            ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 8px"></i>
+            อื่นๆ</a
+          >
+        </li>
       </ul>
-      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+      <a href="/logout" class="menu-item logout-link"
+        ><i class="fas fa-sign-out-alt fa-fw" style="margin-right: 8px"></i>
+        ออกจากระบบ</a
+      >
     </aside>
 
     <main class="main-content">
       <header class="header-bar">
         <div>
           <h1 class="page-title">ประวัติการยืม-คืนทั้งหมด</h1>
-          <p style="color: #666; font-size: 14px">
+          <p style="color: var(--text-muted); font-size: 14px">
             รายการย้อนหลังทั้งหมด (รวมที่คืนแล้ว)
           </p>
         </div>
@@ -104,15 +257,8 @@
         </a>
       </header>
 
-      <div
-        style="
-          background: white;
-          border-radius: 10px;
-          padding: 20px;
-          margin-top: 20px;
-        "
-      >
-        <table>
+      <div class="table-panel">
+        <table class="recent-table">
           <thead>
             <tr>
               <th width="80">รูป</th>
@@ -138,7 +284,8 @@
       });
 
       function loadUserProfile() {
-        fetch("/api/user")
+        // ✅ เพิ่ม cache: 'no-store' ป้องกันการแสดงรูป/ชื่อเก่า
+        fetch("/api/user", { cache: "no-store" })
           .then((res) => res.json())
           .then((data) => {
             if (data.loggedIn) {
@@ -151,58 +298,72 @@
       }
 
       function loadHistory() {
-        // ✅ เรียก API ตัวใหม่ (ประวัติทั้งหมด)
-        fetch("/api/my-history-all")
+        // ✅ เพิ่ม cache: 'no-store' บังคับให้โหลดข้อมูลใหม่เสมอ (แก้ปัญหาหน้าไม่อัปเดต)
+        fetch("/api/my-history-all", { cache: "no-store" })
           .then((res) => res.json())
           .then((data) => {
             const tbody = document.getElementById("history-list");
             tbody.innerHTML = "";
-
             if (data.length === 0) {
               tbody.innerHTML = `<tr><td colspan="5" align="center" style="padding:30px; color:#999;">ยังไม่มีประวัติการยืม</td></tr>`;
               return;
             }
 
             data.forEach((item) => {
-              // 1. จัดการวันที่คืน (ถ้ายังไม่คืน ให้ขีด -)
               const borrowDate = new Date(item.borrowdate).toLocaleDateString(
                 "th-TH",
               );
 
+              // ✅ เช็คเวลาเกินกำหนด (เพิ่ม if เช็คว่ามี duedate ถูกส่งมาหรือไม่ ป้องกัน Error)
+              let isOverdue = false;
+              if (item.duedate) {
+                const dueDateObj = new Date(item.duedate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                dueDateObj.setHours(0, 0, 0, 0);
+                if (today > dueDateObj) {
+                  isOverdue = true;
+                }
+              }
+
               let returnDate = "-";
               if (item.Due_statusID == 6) {
-                returnDate = `<span style="color:#ccc;">-</span>`; // ไม่อนุมัติ ไม่ต้องโชว์วันคืน
+                returnDate = `<span style="color:#ccc;">-</span>`;
               } else if (item.returndate) {
                 returnDate = new Date(item.returndate).toLocaleDateString(
                   "th-TH",
                 );
               }
 
-              // 2. จัดการรูปภาพ
               const img = item.image
                 ? `/uploads/${item.image}`
                 : "/static/default.png";
 
-              // 3. จัดการสถานะ (Badge)
               let statusHtml = "";
               if (item.Due_statusID == 6) {
                 statusHtml = `<span class="badge bg-danger">❌ ไม่อนุมัติ</span>`;
-              } else if (item.BorrowTransStatusID == 3) {
+              } else if (
+                item.BorrowTransStatusID == 3 ||
+                item.Due_statusID == 4
+              ) {
                 statusHtml = `<span class="badge bg-success">✅ คืนแล้ว</span>`;
               } else if (item.Due_statusID == 5) {
                 statusHtml = `<span class="badge bg-warning">⏳ รออนุมัติ</span>`;
+              }
+              // ✅ ใช้ตัวแปร isOverdue แทนการคำนวณสด
+              else if (
+                item.Due_statusID == 3 ||
+                (item.Due_statusID == 2 && isOverdue)
+              ) {
+                statusHtml = `<span class="badge" style="background:#e74c3c; color:white;">⚠️ เกินกำหนด</span>`;
               } else {
-                statusHtml = `<span class="badge bg-warning">📦 กำลังยืม</span>`;
+                statusHtml = `<span class="badge" style="background:#cce5ff; color:#004085;">📦 กำลังยืม</span>`;
               }
 
-              // แสดงผล (ไม่มีปุ่มคืนของ)
               tbody.innerHTML += `
                   <tr>
                       <td><img src="${img}" style="height:50px; border-radius:5px; object-fit:cover;"></td>
-                      <td>
-                        <strong>${item.devicename}</strong><br>
-                        <small style="color:#888">${item.stickerid}</small>
-                      </td>
+                      <td><strong>${item.devicename}</strong><br><small style="color:#888">${item.stickerid}</small></td>
                       <td>${borrowDate}</td>
                       <td>${returnDate}</td>
                       <td>${statusHtml}</td>

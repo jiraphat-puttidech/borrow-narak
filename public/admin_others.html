@@ -8,34 +8,27 @@
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="/static/index.css" />
-    <style>
-      /* Profile Link */
-      .profile-link {
-        text-decoration: none;
-        color: inherit;
-      }
-      .user-profile {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: white;
-        padding: 5px 15px;
-        border-radius: 30px;
-        border: 1px solid #ddd;
-        cursor: pointer;
-      }
-      .user-profile:hover {
-        background-color: #f5f5f5;
-      }
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-      /* Settings List Style */
+    <style>
+      /* ✅ เหลือไว้เฉพาะลูกเล่นของหน้าตั้งค่า */
       .settings-box {
-        background: white;
-        border-radius: 12px;
+        background: var(--surface);
+        border-radius: var(--radius-md);
         overflow: hidden;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 24px;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .settings-box:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
       }
       .settings-list {
         list-style: none;
@@ -43,7 +36,7 @@
         margin: 0;
       }
       .settings-list li {
-        border-bottom: 1px solid #f0f0f0;
+        border-bottom: 1px solid var(--border);
       }
       .settings-list li:last-child {
         border-bottom: none;
@@ -51,73 +44,129 @@
       .settings-list a {
         display: flex;
         justify-content: space-between;
-        padding: 20px;
+        align-items: center;
+        padding: 18px 24px;
         text-decoration: none;
-        color: #333;
+        color: var(--text-main);
         font-size: 16px;
-        transition: 0.2s;
+        font-weight: 500;
+        transition:
+          background 0.2s,
+          padding-left 0.3s;
       }
       .settings-list a:hover {
-        background-color: #f8f9fa;
-        color: #2c3e50;
+        background: var(--primary-light);
+        color: var(--primary);
+        padding-left: 30px; /* ✨ ลูกเล่นชี้แล้วข้อความขยับขวา */
       }
       .arrow {
-        color: #ccc;
+        color: #cbd5e1;
+        font-weight: bold;
+        transition: 0.2s;
       }
-      /* Admin Sidebar Style (เพิ่มเติมจาก index.css ถ้าจำเป็น) */
-      .admin-sidebar .menu-item.active {
-        background-color: #34495e; /* สีเข้มสำหรับ Admin */
-        color: white;
+      .settings-list a:hover .arrow {
+        color: var(--primary);
+        transform: translateX(5px);
       }
     </style>
   </head>
   <body>
-    <aside class="sidebar admin-sidebar">
-      <div class="brand-title">ADMIN PANEL</div>
+    <aside
+      class="sidebar admin-sidebar"
+      style="background: #1a202c; color: white"
+    >
+      <div class="brand-title" style="color: #f6ad55; font-weight: 700">
+        ADMIN PANEL
+      </div>
       <ul class="menu-list">
-        <li><a href="/admin" class="menu-item">📊 ภาพรวมระบบ</a></li>
         <li>
-          <a href="/admin/approve" class="menu-item">📝 รายการรออนุมัติ</a>
+          <a href="/admin" class="menu-item"
+            ><i class="fas fa-home fa-fw" style="margin-right: 10px"></i>
+            หน้าหลักแอดมิน</a
+          >
         </li>
-        <li><a href="/admin/device" class="menu-item">📦 จัดการอุปกรณ์</a></li>
+
         <li>
-          <a href="/admin/history" class="menu-item">📜 ประวัติการยืม-คืน</a>
+          <a href="/admin/approve" class="menu-item"
+            ><i
+              class="fas fa-check-double fa-fw"
+              style="margin-right: 10px"
+            ></i>
+            อนุมัติการยืม</a
+          >
         </li>
-        <li><a href="/admin/others" class="menu-item active">... อื่นๆ</a></li>
+
+        <li>
+          <a href="/admin/device" class="menu-item"
+            ><i class="fas fa-laptop fa-fw" style="margin-right: 10px"></i>
+            จัดการอุปกรณ์</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/users" class="menu-item"
+            ><i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
+            จัดการผู้ใช้งาน</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/history" class="menu-item"
+            ><i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
+            ประวัติทั้งหมด</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/log" class="menu-item"
+            ><i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
+            ประวัติ Log</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/others" class="menu-item active"
+            ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 10px"></i>
+            อื่นๆ</a
+          >
+        </li>
       </ul>
-      <a href="/logout" class="menu-item logout-link">ออกจากระบบ</a>
+
+      <a
+        href="/logout"
+        class="menu-item logout-link"
+        style="border-top: 1px solid #2d3748; padding-top: 20px"
+      >
+        <i class="fas fa-sign-out-alt fa-fw" style="margin-right: 10px"></i>
+        ออกจากระบบ
+      </a>
     </aside>
 
     <main class="main-content">
       <header class="header-bar">
         <div>
           <h1 class="page-title">การตั้งค่าและอื่นๆ</h1>
-          <p style="color: #666; font-size: 14px">
-            จัดการบัญชีและข้อมูลส่วนตัว (Admin)
-          </p>
+          <p class="page-subtitle">จัดการบัญชีและข้อมูลส่วนตัว (Admin)</p>
         </div>
-
-        <a href="/profile" class="profile-link">
+        <a href="/profile" class="profile-link" style="text-decoration: none">
           <div class="user-profile">
             <span class="user-name" id="user-name">Loading...</span>
-            <img
-              src="/static/default.png"
-              class="avatar"
-              id="header-avatar"
-              style="
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                object-fit: cover;
-                margin-left: 10px;
-              "
-            />
+            <img src="/static/default.png" class="avatar" id="header-avatar" />
           </div>
         </a>
       </header>
 
       <div style="max-width: 600px; margin-top: 20px">
-        <h3 style="margin-bottom: 10px; color: #555">บัญชีของฉัน</h3>
+        <h3
+          style="
+            margin-bottom: 15px;
+            color: var(--text-muted);
+            font-size: 15px;
+            text-transform: uppercase;
+          "
+        >
+          บัญชีของฉัน
+        </h3>
         <div class="settings-box">
           <ul class="settings-list">
             <li>
@@ -129,19 +178,29 @@
           </ul>
         </div>
 
-        <h3 style="margin-bottom: 10px; color: #555; margin-top: 30px">ระบบ</h3>
+        <h3
+          style="
+            margin-bottom: 15px;
+            color: var(--text-muted);
+            margin-top: 30px;
+            font-size: 15px;
+            text-transform: uppercase;
+          "
+        >
+          ระบบ
+        </h3>
         <div class="settings-box">
           <ul class="settings-list">
             <li>
-              <a href="#" onclick="alert('อยู่ในระหว่างการจัดทำ')">
+              <a href="#" onclick="showManualAlert(event)">
                 <span>📖 คู่มือการใช้งานสำหรับผู้ดูแล</span>
                 <span class="arrow">&gt;</span>
               </a>
             </li>
             <li>
-              <a href="/logout" style="color: #e74c3c">
+              <a href="/logout" style="color: var(--danger)">
                 <span>🚪 ออกจากระบบ</span>
-                <span class="arrow">&gt;</span>
+                <span class="arrow" style="color: var(--danger)">&gt;</span>
               </a>
             </li>
           </ul>
@@ -159,7 +218,6 @@
             if (data.loggedIn) {
               document.getElementById("user-name").innerText = data.fullname;
               const imgEl = document.getElementById("header-avatar");
-              // จัดการรูปโปรไฟล์ให้ถูกต้อง
               const imgSrc = data.image
                 ? `/uploads/${data.image}`
                 : "/static/default.png";
@@ -168,11 +226,21 @@
                 imgEl.src = "/static/default.png";
               };
             } else {
-              // ถ้าไม่ได้ Login ให้เด้งออก
               window.location.href = "/";
             }
           })
           .catch((err) => console.error("Error loading profile:", err));
+      }
+
+      function showManualAlert(event) {
+        event.preventDefault();
+        Swal.fire({
+          icon: "info",
+          title: "อยู่ในระหว่างการจัดทำ",
+          text: "คู่มือการใช้งานสำหรับแอดมินจะพร้อมใช้งานเร็วๆ นี้ครับ",
+          confirmButtonColor: "var(--primary)",
+          confirmButtonText: "ตกลง",
+        });
       }
     </script>
   </body>

@@ -27,6 +27,17 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// ===================================================
+// 🛠️ ฟังก์ชันช่วยเหลือ: บันทึก Log อัตโนมัติ
+// ===================================================
+const saveLog = (empid, actionType, actionDetail) => {
+  if (!empid) return;
+  const sqlLog = `INSERT INTO TB_SystemLog (EMPID, ActionType, ActionDetail) VALUES (?, ?, ?)`;
+  db.query(sqlLog, [empid, actionType, actionDetail], (err) => {
+    if (err) console.error("❌ บันทึก Log ไม่สำเร็จ:", err);
+  });
+};
+
 /* ================= PAGE ROUTES ================= */
 router.get("/dashboard", (req, res) => {
   if (!req.session.login) return res.redirect("/");
@@ -47,10 +58,7 @@ router.get("/history", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "history.html"));
 });
-router.get("/category", (req, res) => {
-  if (!req.session.login) return res.redirect("/");
-  res.sendFile(path.join(__dirname, "../public", "category.html"));
-});
+
 router.get("/product", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "product.html"));
@@ -209,6 +217,14 @@ router.post("/api/borrow", (req, res) => {
                   db.commit((err) => {
                     if (err)
                       return db.rollback(() => res.json({ success: false }));
+
+                    // ✅ บันทึก Log ฝั่ง User (ยืมอุปกรณ์)
+                    saveLog(
+                      empid,
+                      "BORROW_REQUEST",
+                      `ยื่นคำขอยืมอุปกรณ์ ${device.devicename} (รหัส: ${device.stickerid})`,
+                    );
+
                     res.json({
                       success: true,
                       message: "ส่งคำขอยืมเรียบร้อย!",
@@ -226,14 +242,21 @@ router.post("/api/borrow", (req, res) => {
 
 router.get("/api/my-active-borrow", (req, res) => {
   if (!req.session.login) return res.json([]);
+
   const sql = `
-        SELECT t.TSTID, t.DVID, t.borrowdate, t.duedate, t.Due_statusID,
-               d.devicename, d.stickerid, d.sticker AS image
+        SELECT 
+            t.TSTID, t.DVID, t.borrowdate, t.duedate, t.Due_statusID, t.location, t.notes_admin,
+            d.devicename, d.stickerid, d.sticker AS image, d.serialnumber,
+            b.BrandName, 
+            m.ModelName
         FROM TB_T_BorrowTrans t
         JOIN TB_T_Device d ON t.DVID = d.DVID
+        LEFT JOIN TB_M_Brand b ON d.BrandID = b.BrandID
+        LEFT JOIN TB_M_Model m ON d.ModelID = m.ModelID
         WHERE t.EMPID = ? AND t.returndate IS NULL
         ORDER BY t.borrowdate DESC
     `;
+
   db.query(sql, [req.session.userID], (err, results) => {
     if (err) return res.status(500).json({ error: "DB Error" });
     res.json(results);
@@ -265,30 +288,15 @@ router.post("/api/acknowledge", (req, res) => {
   const sql = `UPDATE TB_T_BorrowTrans SET returndate = NOW() WHERE TSTID = ? AND Due_statusID = 6`;
   db.query(sql, [tstid], (err, result) => {
     if (err) return res.json({ success: false, message: err.message });
+
+    // ✅ บันทึก Log ฝั่ง User (รับทราบผล)
+    saveLog(
+      req.session.userID,
+      "ACKNOWLEDGE",
+      `รับทราบผลการไม่อนุมัติ (รายการ: #${tstid})`,
+    );
+
     res.json({ success: true });
-  });
-});
-
-router.post("/api/return", (req, res) => {
-  if (!req.session.login)
-    return res.status(401).json({ error: "Unauthorized" });
-  const { tstid, dvid } = req.body;
-  const username = req.session.username;
-
-  const sqlTrans = `UPDATE TB_T_BorrowTrans SET returndate = NOW(), BorrowTransStatusID = 3, Due_statusID = 4, ModifyDate = NOW(), ModifyBy = ? WHERE TSTID = ?`;
-  const sqlDevice = `UPDATE TB_T_Device SET DVStatusID = 1 WHERE DVID = ?`;
-
-  db.beginTransaction((err) => {
-    if (err) return res.json({ success: false });
-    db.query(sqlTrans, [username, tstid], (err) => {
-      if (err) return db.rollback(() => res.json({ success: false }));
-      db.query(sqlDevice, [dvid], (err) => {
-        if (err) return db.rollback(() => res.json({ success: false }));
-        db.commit(() =>
-          res.json({ success: true, message: "คืนอุปกรณ์สำเร็จ" }),
-        );
-      });
-    });
   });
 });
 
@@ -343,6 +351,11 @@ router.post("/api/profile/update", upload.single("image"), (req, res) => {
       // อัปเดต Session
       req.session.user.fullname = `${fname} ${lname}`;
       if (req.file) req.session.user.image = req.file.filename;
+
+      // ✅ บันทึก Log ฝั่ง User (อัปเดตโปรไฟล์)
+      let actionTxt = "แก้ไขข้อมูลส่วนตัว";
+      if (passwordHash) actionTxt += " (เปลี่ยนรหัสผ่าน)";
+      saveLog(empid, "UPDATE_PROFILE", actionTxt);
 
       res.json({ success: true });
     });

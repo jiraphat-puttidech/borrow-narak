@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>จัดการผู้ใช้งาน (Admin) - BORROW SYSTEM</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <link rel="stylesheet" href="/static/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+      /* ✅ เหลือไว้เฉพาะ CSS ที่ใช้เฉพาะหน้านี้เท่านั้น */
+      .user-col {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        color: #0f172a;
+      }
+      .user-img-mini {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 2px solid #e2e8f0;
+        background: white;
+      }
+      .user-subtext {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 400;
+        display: block;
+        margin-top: 2px;
+      }
+
+      /* ป้ายสถานะ Role */
+      .role-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-block;
+        letter-spacing: 0.5px;
+      }
+      .role-user {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #cbd5e1;
+      }
+      .role-admin {
+        background: #e0e7ff;
+        color: #2563eb;
+        border: 1px solid #bfdbfe;
+      }
+      .role-super {
+        background: #fce7f3;
+        color: #db2777;
+        border: 1px solid #fbcfe8;
+      }
+
+      /* จุดสีสถานะ Online/Offline */
+      .status-wrapper {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+        font-size: 12px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+      .st-online .dot {
+        background: #10b981;
+      }
+      .st-online {
+        color: #10b981;
+      }
+      .st-offline .dot {
+        background: #94a3b8;
+      }
+      .st-offline {
+        color: #94a3b8;
+      }
+
+      .btn-edit-role {
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 6px 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #64748b;
+        cursor: pointer;
+        transition: 0.2s;
+        font-family: "Kanit";
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .btn-edit-role:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: var(--primary-light);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+      }
+    </style>
+  </head>
+  <body>
+    <aside
+      class="sidebar admin-sidebar"
+      style="background: #1a202c; color: white"
+    >
+      <div class="brand-title" style="color: #f6ad55; font-weight: 700">
+        ADMIN PANEL
+      </div>
+      <ul class="menu-list">
+        <li>
+          <a href="/admin" class="menu-item"
+            ><i class="fas fa-home fa-fw" style="margin-right: 10px"></i>
+            หน้าหลักแอดมิน</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/approve" class="menu-item"
+            ><i
+              class="fas fa-check-double fa-fw"
+              style="margin-right: 10px"
+            ></i>
+            อนุมัติการยืม</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/device" class="menu-item"
+            ><i class="fas fa-laptop fa-fw" style="margin-right: 10px"></i>
+            จัดการอุปกรณ์</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/users" class="menu-item active"
+            ><i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
+            จัดการผู้ใช้งาน</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/history" class="menu-item"
+            ><i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
+            ประวัติทั้งหมด</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/log" class="menu-item"
+            ><i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
+            ประวัติ Log</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/others" class="menu-item"
+            ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 10px"></i>
+            อื่นๆ</a
+          >
+        </li>
+      </ul>
+
+      <a
+        href="/logout"
+        class="menu-item logout-link"
+        style="border-top: 1px solid #2d3748; padding-top: 20px"
+      >
+        <i class="fas fa-sign-out-alt fa-fw" style="margin-right: 10px"></i>
+        ออกจากระบบ
+      </a>
+    </aside>
+
+    <main class="main-content">
+      <header class="header-bar">
+        <div>
+          <h1 class="page-title">จัดการผู้ใช้งาน</h1>
+          <p class="page-subtitle">
+            จัดการสิทธิ์ บทบาท และข้อมูลบัญชีของผู้ใช้งานระบบ
+          </p>
+        </div>
+        <a href="/profile" style="text-decoration: none">
+          <div class="user-profile">
+            <span class="user-name" id="user-name">Loading...</span>
+            <img src="/static/default.png" id="header-avatar" class="avatar" />
+          </div>
+        </a>
+      </header>
+
+      <div class="toolbar">
+        <div class="search-box-container">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            id="search-user"
+            class="search-box"
+            placeholder="ค้นหาด้วยชื่อ, รหัสพนักงาน หรือ อีเมล..."
+          />
+        </div>
+      </div>
+
+      <div class="table-card">
+        <table class="recent-table">
+          <thead>
+            <tr>
+              <th>พนักงาน</th>
+              <th>รหัสพนักงาน (EMP NUM)</th>
+              <th>ฝ่าย (Department)</th>
+              <th>สถานะใช้งาน</th>
+              <th>ระดับสิทธิ์ (Role)</th>
+              <th>จัดการสิทธิ์</th>
+            </tr>
+          </thead>
+          <tbody id="user-list">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 20px">
+                กำลังโหลดข้อมูล...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <script>
+      let allUsers = [];
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadAdminProfile();
+        loadUsers();
+      });
+
+      function loadAdminProfile() {
+        fetch("/api/user")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.loggedIn) {
+              document.getElementById("user-name").innerText = data.fullname;
+              if (data.image)
+                document.getElementById("header-avatar").src =
+                  `/uploads/${data.image}`;
+            }
+          });
+      }
+
+      function loadUsers() {
+        const tbody = document.getElementById("user-list");
+        fetch("/api/admin/users")
+          .then((res) => res.json())
+          .then((data) => {
+            allUsers = data;
+            tbody.innerHTML = "";
+            if (data.length === 0) {
+              tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:#9ca3af;">ไม่มีข้อมูลผู้ใช้งาน</td></tr>`;
+              return;
+            }
+
+            data.forEach((user) => {
+              const imgSrc =
+                user.image &&
+                user.image !== "default.png" &&
+                !user.image.includes("http")
+                  ? `/uploads/${user.image}`
+                  : user.image && user.image.includes("http")
+                    ? user.image
+                    : "/static/default.png";
+              const isOnline = user.EMPStatusID == 2;
+              const statusClass = isOnline ? "st-online" : "st-offline";
+              const statusText = isOnline ? "Online" : "Offline";
+
+              let roleBadge = "";
+              if (user.RoleID == 3)
+                roleBadge = `<span class="role-badge role-super"><i class="fas fa-crown"></i> SUPER ADMIN</span>`;
+              else if (user.RoleID == 2)
+                roleBadge = `<span class="role-badge role-admin">ADMIN</span>`;
+              else roleBadge = `<span class="role-badge role-user">USER</span>`;
+
+              const fullName =
+                user.fname && user.lname
+                  ? `${user.fname} ${user.lname}`
+                  : user.username;
+
+              tbody.innerHTML += `
+                <tr>
+                    <td>
+                        <div class="user-col">
+                            <img src="${imgSrc}" class="user-img-mini" onerror="this.src='/static/default.png'">
+                            <div>
+                                ${fullName}
+                                <span class="user-subtext">${user.email || "-"}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color:#64748b; font-weight:600;">${user.EMP_NUM || "-"}</td>
+                    <td>${user.DepartmentName || "ไม่ระบุ"}</td>
+                    <td>
+                        <span class="status-wrapper ${statusClass}">
+                            <span class="dot"></span> ${statusText}
+                        </span>
+                    </td>
+                    <td>${roleBadge}</td>
+                    <td>
+                        <button class="btn-edit-role" onclick="changeRole(${user.EMPID}, ${user.RoleID}, '${fullName}')">
+                            <i class="fas fa-user-cog"></i> ปรับสิทธิ์
+                        </button>
+                    </td>
+                </tr>
+              `;
+            });
+          });
+      }
+
+      document
+        .getElementById("search-user")
+        .addEventListener("keyup", function () {
+          const filter = this.value.toLowerCase();
+          const rows = document.querySelectorAll("#user-list tr");
+          rows.forEach((row) => {
+            row.style.display = row.textContent.toLowerCase().includes(filter)
+              ? ""
+              : "none";
+          });
+        });
+
+      async function changeRole(empid, currentRole, empName) {
+        const { value: newRole } = await Swal.fire({
+          title: `ตั้งค่าสิทธิ์ให้ ${empName}`,
+          input: "select",
+          inputOptions: {
+            1: "พนักงานทั่วไป (User)",
+            2: "ผู้ดูแลระบบ (Admin)",
+            3: "ผู้ดูแลระบบสูงสุด (Super Admin)",
+          },
+          inputValue: currentRole,
+          showCancelButton: true,
+          confirmButtonText: "บันทึกการเปลี่ยนแปลง",
+          cancelButtonText: "ยกเลิก",
+          confirmButtonColor: "var(--primary)",
+        });
+
+        if (newRole && newRole != currentRole) {
+          if (newRole == 3) {
+            const confirmSuper = await Swal.fire({
+              title: "คำเตือน: เปลี่ยน Super Admin!",
+              text: "การแต่งตั้ง Super Admin คนใหม่ จะทำให้ Super Admin คนปัจจุบันถูกลดตำแหน่งลงเป็น Admin ปกติ คุณแน่ใจหรือไม่?",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#db2777",
+              cancelButtonColor: "#94a3b8",
+              confirmButtonText: "ใช่, ฉันแน่ใจ!",
+              cancelButtonText: "ยกเลิก",
+            });
+            if (!confirmSuper.isConfirmed) return;
+          }
+
+          fetch("/api/admin/user/role", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ targetEmpId: empid, newRole: newRole }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                Swal.fire({
+                  toast: true,
+                  position: "top-end",
+                  icon: "success",
+                  title: "อัปเดตสิทธิ์สำเร็จ",
+                  showConfirmButton: false,
+                  timer: 1500,
+                });
+                loadUsers();
+              } else {
+                Swal.fire("เกิดข้อผิดพลาด", data.msg, "error");
+              }
+            });
+        }
+      }
+    </script>
+  </body>
+</html>
