@@ -35,4 +35,4 @@ app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 const PORT = 5050;
 app.listen(PORT, () => {
   console.log(`🚀 SERVER RUN http://127.0.0.1:${PORT}`);
-});
+}); 
