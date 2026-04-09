@@ -1,10 +1,9 @@
-/* public/js/dashboard.js (อัปเกรดลูกเล่น SweetAlert2) */
+/* public/js/dashboard.js */
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 Dashboard Script Loaded");
   checkLogin();
 
-  // 🌟 โหลด SweetAlert2 และแก้ปัญหาหน้ากระตุกอัตโนมัติ (ไม่ต้องใส่ใน HTML)
   if (!document.querySelector('script[src*="sweetalert2"]')) {
     const swalScript = document.createElement("script");
     swalScript.src = "https://cdn.jsdelivr.net/npm/sweetalert2@11";
@@ -36,7 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-/* ================= 1. ระบบ Login & User ================= */
 function checkLogin() {
   fetch("/api/user")
     .then((res) => res.json())
@@ -53,9 +51,14 @@ function checkLogin() {
           document.querySelector(".avatar") ||
           document.getElementById("header-avatar");
         if (imgEl) {
-          const imgSrc = data.image
-            ? `/uploads/${data.image}`
-            : "/static/default.png";
+          const imgSrc =
+            data.image &&
+            data.image !== "default.png" &&
+            !data.image.includes("http")
+              ? `/uploads/${data.image}`
+              : data.image && data.image.includes("http")
+                ? data.image
+                : "/static/default.png";
           imgEl.src = imgSrc;
           imgEl.onerror = () => {
             imgEl.src = "/static/default.png";
@@ -66,7 +69,6 @@ function checkLogin() {
     .catch((err) => console.error("Login Check Error:", err));
 }
 
-/* ================= 2. ระบบโหลดสถิติ (Dashboard) ================= */
 function loadDashboardStats() {
   fetch("/api/dashboard-stats")
     .then((res) => res.json())
@@ -93,28 +95,31 @@ function loadDashboardStats() {
             '<li style="color:#999; text-align:center;">ไม่มีผู้ใช้งาน</li>';
         } else {
           data.recentUsers.forEach((u) => {
-            const userImg = u.image
-              ? `/uploads/${u.image}`
-              : "/static/default.png";
-            let roleName = "User";
-            let roleColor = "#3498db"; // สีฟ้าสำหรับ User ปกติ
+            const userImg =
+              u.image && u.image !== "default.png" && !u.image.includes("http")
+                ? `/uploads/${u.image}`
+                : u.image && u.image.includes("http")
+                  ? u.image
+                  : "/static/default.png";
 
+            let roleName = "User";
+            let roleColor = "#3498db";
             if (u.RoleID == 3) {
               roleName = "Super Admin";
-              roleColor = "#db2777"; // สีชมพู/ม่วง สำหรับ Super Admin
+              roleColor = "#db2777";
             } else if (u.RoleID == 2) {
               roleName = "Admin";
-              roleColor = "#e74c3c"; // สีแดง สำหรับ Admin
+              roleColor = "#e74c3c";
             }
 
             userList.innerHTML += `
-    <li style="display:flex; align-items:center; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">
-        <img src="${userImg}" class="mini-avatar" style="width:35px; height:35px; border-radius:50%; object-fit:cover;" onerror="this.src='/static/default.png'">
-        <div style="margin-left:10px; line-height:1.2;">
-            <strong>${u.fname || u.username}</strong><br />
-            <small style="color:${roleColor}; font-weight:bold;">${roleName}</small>
-        </div>
-    </li>`;
+            <li style="display:flex; align-items:center; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">
+                <img src="${userImg}" class="mini-avatar" style="width:35px; height:35px; border-radius:50%; object-fit:cover;" onerror="this.src='/static/default.png'">
+                <div style="margin-left:10px; line-height:1.2;">
+                    <strong>${u.fname || u.username}</strong><br />
+                    <small style="color:${roleColor}; font-weight:bold;">${roleName}</small>
+                </div>
+            </li>`;
           });
         }
       }
@@ -131,16 +136,12 @@ function loadDashboardStats() {
           const date = new Date(item.transactiondate).toLocaleDateString(
             "th-TH",
           );
-
-          // ✅ เช็คกำหนดคืนเทียบกับวันปัจจุบัน
           const dueDateObj = new Date(item.duedate);
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           dueDateObj.setHours(0, 0, 0, 0);
 
           let statusBadge = "";
-
-          // ✅ อัปเดตเงื่อนไขให้ฉลาดขึ้น (เพิ่มเงื่อนไขครบกำหนดวันนี้)
           if (item.Due_statusID == 6) {
             statusBadge =
               '<span style="color:#7f8c8d; font-weight:bold;">❌ ไม่อนุมัติ</span>';
@@ -179,7 +180,6 @@ function loadDashboardStats() {
     .catch((err) => console.error("Stats Error:", err));
 }
 
-/* ================= 3. ระบบโหลดข้อมูลอุปกรณ์ (✅ อัปเดต Filter หมวดหมู่) ================= */
 function loadDevices() {
   const grid = document.getElementById("device-grid");
   if (!grid) return;
@@ -199,36 +199,57 @@ function loadDevices() {
       }
 
       devices.forEach((item) => {
-        const isAvailable = item.DVStatusID === 1;
+        // ✅ แก้บั๊กตรวจสอบจำนวนคงเหลือ (ใช้ remain_qty แทน DVStatusID)
+        const isAvailable = item.remain_qty > 0;
         const statusClass = isAvailable ? "status-1" : "status-busy";
         const statusText = isAvailable
           ? "✅ ว่างพร้อมยืม"
-          : "❌ ไม่ว่าง / รออนุมัติ";
-        const btnText = isAvailable ? "📝 ส่งคำขอยืม" : "ถูกใช้งานอยู่";
+          : "❌ ของหมดชั่วคราว";
+        const btnText = isAvailable ? "📝 ส่งคำขอยืม" : "ของหมดชั่วคราว";
+
+        // ✅ แก้บั๊กเครื่องหมายคำพูด (") ในชื่อ ทำให้กดปุ่มไม่ได้
+        const safeName = item.devicename
+          ? item.devicename.replace(/'/g, "\\'").replace(/"/g, "&quot;")
+          : "";
 
         const btnAttr = isAvailable
-          ? `onclick="openBorrowModal(${item.DVID}, '${item.devicename}', '${item.stickerid}')"`
+          ? `onclick="openBorrowModal(${item.DVID}, '${safeName}', 'รอแอดมินจัดสรรอุปกรณ์ให้')"`
           : 'disabled style="background-color:#ccc; cursor:not-allowed;"';
 
-        // ✅ แอบใส่ data-category ไว้ที่กรอบนอกสุดของ Card เพื่อใช้ทำ Filter
+        let qtyColor = item.remain_qty > 0 ? "var(--success)" : "var(--danger)";
+        let qtyHtml = `
+          <div style="font-size: 13px; font-weight: 600; color: ${qtyColor}; margin: 10px auto; background: var(--bg); padding: 6px 12px; border-radius: 20px; text-align: center; border: 1px dashed ${qtyColor}; width: fit-content;">
+              📦 คงเหลือ: ${item.remain_qty || 0} / ${item.total_qty || 0} เครื่อง
+          </div>
+        `;
+
+        const imgSrc =
+          item.image &&
+          item.image !== "default.png" &&
+          !item.image.includes("http")
+            ? `/uploads/${item.image}`
+            : item.image && item.image.includes("http")
+              ? item.image
+              : "/static/default.png";
+
         grid.innerHTML += `
-            <div class="device-card" data-category="${item.CategoryID}" style="display:flex; flex-direction:column; padding-top: 20px;">
-                <div class="card-body" style="padding: 20px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
-                    <div>
-                        <h3 style="font-size: 18px; margin-bottom: 5px; color: var(--primary); font-weight: 600;">${item.devicename}</h3>
-                        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">รหัสครุภัณฑ์: ${item.stickerid}</p>
-                    </div>
-                    
-                    <div>
-                        <div style="margin-bottom: 20px;">
-                            <span class="device-status ${statusClass}" style="display:inline-block; padding:6px 14px; border-radius:20px; font-size:12px;">
-                                ${statusText}
-                            </span>
-                        </div>
-                        <button class="btn-borrow" ${btnAttr} style="width:100%; padding:12px; border:none; border-radius:8px; color:white; font-weight:600; cursor:${isAvailable ? "pointer" : "not-allowed"}; font-size:14px; background-color:${isAvailable ? "var(--primary)" : "#ccc"};">
-                            ${btnText}
-                        </button>
-                    </div>
+            <div class="device-card" data-category="${item.CategoryID}" style="display:flex; flex-direction:column; padding-top: 20px; justify-content: space-between;">
+                <div>
+                    <img src="${imgSrc}" style="width:120px; height:120px; object-fit:contain; margin-bottom:15px;" onerror="this.src='/static/default.png'">
+                    <h3 style="font-size: 18px; margin-bottom: 5px; color: var(--primary); font-weight: 700;">${item.devicename}</h3>
+                    ${qtyHtml} 
+                </div>
+                
+                <div style="margin-top: 15px; margin-bottom: 20px;">
+                    <span class="device-status ${statusClass}" style="display:inline-block; padding:6px 14px; border-radius:20px; font-size:12px;">
+                        ${statusText}
+                    </span>
+                </div>
+                
+                <div style="padding: 0 20px 20px 20px;">
+                    <button class="btn-borrow" ${btnAttr} style="width:100%; padding:12px; border:none; border-radius:8px; color:white; font-weight:600; cursor:${isAvailable ? "pointer" : "not-allowed"}; font-size:14px; background-color:${isAvailable ? "var(--primary)" : "#ccc"};">
+                        ${btnText}
+                    </button>
                 </div>
             </div>`;
       });
@@ -238,27 +259,6 @@ function loadDevices() {
     });
 }
 
-// ✅ โค้ดที่เพิ่มใหม่: จัดการเวลา User กดปุ่ม Filter หมวดหมู่ (ไม่มีผลกระทบกับส่วนอื่น)
-document.addEventListener("click", function (e) {
-  if (e.target.classList.contains("filter-btn")) {
-    const filterValue = e.target.getAttribute("data-filter");
-    const cards = document.querySelectorAll(".device-card");
-
-    cards.forEach((card) => {
-      // ถ้าเลือก 'all' หรือหมวดหมู่ตรงกับตัวเครื่อง ให้แสดง
-      if (
-        filterValue === "all" ||
-        card.getAttribute("data-category") === filterValue
-      ) {
-        card.style.display = ""; // เอา none ออกเพื่อให้กลับไปแสดงผลแบบ flex เดิม
-      } else {
-        card.style.display = "none"; // ซ่อนตัวที่ไม่เกี่ยว
-      }
-    });
-  }
-});
-
-/* ================= 4. ระบบ Modal & ยืมของ ================= */
 function openBorrowModal(dvid, deviceName = "อุปกรณ์", stickerId = "-") {
   const modal = document.getElementById("borrowModal");
   if (modal) {
@@ -305,7 +305,7 @@ function confirmBorrow(event) {
     Swal.fire({
       icon: "warning",
       title: "ข้อมูลไม่ครบถ้วน",
-      text: "กรุณากรอกข้อมูล วันที่คืน, สถานที่ และวัตถุประสงค์ให้ครบครับ",
+      text: "กรุณากรอกข้อมูลให้ครบครับ",
     });
     return;
   }
@@ -342,7 +342,6 @@ window.onclick = function (event) {
   if (event.target == modal) modal.style.display = "none";
 };
 
-/* ================= 5. ระบบประวัติ (เพิ่มรูปภาพกลับมา) ================= */
 function loadHistory() {
   const tbody = document.getElementById("history-list");
   if (!tbody) return;
@@ -350,7 +349,7 @@ function loadHistory() {
   tbody.innerHTML =
     '<tr><td colspan="5" style="text-align:center;">🔄 กำลังโหลดข้อมูล...</td></tr>';
 
-  fetch("/api/my-borrowing")
+  fetch("/api/my-active-borrow")
     .then((res) => res.json())
     .then((data) => {
       tbody.innerHTML = "";
@@ -366,11 +365,10 @@ function loadHistory() {
         const dueDate = new Date(item.duedate).toLocaleDateString("th-TH");
 
         let returnBtn = "";
-        if (item.BorrowTransStatusID == 1) {
+        if (item.Due_statusID == 5) {
           returnBtn =
-            '<span style="color:#f39c12; font-size:12px; font-weight:bold;">⏳ รอรับของ</span>';
+            '<span style="color:#f39c12; font-size:12px; font-weight:bold;">⏳ รออนุมัติ</span>';
         } else {
-          // ❌ เปลี่ยนจากปุ่มกดคืน เป็นข้อความบอกสถานะ เพื่อไม่ให้ User กดคืนเองได้
           returnBtn =
             '<span style="color:#2ecc71; font-size:12px; font-weight:bold;">✅ กำลังใช้งาน</span>';
         }
@@ -397,7 +395,19 @@ function loadHistory() {
       });
     })
     .catch((err) => {
-      console.error(err);
       tbody.innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">❌ โหลดข้อมูลล้มเหลว</td></tr>`;
     });
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const mainContent = document.querySelector(".main-content");
+  if (mainContent) {
+    mainContent.style.opacity = 0;
+    mainContent.style.transform = "translateY(20px)";
+    mainContent.style.transition = "all 0.6s cubic-bezier(0.22, 1, 0.36, 1)";
+    setTimeout(() => {
+      mainContent.style.opacity = 1;
+      mainContent.style.transform = "translateY(0)";
+    }, 100);
+  }
+});

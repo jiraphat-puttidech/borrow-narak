@@ -17,7 +17,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-      /* ลบ :root ออกเพื่อดึงสีจาก index.css */
       body {
         margin: 0;
         background-color: var(--bg);
@@ -27,7 +26,6 @@
         overflow: hidden;
       }
 
-      /* ช่องค้นหาดีไซน์ใหม่ */
       .search-box {
         padding: 8px 16px;
         border-radius: 20px;
@@ -44,7 +42,6 @@
         box-shadow: 0 0 0 3px var(--primary-light);
       }
 
-      /* CSS รองรับ Badge จากโค้ด JS ของคุณ */
       .badge {
         padding: 6px 12px;
         border-radius: 20px;
@@ -69,7 +66,6 @@
         color: var(--danger);
       }
 
-      /* CSS กัน Sidebar ขยับ (จากโค้ดเดิมของคุณ) */
       body.swal2-height-auto,
       html.swal2-height-auto {
         height: 100vh !important;
@@ -77,6 +73,48 @@
       .swal2-container {
         padding-right: 0 !important;
         font-family: "Kanit", sans-serif;
+      }
+
+      /* ================= Pagination CSS ================= */
+      .pagination {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 5px;
+        padding: 15px 20px;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+      }
+      .page-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: "Kanit", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        transition: 0.2s;
+      }
+      .page-btn:hover:not(:disabled) {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+        color: var(--primary);
+      }
+      .page-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+      }
+      .page-btn:disabled {
+        background: #f8fafc;
+        color: #cbd5e1;
+        cursor: not-allowed;
+      }
+      .page-dots {
+        color: var(--text-muted);
+        padding: 0 5px;
       }
     </style>
   </head>
@@ -95,7 +133,6 @@
             หน้าหลักแอดมิน</a
           >
         </li>
-
         <li>
           <a href="/admin/approve" class="menu-item"
             ><i
@@ -105,35 +142,47 @@
             อนุมัติการยืม</a
           >
         </li>
-
+        <li>
+          <a href="/admin/product" class="menu-item"
+            ><i
+              class="fas fa-shopping-cart fa-fw"
+              style="margin-right: 10px"
+            ></i>
+            ยืมอุปกรณ์ (Admin)</a
+          >
+        </li>
         <li>
           <a href="/admin/device" class="menu-item"
             ><i class="fas fa-laptop fa-fw" style="margin-right: 10px"></i>
             จัดการอุปกรณ์</a
           >
         </li>
-
         <li>
           <a href="/admin/users" class="menu-item"
             ><i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
             จัดการผู้ใช้งาน</a
           >
         </li>
-
         <li>
-          <a href="/admin/history" class="menu-item active"
-            ><i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
-            ประวัติทั้งหมด</a
+          <a
+            href="/admin/history"
+            class="menu-item active"
+            style="
+              background: rgba(242, 112, 68, 0.2);
+              color: var(--primary);
+              border-left: 4px solid var(--primary);
+            "
           >
+            <i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
+            ประวัติทั้งหมด
+          </a>
         </li>
-
         <li>
           <a href="/admin/log" class="menu-item"
             ><i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
             ประวัติ Log</a
           >
         </li>
-
         <li>
           <a href="/admin/others" class="menu-item"
             ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 10px"></i>
@@ -141,7 +190,6 @@
           >
         </li>
       </ul>
-
       <a
         href="/logout"
         class="menu-item logout-link"
@@ -190,12 +238,30 @@
             "
           >
             <span>📜 รายการประวัติทั้งหมด</span>
-            <input
-              type="text"
-              id="search-history"
-              class="search-box"
-              placeholder="🔍 ค้นหาผู้ยืม, อุปกรณ์, รหัส..."
-            />
+            <div style="display: flex; gap: 10px; align-items: center">
+              <input
+                type="text"
+                id="search-history"
+                class="search-box"
+                placeholder="🔍 ค้นหาผู้ยืม, อุปกรณ์, รหัส..."
+              />
+              <button
+                onclick="exportExcel()"
+                style="
+                  background: #10b981;
+                  color: white;
+                  border: none;
+                  padding: 8px 16px;
+                  border-radius: 20px;
+                  cursor: pointer;
+                  font-family: Kanit;
+                  font-weight: 600;
+                  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+                "
+              >
+                <i class="fas fa-file-excel"></i> Export
+              </button>
+            </div>
           </div>
           <div class="panel-body" style="padding: 0">
             <table class="recent-table">
@@ -219,17 +285,32 @@
                 </tr>
               </tbody>
             </table>
+            <div
+              id="pagination"
+              class="pagination"
+              style="
+                border-bottom-left-radius: 16px;
+                border-bottom-right-radius: 16px;
+              "
+            ></div>
           </div>
         </div>
       </div>
     </main>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <script>
-      // โค้ดโหลดข้อมูลเดิมของคุณ
+      let allHistoryData = [];
+      let filteredHistory = []; // สำหรับเก็บข้อมูลหลังค้นหา
+      let currentPage = 1;
+      const rowsPerPage = 10; // แสดงหน้าละ 10 รายการ
+
       document.addEventListener("DOMContentLoaded", () => {
         loadHistory();
         loadAdminProfile();
       });
+
       function loadAdminProfile() {
         fetch("/api/user")
           .then((res) => res.json())
@@ -244,74 +325,153 @@
             }
           });
       }
+
       function loadHistory() {
-        const tbody = document.getElementById("history-list");
         fetch("/api/admin/all-history")
           .then((res) => res.json())
           .then((data) => {
-            tbody.innerHTML = "";
-            if (data.length === 0) {
-              tbody.innerHTML =
-                "<tr><td colspan='8' style='text-align:center; padding:30px; color:#999;'>🚫 ไม่พบประวัติการทำรายการ</td></tr>";
-              return;
-            }
-            data.forEach((item) => {
-              const bDate = new Date(item.borrowdate).toLocaleDateString(
-                "th-TH",
-              );
-              const dDate = new Date(item.duedate).toLocaleDateString("th-TH");
-              const dueDateObj = new Date(item.duedate);
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              dueDateObj.setHours(0, 0, 0, 0);
-              let rDate = "-";
-              if (item.Due_statusID == 6) {
-                rDate = `<span style="color:#999; font-size:12px;">(ยกเลิก)</span>`;
-              } else if (item.returndate) {
-                rDate = new Date(item.returndate).toLocaleDateString("th-TH");
-              }
-
-              let badge = "";
-              let actionBtn = "-";
-              if (item.Due_statusID == 5) {
-                badge = `<span class="badge bg-wait">รออนุมัติ</span>`;
-              } else if (item.Due_statusID == 6) {
-                badge = `<span class="badge bg-reject">ไม่อนุมัติ</span>`;
-              } else if (
-                item.BorrowTransStatusID == 3 ||
-                item.Due_statusID == 4
-              ) {
-                badge = `<span class="badge bg-return">คืนแล้ว</span>`;
-              } else if (item.Due_statusID == 2 || item.Due_statusID == 3) {
-                if (
-                  item.Due_statusID == 3 ||
-                  (item.Due_statusID == 2 && today > dueDateObj)
-                ) {
-                  badge = `<span class="badge" style="background:#e74c3c; color:white;">⚠️ เกินกำหนด</span>`;
-                } else {
-                  badge = `<span class="badge" style="background:#3498db; color:white;">กำลังยืม</span>`;
-                }
-                actionBtn = `<button onclick="adminReturnItem(${item.TSTID}, ${item.DVID})" style="background:#27ae60; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">📥 รับคืน</button>`;
-              }
-              const userName = item.fname
-                ? `${item.fname} ${item.lname}`
-                : item.username;
-              tbody.innerHTML += `
-                    <tr>
-                        <td>#${item.transaction_num || item.TSTID}</td>
-                        <td style="font-weight:bold;">${userName}</td>
-                        <td>${item.devicename} <span style="color:#999; font-size:12px;">(${item.stickerid})</span></td>
-                        <td>${bDate}</td>
-                        <td style="color:#e74c3c; font-weight:bold;">${dDate}</td>
-                        <td>${badge}</td>
-                        <td>${rDate}</td>
-                        <td>${actionBtn}</td> 
-                    </tr>`;
-            });
+            allHistoryData = data;
+            filteredHistory = data;
+            currentPage = 1;
+            renderHistoryTable();
           });
       }
 
-      // ✅ 3. เปลี่ยนการทำงานให้เป็น SweetAlert2
+      function renderHistoryTable() {
+        const tbody = document.getElementById("history-list");
+        tbody.innerHTML = "";
+
+        if (filteredHistory.length === 0) {
+          tbody.innerHTML =
+            "<tr><td colspan='8' style='text-align:center; padding:30px; color:#999;'>🚫 ไม่พบประวัติการทำรายการ</td></tr>";
+          document.getElementById("pagination").innerHTML = "";
+          return;
+        }
+
+        // คำนวณ Index สำหรับตัด Array
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const paginatedData = filteredHistory.slice(start, end);
+
+        paginatedData.forEach((item) => {
+          const bDate = new Date(item.borrowdate).toLocaleDateString("th-TH");
+          const dDate = new Date(item.duedate).toLocaleDateString("th-TH");
+          const dueDateObj = new Date(item.duedate);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          dueDateObj.setHours(0, 0, 0, 0);
+          let rDate = "-";
+          if (item.Due_statusID == 6) {
+            rDate = `<span style="color:#999; font-size:12px;">(ยกเลิก)</span>`;
+          } else if (item.returndate) {
+            rDate = new Date(item.returndate).toLocaleDateString("th-TH");
+          }
+
+          let badge = "";
+          let actionBtn = "-";
+          if (item.Due_statusID == 5) {
+            badge = `<span class="badge bg-wait">รออนุมัติ</span>`;
+          } else if (item.Due_statusID == 6) {
+            badge = `<span class="badge bg-reject">ไม่อนุมัติ</span>`;
+          } else if (item.BorrowTransStatusID == 3 || item.Due_statusID == 4) {
+            badge = `<span class="badge bg-return">คืนแล้ว</span>`;
+          } else if (item.Due_statusID == 2 || item.Due_statusID == 3) {
+            if (
+              item.Due_statusID == 3 ||
+              (item.Due_statusID == 2 && today > dueDateObj)
+            ) {
+              badge = `<span class="badge" style="background:#e74c3c; color:white;">⚠️ เกินกำหนด</span>`;
+            } else {
+              badge = `<span class="badge" style="background:#3498db; color:white;">กำลังยืม</span>`;
+            }
+            actionBtn = `<button onclick="adminReturnItem(${item.TSTID}, ${item.DVID})" style="background:#27ae60; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">📥 รับคืน</button>`;
+          }
+          const userName = item.fname
+            ? `${item.fname} ${item.lname}`
+            : item.username;
+          tbody.innerHTML += `
+                <tr>
+                    <td>#${item.transaction_num || item.TSTID}</td>
+                    <td style="font-weight:bold;">${userName}</td>
+                    <td>${item.devicename} <span style="color:#999; font-size:12px;">(${item.stickerid})</span></td>
+                    <td>${bDate}</td>
+                    <td style="color:#e74c3c; font-weight:bold;">${dDate}</td>
+                    <td>${badge}</td>
+                    <td>${rDate}</td>
+                    <td>${actionBtn}</td> 
+                </tr>`;
+        });
+
+        renderPagination(
+          "pagination",
+          filteredHistory.length,
+          renderHistoryTable,
+        );
+      }
+
+      function renderPagination(elementId, totalItems, renderCallback) {
+        const paginationEl = document.getElementById(elementId);
+        paginationEl.innerHTML = "";
+        const totalPages = Math.ceil(totalItems / rowsPerPage);
+        if (totalPages <= 1) return;
+
+        const createBtn = (text, disabled, onClick, isActive = false) => {
+          const btn = document.createElement("button");
+          btn.className = `page-btn ${isActive ? "active" : ""}`;
+          btn.innerHTML = text;
+          btn.disabled = disabled;
+          btn.onclick = onClick;
+          return btn;
+        };
+
+        paginationEl.appendChild(
+          createBtn(
+            "<i class='fas fa-chevron-left'></i>",
+            currentPage === 1,
+            () => {
+              currentPage--;
+              renderCallback();
+            },
+          ),
+        );
+
+        for (let i = 1; i <= totalPages; i++) {
+          if (
+            i === 1 ||
+            i === totalPages ||
+            (i >= currentPage - 1 && i <= currentPage + 1)
+          ) {
+            paginationEl.appendChild(
+              createBtn(
+                i,
+                false,
+                () => {
+                  currentPage = i;
+                  renderCallback();
+                },
+                i === currentPage,
+              ),
+            );
+          } else if (i === currentPage - 2 || i === currentPage + 2) {
+            const dots = document.createElement("span");
+            dots.className = "page-dots";
+            dots.innerHTML = "...";
+            paginationEl.appendChild(dots);
+          }
+        }
+
+        paginationEl.appendChild(
+          createBtn(
+            "<i class='fas fa-chevron-right'></i>",
+            currentPage === totalPages,
+            () => {
+              currentPage++;
+              renderCallback();
+            },
+          ),
+        );
+      }
+
       function adminReturnItem(tstid, dvid) {
         Swal.fire({
           title: "ยืนยันการรับคืนอุปกรณ์?",
@@ -324,7 +484,7 @@
           cancelButtonText: "ยกเลิก",
         }).then((result) => {
           if (result.isConfirmed) {
-            fetch("/api/return", {
+            fetch("/api/admin/receive-return", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ tstid, dvid }),
@@ -349,15 +509,52 @@
 
       document
         .getElementById("search-history")
-        .addEventListener("keyup", function () {
+        .addEventListener("input", function () {
           const filter = this.value.toLowerCase();
-          const rows = document.querySelectorAll("#history-list tr");
-          rows.forEach((row) => {
-            if (row.cells.length < 5) return;
-            const textData = row.textContent.toLowerCase();
-            row.style.display = textData.includes(filter) ? "" : "none";
+          filteredHistory = allHistoryData.filter((item) => {
+            const searchStr = Object.values(item)
+              .map((val) =>
+                val !== null && val !== undefined
+                  ? String(val).toLowerCase()
+                  : "",
+              )
+              .join(" ");
+            return searchStr.includes(filter);
           });
+          currentPage = 1;
+          renderHistoryTable();
         });
+
+      function exportExcel() {
+        if (filteredHistory.length === 0)
+          return Swal.fire("แจ้งเตือน", "ไม่มีข้อมูล", "warning");
+        const exportData = filteredHistory.map((item) => ({
+          เลขที่รายการ: item.transaction_num || item.TSTID,
+          ผู้ยืม: item.fname ? `${item.fname} ${item.lname}` : item.username,
+          อุปกรณ์: item.devicename,
+          รหัสเครื่อง: item.stickerid,
+          วันที่ยืม: new Date(item.borrowdate).toLocaleDateString("th-TH"),
+          กำหนดคืน: new Date(item.duedate).toLocaleDateString("th-TH"),
+          คืนเมื่อ: item.returndate
+            ? new Date(item.returndate).toLocaleDateString("th-TH")
+            : "-",
+          สถานะ:
+            item.Due_statusID == 6
+              ? "ไม่อนุมัติ"
+              : item.BorrowTransStatusID == 3
+                ? "คืนแล้ว"
+                : "กำลังยืม",
+        }));
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "History");
+        XLSX.writeFile(
+          wb,
+          `Borrow_History_${new Date().toISOString().split("T")[0]}.xlsx`,
+        );
+      }
     </script>
+    <script src="/static/js/noti.js"></script>
+    <script src="/static/js/wow.js"></script>
   </body>
 </html>

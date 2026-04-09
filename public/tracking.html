@@ -24,7 +24,6 @@
         overflow: hidden;
         background: var(--bg);
       }
-
       .badge {
         padding: 6px 12px;
         border-radius: 20px;
@@ -44,7 +43,6 @@
         background: var(--success-bg);
         color: var(--success);
       }
-
       .btn-info {
         background: var(--surface);
         color: var(--text-main);
@@ -63,8 +61,6 @@
         color: var(--primary);
         transform: translateY(-2px);
       }
-
-      /* Modal Style */
       .modal {
         display: none;
         position: fixed;
@@ -108,7 +104,6 @@
       .close-btn:hover {
         color: #333;
       }
-
       .info-left {
         width: 35%;
         background: #f8f9fa;
@@ -140,7 +135,6 @@
         margin-bottom: 25px;
         display: block;
       }
-
       .details-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -163,7 +157,6 @@
         color: var(--text-main);
         font-weight: 500;
       }
-
       @media (max-width: 600px) {
         .modal-content.info-card {
           flex-direction: column;
@@ -267,7 +260,6 @@
     <div id="infoModal" class="modal">
       <div class="modal-content info-card">
         <span class="close-btn" onclick="closeInfoModal()">&times;</span>
-
         <div class="info-left">
           <span id="m-status" class="badge">Loading...</span>
           <img
@@ -276,27 +268,25 @@
             onerror="this.src = '/static/default.png'"
           />
         </div>
-
         <div class="info-right">
           <h3 id="m-name">ชื่ออุปกรณ์</h3>
           <span class="code">IT CODE: <span id="m-sticker">-</span></span>
-
           <div class="details-grid">
             <div class="detail-item">
-              <span class="detail-label">SERIAL NUMBER</span>
-              <span class="detail-value" id="m-serial">-</span>
+              <span class="detail-label">SERIAL NUMBER</span
+              ><span class="detail-value" id="m-serial">-</span>
             </div>
             <div class="detail-item">
-              <span class="detail-label">ยี่ห้อ (Brand) / รุ่น (Model)</span>
-              <span class="detail-value" id="m-brand-model">-</span>
+              <span class="detail-label">ยี่ห้อ (Brand) / รุ่น (Model)</span
+              ><span class="detail-value" id="m-brand-model">-</span>
             </div>
             <div class="detail-item">
-              <span class="detail-label">วันที่ขอยืม</span>
-              <span class="detail-value" id="m-bdate">-</span>
+              <span class="detail-label">วันที่ขอยืม</span
+              ><span class="detail-value" id="m-bdate">-</span>
             </div>
             <div class="detail-item">
-              <span class="detail-label">กำหนดส่งคืน</span>
-              <span
+              <span class="detail-label">กำหนดส่งคืน</span
+              ><span
                 class="detail-value"
                 id="m-ddate"
                 style="color: var(--danger); font-weight: 600"
@@ -304,12 +294,12 @@
               >
             </div>
             <div class="detail-item" style="grid-column: span 2">
-              <span class="detail-label">สถานที่นำไปใช้งาน</span>
-              <span class="detail-value" id="m-location">-</span>
+              <span class="detail-label">สถานที่นำไปใช้งาน</span
+              ><span class="detail-value" id="m-location">-</span>
             </div>
             <div class="detail-item" style="grid-column: span 2">
-              <span class="detail-label">หมายเหตุจากแอดมิน</span>
-              <span
+              <span class="detail-label">หมายเหตุจากแอดมิน</span
+              ><span
                 class="detail-value"
                 id="m-admin-note"
                 style="color: var(--warning)"
@@ -351,16 +341,21 @@
               const dueDateObj = new Date(item.duedate);
               dueDateObj.setHours(0, 0, 0, 0);
               const dueDateStr = dueDateObj.toLocaleDateString("th-TH");
-              const isOverdue = today > dueDateObj; // เช็คว่าเลยกำหนดหรือยัง
+              const isOverdue = today > dueDateObj;
 
-              const img = item.image
-                ? `/uploads/${item.image}`
-                : "/static/default.png";
+              // ✅ แก้บั๊กรูปภาพ
+              const img =
+                item.image &&
+                item.image !== "default.png" &&
+                !item.image.includes("http")
+                  ? `/uploads/${item.image}`
+                  : item.image && item.image.includes("http")
+                    ? item.image
+                    : "/static/default.png";
 
               let statusHtml = "";
               let btnAction = `<button onclick="openInfoModal(${item.TSTID})" class="btn-info">👁️ ดูข้อมูล</button>`;
 
-              // ✅ เช็คสถานะตาม DB เป๊ะๆ
               if (item.Due_statusID == 6) {
                 statusHtml = `<span class="badge bg-danger">❌ ไม่อนุมัติ</span>`;
                 btnAction += ` <button onclick="acknowledgeItem(${item.TSTID})" style="background:#e74c3c; color:white; border:none; padding:7px 12px; border-radius:6px; cursor:pointer; font-family:Kanit;">รับทราบผล</button>`;
@@ -370,10 +365,8 @@
                 item.Due_statusID == 3 ||
                 (item.Due_statusID == 2 && isOverdue)
               ) {
-                // ถ้าเลยวันกำหนดคืน หรือสถานะเป็น 3 (เกินกำหนด)
                 statusHtml = `<span class="badge" style="background:#e74c3c; color:white;">⚠️ เกินกำหนด</span>`;
               } else if (item.Due_statusID == 2) {
-                // สถานะ 2 และยังไม่เลยวัน
                 statusHtml = `<span class="badge bg-success">✅ กำลังใช้งาน</span>`;
               }
 
@@ -401,7 +394,6 @@
           item.serialnumber || "-";
         document.getElementById("m-brand-model").innerText =
           `${item.BrandName || item.BrandID || "-"} / ${item.ModelName || item.ModelID || "-"}`;
-
         document.getElementById("m-bdate").innerText = new Date(
           item.borrowdate,
         ).toLocaleDateString("th-TH");
@@ -412,9 +404,15 @@
         document.getElementById("m-admin-note").innerText =
           item.notes_admin || "-";
 
-        const img = item.image
-          ? `/uploads/${item.image}`
-          : "/static/default.png";
+        // ✅ แก้บั๊กรูปภาพในหน้าต่างป๊อปอัป
+        const img =
+          item.image &&
+          item.image !== "default.png" &&
+          !item.image.includes("http")
+            ? `/uploads/${item.image}`
+            : item.image && item.image.includes("http")
+              ? item.image
+              : "/static/default.png";
         document.getElementById("m-img").src = img;
 
         const today = new Date();
@@ -488,5 +486,7 @@
         });
       }
     </script>
+    <script src="/static/js/noti.js"></script>
+    <script src="/static/js/wow.js"></script>
   </body>
 </html>

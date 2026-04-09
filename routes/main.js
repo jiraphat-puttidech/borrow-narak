@@ -3,14 +3,37 @@ const router = express.Router();
 const path = require("path");
 const db = require("../config/db");
 
-// ✅ 1. เพิ่ม Library สำหรับการอัปโหลดและเข้ารหัส (จำเป็นสำหรับแก้ไขโปรไฟล์)
+// 🔔 Helper: ฟังก์ชันส่งแจ้งเตือนหา "แอดมินทุกคน" เวลามีคนขอยืมของ
+const sendNotiToAdmins = (message) => {
+  db.query(
+    "SELECT EMPID FROM TB_T_Employee WHERE RoleID IN (2,3)",
+    (err, admins) => {
+      if (!err && admins.length > 0) {
+        const values = admins.map((admin) => [admin.EMPID, message]);
+        db.query("INSERT INTO TB_Notification (EMPID, Message) VALUES ?", [
+          values,
+        ]);
+      }
+    },
+  );
+};
+
+// 🔔 Helper: ฟังก์ชันส่งแจ้งเตือนหา User โดยตรง
+const sendNotiToUser = (empid, message) => {
+  if (!empid) return;
+  db.query("INSERT INTO TB_Notification (EMPID, Message) VALUES (?, ?)", [
+    empid,
+    message,
+  ]);
+};
+
+// ✅ 1. เพิ่ม Library สำหรับการอัปโหลดและเข้ารหัส
 const multer = require("multer");
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
 
-// ✅ 2. ตั้งค่าการอัปโหลดรูปภาพ (Multer)
+// ✅ 2. ตั้งค่าการอัปโหลดรูปภาพ
 const uploadDir = path.join(__dirname, "../public/uploads");
-// เช็คว่ามีโฟลเดอร์ไหม ถ้าไม่มีให้สร้าง
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -20,16 +43,12 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // ตั้งชื่อไฟล์กันซ้ำ: emp-เวลา-เลขสุ่ม.นามสกุล
     const uniqueSuffix = Date.now() + Math.round(Math.random() * 1e9);
     cb(null, "emp-" + uniqueSuffix + path.extname(file.originalname));
   },
 });
 const upload = multer({ storage: storage });
 
-// ===================================================
-// 🛠️ ฟังก์ชันช่วยเหลือ: บันทึก Log อัตโนมัติ
-// ===================================================
 const saveLog = (empid, actionType, actionDetail) => {
   if (!empid) return;
   const sqlLog = `INSERT INTO TB_SystemLog (EMPID, ActionType, ActionDetail) VALUES (?, ?, ?)`;
@@ -43,22 +62,18 @@ router.get("/dashboard", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "index.html"));
 });
-
 router.get("/tracking", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "tracking.html"));
 });
-
 router.get("/profile", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "profile.html"));
 });
-
 router.get("/history", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "history.html"));
 });
-
 router.get("/product", (req, res) => {
   if (!req.session.login) return res.redirect("/");
   res.sendFile(path.join(__dirname, "../public", "product.html"));
@@ -69,7 +84,6 @@ router.get("/others", (req, res) => {
 });
 
 /* ================= API ROUTES ================= */
-
 router.get("/api/user", (req, res) => {
   if (req.session.login) {
     res.json({
@@ -90,11 +104,8 @@ router.get("/api/dashboard-stats", (req, res) => {
     "SELECT COUNT(*) AS count FROM TB_T_BorrowTrans WHERE returndate IS NULL";
   const q3 = "SELECT COUNT(*) AS count FROM TB_T_Employee";
   const q4 = "SELECT COUNT(*) AS count FROM TB_T_Device";
-
-  // เพิ่มดึง User ล่าสุดเพื่อให้หน้า Dashboard แสดงผลถูกต้อง
   const qUsers =
     "SELECT username, fname, lname, image, RoleID FROM TB_T_Employee ORDER BY CreateDate DESC LIMIT 5";
-
   const qRecent = `
         SELECT t.*, d.devicename, e.username, e.fname
         FROM TB_T_BorrowTrans t
@@ -113,7 +124,7 @@ router.get("/api/dashboard-stats", (req, res) => {
         totalMembers: results[2][0].count,
         totalDevices: results[3][0].count,
         recentTrans: results[4],
-        recentUsers: results[5], // ส่งรายชื่อสมาชิกใหม่ไปด้วย
+        recentUsers: results[5],
       });
     },
   );
@@ -121,10 +132,16 @@ router.get("/api/dashboard-stats", (req, res) => {
 
 router.get("/api/devices", (req, res) => {
   const sql = `
-        SELECT d.DVID, d.devicename, d.stickerid, d.sticker AS image, d.DVStatusID, s.StatusNameDV
-        FROM TB_T_Device d
-        LEFT JOIN TB_M_StatusDevice s ON d.DVStatusID = s.DVStatusID
-    `;
+    SELECT 
+        d.devicename,
+        MAX(d.sticker) AS image,
+        d.CategoryID,
+        SUM(CASE WHEN d.DVStatusID = 1 THEN 1 ELSE 0 END) AS remain_qty,
+        COUNT(d.DVID) AS total_qty,
+        MIN(CASE WHEN d.DVStatusID = 1 THEN d.DVID ELSE NULL END) AS DVID
+    FROM TB_T_Device d
+    GROUP BY d.devicename, d.CategoryID
+  `;
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ error: "DB Error" });
     res.json(results);
@@ -165,19 +182,14 @@ router.post("/api/borrow", (req, res) => {
             INSERT INTO TB_T_BorrowTrans 
             (
                 transaction_num, transactiondate, DVID, EMPID, borrowdate, duedate, location, purpose, 
-                BorrowTransStatusID, Due_statusID,
-                EMP_NUM, phone, InstitutionID, DepartmentID,
-                CategoryID, TypeID, ModelID, BrandID, notes_emp, notes_admin
-            )
-            VALUES 
-            (?, NOW(), ?, ?, NOW(), ?, ?, ?, 1, 5, ?, ?, ?, ?, ?, ?, ?, ?, '-', '-')
+                BorrowTransStatusID, Due_statusID, EMP_NUM, phone, InstitutionID, DepartmentID, CategoryID, TypeID, ModelID, BrandID, notes_emp, notes_admin
+            ) VALUES (?, NOW(), ?, ?, NOW(), ?, ?, ?, 1, 5, ?, ?, ?, ?, ?, ?, ?, ?, '-', '-')
         `;
           const sqlUpdateDevice = `UPDATE TB_T_Device SET DVStatusID = 2 WHERE DVID = ?`;
 
           db.beginTransaction((err) => {
             if (err)
               return res.json({ success: false, message: "Transaction Error" });
-
             db.query(
               sqlInsert,
               [
@@ -204,7 +216,6 @@ router.post("/api/borrow", (req, res) => {
                       message: "Insert Failed: " + err.message,
                     }),
                   );
-
                 db.query(sqlUpdateDevice, [dvid], (err) => {
                   if (err)
                     return db.rollback(() =>
@@ -213,16 +224,22 @@ router.post("/api/borrow", (req, res) => {
                         message: "Update Device Failed",
                       }),
                     );
-
                   db.commit((err) => {
                     if (err)
                       return db.rollback(() => res.json({ success: false }));
-
-                    // ✅ บันทึก Log ฝั่ง User (ยืมอุปกรณ์)
                     saveLog(
                       empid,
                       "BORROW_REQUEST",
-                      `ยื่นคำขอยืมอุปกรณ์ ${device.devicename} (รหัส: ${device.stickerid})`,
+                      `ยื่นคำขอยืมอุปกรณ์ ${device.devicename}`,
+                    );
+
+                    // ✅ 🔔 แจ้งเตือนกระดิ่ง (ทั้งแอดมิน และ User คนยืม)
+                    sendNotiToAdmins(
+                      `🔔 มีคำขอยืมใหม่: ${device.devicename} จากคุณ ${user.fname}`,
+                    );
+                    sendNotiToUser(
+                      empid,
+                      `⏳ ส่งคำขอยืมสำเร็จ: ${device.devicename} (รอแอดมินอนุมัติ)`,
                     );
 
                     res.json({
@@ -242,13 +259,10 @@ router.post("/api/borrow", (req, res) => {
 
 router.get("/api/my-active-borrow", (req, res) => {
   if (!req.session.login) return res.json([]);
-
   const sql = `
         SELECT 
             t.TSTID, t.DVID, t.borrowdate, t.duedate, t.Due_statusID, t.location, t.notes_admin,
-            d.devicename, d.stickerid, d.sticker AS image, d.serialnumber,
-            b.BrandName, 
-            m.ModelName
+            d.devicename, d.stickerid, d.sticker AS image, d.serialnumber, b.BrandName, m.ModelName
         FROM TB_T_BorrowTrans t
         JOIN TB_T_Device d ON t.DVID = d.DVID
         LEFT JOIN TB_M_Brand b ON d.BrandID = b.BrandID
@@ -256,7 +270,6 @@ router.get("/api/my-active-borrow", (req, res) => {
         WHERE t.EMPID = ? AND t.returndate IS NULL
         ORDER BY t.borrowdate DESC
     `;
-
   db.query(sql, [req.session.userID], (err, results) => {
     if (err) return res.status(500).json({ error: "DB Error" });
     res.json(results);
@@ -279,23 +292,18 @@ router.get("/api/my-history-all", (req, res) => {
   });
 });
 
-// ✅ API สำหรับกด "รับทราบ" ผลการไม่อนุมัติ (เพื่อให้รายการหายไปจากหน้า Active)
 router.post("/api/acknowledge", (req, res) => {
   if (!req.session.login)
     return res.status(401).json({ error: "Unauthorized" });
   const { tstid } = req.body;
-  // อัปเดต returndate เป็นปัจจุบัน เพื่อให้หลุดจากเงื่อนไข returndate IS NULL
   const sql = `UPDATE TB_T_BorrowTrans SET returndate = NOW() WHERE TSTID = ? AND Due_statusID = 6`;
   db.query(sql, [tstid], (err, result) => {
     if (err) return res.json({ success: false, message: err.message });
-
-    // ✅ บันทึก Log ฝั่ง User (รับทราบผล)
     saveLog(
       req.session.userID,
       "ACKNOWLEDGE",
       `รับทราบผลการไม่อนุมัติ (รายการ: #${tstid})`,
     );
-
     res.json({ success: true });
   });
 });
@@ -316,7 +324,6 @@ router.get("/api/my-profile", (req, res) => {
   });
 });
 
-// ✅ 3. API อัปเดตโปรไฟล์ (แบบปลอดภัย: เช็ครหัสเดิมก่อน)
 router.post("/api/profile/update", upload.single("image"), (req, res) => {
   if (!req.session.login) {
     return res.json({ success: false, message: "Session หมดอายุ" });
@@ -325,7 +332,6 @@ router.post("/api/profile/update", upload.single("image"), (req, res) => {
   const { fname, lname, email, phone, old_password, new_password } = req.body;
   const empid = req.session.userID;
 
-  // ฟังก์ชันช่วยอัปเดตข้อมูล (ใช้ซ้ำได้)
   const executeUpdate = (passwordHash = null) => {
     let sql = "UPDATE TB_T_Employee SET fname=?, lname=?, email=?, phone=?";
     let params = [fname, lname, email, phone];
@@ -334,71 +340,76 @@ router.post("/api/profile/update", upload.single("image"), (req, res) => {
       sql += ", image=?";
       params.push(req.file.filename);
     }
-
     if (passwordHash) {
       sql += ", password=?";
       params.push(passwordHash);
     }
-
     sql += " WHERE EMPID=?";
     params.push(empid);
 
     db.query(sql, params, (err, result) => {
-      if (err) {
-        console.error(err);
-        return res.json({ success: false, message: "Database Error" });
-      }
-      // อัปเดต Session
+      if (err) return res.json({ success: false, message: "Database Error" });
       req.session.user.fullname = `${fname} ${lname}`;
       if (req.file) req.session.user.image = req.file.filename;
 
-      // ✅ บันทึก Log ฝั่ง User (อัปเดตโปรไฟล์)
       let actionTxt = "แก้ไขข้อมูลส่วนตัว";
       if (passwordHash) actionTxt += " (เปลี่ยนรหัสผ่าน)";
       saveLog(empid, "UPDATE_PROFILE", actionTxt);
-
       res.json({ success: true });
     });
   };
 
-  // --- เริ่มต้น Logic ---
-
-  // กรณี: ต้องการเปลี่ยนรหัสผ่าน (User กรอกช่อง new_password มา)
   if (new_password && new_password.trim() !== "") {
-    // 1. ต้องกรอกรหัสเดิมมาด้วย
-    if (!old_password || old_password.trim() === "") {
+    if (!old_password || old_password.trim() === "")
       return res.json({ success: false, message: "กรุณากรอกรหัสผ่านเดิม" });
-    }
-
-    // 2. ดึงรหัสผ่านปัจจุบันจาก DB มาเทียบ
     db.query(
       "SELECT password FROM TB_T_Employee WHERE EMPID = ?",
       [empid],
       (err, users) => {
         if (err || users.length === 0)
           return res.json({ success: false, message: "User not found" });
-
         const currentUser = users[0];
-
-        // 3. ใช้ bcrypt เช็คว่ารหัสเดิมถูกต้องไหม
         const isMatch = bcrypt.compareSync(old_password, currentUser.password);
-
-        if (!isMatch) {
+        if (!isMatch)
           return res.json({
             success: false,
             message: "รหัสผ่านเดิมไม่ถูกต้อง!",
-          }); // ❌ ถ้ารหัสผิด ดีดกลับ
-        }
-
-        // 4. ถ้ารหัสเดิมถูก -> เข้ารหัสใหม่ แล้วบันทึก
+          });
         const newHash = bcrypt.hashSync(new_password, 10);
         executeUpdate(newHash);
       },
     );
   } else {
-    // กรณี: ไม่เปลี่ยนรหัส (เปลี่ยนแค่ชื่อ/รูป) -> บันทึกเลย
     executeUpdate(null);
   }
+});
+
+// ==========================================
+// 🔔 API สำหรับระบบ Notification
+// ==========================================
+
+router.get("/api/notifications", (req, res) => {
+  if (!req.session.login) return res.json([]);
+
+  const sql =
+    "SELECT * FROM TB_Notification WHERE EMPID = ? ORDER BY CreateDate DESC LIMIT 10";
+  db.query(sql, [req.session.userID], (err, results) => {
+    if (err) return res.json([]);
+    res.json(results);
+  });
+});
+
+router.post("/api/notifications/read", (req, res) => {
+  if (!req.session.login) return res.json({ success: false });
+
+  db.query(
+    "UPDATE TB_Notification SET IsRead = 1 WHERE EMPID = ?",
+    [req.session.userID],
+    (err) => {
+      if (err) return res.json({ success: false });
+      res.json({ success: true });
+    },
+  );
 });
 
 module.exports = router;

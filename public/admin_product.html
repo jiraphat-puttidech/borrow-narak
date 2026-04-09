@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ยืมอุปกรณ์ (Admin) - BORROW SYSTEM</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/static/index.css" />
+
+    <style>
+      body {
+        margin: 0;
+        background-color: var(--bg);
+        font-family: "Kanit", sans-serif;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .search-box {
+        padding: 12px 24px;
+        border-radius: 30px;
+        border: 1px solid var(--border);
+        outline: none;
+        width: 350px;
+        font-size: 15px;
+        background: var(--surface);
+        color: var(--text-main);
+        box-shadow: var(--shadow-sm);
+        transition: 0.3s;
+      }
+      .search-box:focus {
+        border-color: var(--primary);
+        box-shadow: 0 4px 15px rgba(242, 112, 68, 0.15);
+      }
+      .category-filters {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+      }
+      .filter-btn {
+        padding: 8px 18px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-muted);
+        cursor: pointer;
+        font-family: "Kanit", sans-serif;
+        font-weight: 500;
+        transition: all 0.3s;
+        font-size: 14px;
+      }
+      .filter-btn:hover,
+      .filter-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        box-shadow: 0 4px 10px rgba(242, 112, 68, 0.2);
+      }
+      .device-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 24px;
+      }
+      .device-card {
+        background: var(--surface);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+      }
+      .device-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-hover);
+        border-color: var(--primary);
+      }
+      .device-status {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin: 0 auto 15px auto;
+        width: fit-content;
+      }
+      .status-1 {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+      .status-busy {
+        background: var(--danger-bg);
+        color: var(--danger);
+      }
+      .btn-borrow {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        width: 100%;
+      }
+      .btn-borrow:hover {
+        background: var(--primary-hover);
+      }
+      .btn-borrow:disabled {
+        background: var(--border);
+        color: var(--text-muted);
+        cursor: not-allowed;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+      }
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 28px;
+        cursor: pointer;
+        color: #aaa;
+        line-height: 1;
+      }
+      .close-btn:hover {
+        color: #333;
+      }
+      #borrowModal .modal-content {
+        background: var(--surface);
+        max-width: 500px;
+        width: 90%;
+        padding: 35px;
+        border-top: 6px solid var(--primary);
+        border-radius: var(--radius-md);
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      #borrowModal h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: var(--text-main);
+        font-weight: 700;
+      }
+      .item-preview-box {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        padding: 15px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 25px;
+        text-align: center;
+      }
+      .item-preview-box h4 {
+        margin: 0 0 5px;
+        color: var(--primary);
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .item-preview-box p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+      }
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+        color: var(--text-main);
+      }
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-family: "Kanit", sans-serif;
+        box-sizing: border-box;
+        background: var(--surface);
+        color: var(--text-main);
+        transition: 0.3s;
+      }
+      .form-group input:focus,
+      .form-group textarea:focus,
+      .form-group select:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 3px var(--primary-light);
+      }
+      .input-disabled {
+        background-color: var(--bg) !important;
+        cursor: not-allowed;
+        color: var(--text-muted) !important;
+        font-weight: 500;
+      }
+      .btn-confirm {
+        width: 100%;
+        padding: 14px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-top: 10px;
+      }
+      .btn-confirm:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(242, 112, 68, 0.2);
+      }
+
+      /* =========================================
+         🌙 โหมดมืด (Dark Mode) สำหรับฝั่ง Admin
+         ========================================= */
+      body.dark-mode {
+        --bg: #0f172a !important;
+        --surface: #1e293b !important;
+        --text-main: #f8fafc !important;
+        --text-muted: #94a3b8 !important;
+        --border: #334155 !important;
+      }
+      body.dark-mode .main-content {
+        background-color: var(--bg) !important;
+      }
+
+      body.dark-mode .device-card,
+      body.dark-mode .modal-content,
+      body.dark-mode .item-preview-box {
+        background-color: var(--surface) !important;
+        border-color: var(--border) !important;
+        color: var(--text-main) !important;
+      }
+
+      body.dark-mode input,
+      body.dark-mode select,
+      body.dark-mode textarea,
+      body.dark-mode .search-box {
+        background-color: #0f172a !important;
+        color: var(--text-main) !important;
+        border-color: var(--border) !important;
+      }
+
+      body.dark-mode h1,
+      body.dark-mode h2,
+      body.dark-mode h3,
+      body.dark-mode h4,
+      body.dark-mode .page-title {
+        color: var(--text-main) !important;
+      }
+      body.dark-mode p,
+      body.dark-mode .page-subtitle,
+      body.dark-mode .detail-label {
+        color: var(--text-muted) !important;
+      }
+
+      body.dark-mode .filter-btn {
+        background-color: var(--surface) !important;
+        border-color: var(--border) !important;
+        color: var(--text-muted) !important;
+      }
+      body.dark-mode .filter-btn.active {
+        background-color: var(--primary) !important;
+        color: white !important;
+        border-color: var(--primary) !important;
+      }
+      body.dark-mode .filter-btn:hover {
+        background-color: #334155 !important;
+        color: white !important;
+      }
+    </style>
+  </head>
+  <body>
+    <aside
+      class="sidebar admin-sidebar"
+      style="background: #1a202c; color: white"
+    >
+      <div class="brand-title" style="color: #f6ad55; font-weight: 700">
+        ADMIN PANEL
+      </div>
+      <ul class="menu-list">
+        <li>
+          <a href="/admin" class="menu-item"
+            ><i class="fas fa-home fa-fw" style="margin-right: 10px"></i>
+            หน้าหลักแอดมิน</a
+          >
+        </li>
+        <li>
+          <a href="/admin/approve" class="menu-item"
+            ><i
+              class="fas fa-check-double fa-fw"
+              style="margin-right: 10px"
+            ></i>
+            อนุมัติการยืม</a
+          >
+        </li>
+
+        <li>
+          <a
+            href="/admin/product"
+            class="menu-item active"
+            style="
+              background: rgba(242, 112, 68, 0.2);
+              color: var(--primary);
+              border-left: 4px solid var(--primary);
+            "
+            ><i
+              class="fas fa-shopping-cart fa-fw"
+              style="margin-right: 10px"
+            ></i>
+            ยืมอุปกรณ์ (Admin)</a
+          >
+        </li>
+
+        <li>
+          <a href="/admin/device" class="menu-item"
+            ><i class="fas fa-laptop fa-fw" style="margin-right: 10px"></i>
+            จัดการอุปกรณ์</a
+          >
+        </li>
+        <li>
+          <a href="/admin/users" class="menu-item"
+            ><i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
+            จัดการผู้ใช้งาน</a
+          >
+        </li>
+        <li>
+          <a href="/admin/history" class="menu-item"
+            ><i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
+            ประวัติทั้งหมด</a
+          >
+        </li>
+        <li>
+          <a href="/admin/log" class="menu-item"
+            ><i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
+            ประวัติ Log</a
+          >
+        </li>
+        <li>
+          <a href="/admin/others" class="menu-item"
+            ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 10px"></i>
+            อื่นๆ</a
+          >
+        </li>
+      </ul>
+      <a
+        href="/logout"
+        class="menu-item logout-link"
+        style="border-top: 1px solid #2d3748; padding-top: 20px"
+      >
+        <i class="fas fa-sign-out-alt fa-fw" style="margin-right: 10px"></i>
+        ออกจากระบบ
+      </a>
+    </aside>
+
+    <main class="main-content">
+      <header class="header-bar">
+        <div>
+          <h1 class="page-title">รายการอุปกรณ์ IT (โหมดยืมสำหรับแอดมิน)</h1>
+          <p style="color: var(--text-muted); font-size: 14px">
+            ค้นหาและเลือกอุปกรณ์ที่ต้องการเบิกใช้งาน
+          </p>
+        </div>
+        <a href="/admin/others" class="profile-link">
+          <div class="user-profile">
+            <span class="user-name" id="user-name">Loading...</span>
+            <img src="/static/default.png" class="avatar" id="header-avatar" />
+          </div>
+        </a>
+      </header>
+
+      <div
+        style="display: flex; justify-content: flex-end; margin-bottom: 20px"
+      >
+        <input
+          type="text"
+          id="search-product"
+          class="search-box"
+          placeholder="🔍 ค้นหาชื่อสินค้า หรือ รหัสครุภัณฑ์..."
+        />
+      </div>
+
+      <div class="category-filters" id="category-filters">
+        <button class="filter-btn active" data-filter="all">ทั้งหมด</button>
+        <button class="filter-btn" data-filter="1">
+          💻 คอมพิวเตอร์/โน้ตบุ๊ก
+        </button>
+        <button class="filter-btn" data-filter="2">📱 สมาร์ทดีไวซ์</button>
+        <button class="filter-btn" data-filter="3">📡 อุปกรณ์เครือข่าย</button>
+        <button class="filter-btn" data-filter="4">🔌 อุปกรณ์เสริม</button>
+      </div>
+
+      <div id="device-grid" class="device-grid">
+        <p>กำลังโหลดข้อมูล...</p>
+      </div>
+    </main>
+
+    <div id="borrowModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h2>📝 แบบฟอร์มขอเบิก/ยืม IT (Admin)</h2>
+        <div class="item-preview-box">
+          <h4 id="preview-name">ชื่ออุปกรณ์</h4>
+          <p id="preview-sticker">รหัส: -</p>
+        </div>
+        <form id="borrowForm" onsubmit="confirmBorrow(event)">
+          <input type="hidden" id="borrow-dvid" />
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
+            <div class="form-group">
+              <label>📅 วันที่ยืม (วันนี้)</label
+              ><input
+                type="text"
+                id="borrow-today"
+                class="input-disabled"
+                readonly
+              />
+            </div>
+            <div class="form-group">
+              <label>⏰ กำหนดคืน (Due Date) *</label
+              ><input type="date" id="borrow-duedate" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>📍 สถานที่นำไปใช้งาน *</label
+            ><input
+              type="text"
+              id="borrow-location"
+              placeholder="เช่น ห้องประชุมชั้น 2, Work from Home"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>💬 วัตถุประสงค์การยืม (IT Context) *</label>
+            <select
+              id="borrow-purpose-select"
+              required
+              onchange="updatePurposeText()"
+            >
+              <option value="">-- กรุณาเลือกเหตุผลการยืม --</option>
+              <option value="เครื่องประจำตัวส่งซ่อม (ยืมเครื่องสำรอง)">
+                🔴 เครื่องประจำตัวส่งซ่อม (ยืมเครื่องสำรอง)
+              </option>
+              <option value="นำไปพรีเซนต์งานนอกสถานที่ / ประชุม">
+                🔵 นำไปพรีเซนต์งานนอกสถานที่ / ประชุม
+              </option>
+              <option value="นำไป Work from Home">
+                🟢 นำไป Work from Home
+              </option>
+              <option value="ใช้ทดสอบระบบ (Test Device)">
+                🟡 ใช้ทดสอบระบบ (Test Device)
+              </option>
+              <option value="อื่นๆ">⚪ อื่นๆ (โปรดระบุ)</option>
+            </select>
+            <textarea
+              id="borrow-purpose"
+              rows="2"
+              placeholder="โปรดระบุรายละเอียดเพิ่มเติม..."
+              style="display: none"
+            ></textarea>
+          </div>
+          <div
+            class="form-group"
+            style="
+              background: var(--warning-bg);
+              padding: 15px;
+              border-radius: var(--radius-sm);
+              border: 1px dashed var(--warning);
+            "
+          >
+            <label
+              style="
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                cursor: pointer;
+                margin: 0;
+                color: var(--text-main);
+                font-weight: 500;
+                font-size: 13px;
+              "
+            >
+              <input
+                type="checkbox"
+                id="it-policy-check"
+                style="width: 20px; height: 20px; margin-top: 2px"
+                required
+              />
+              <span
+                ><strong>ข้อตกลง IT Security:</strong>
+                ข้าพเจ้ายอมรับว่าจะไม่ติดตั้งซอฟต์แวร์ละเมิดลิขสิทธิ์
+                และไม่บันทึกข้อมูลส่วนตัว/รหัสผ่านลงในอุปกรณ์ของบริษัท
+                หากเกิดความเสียหาย ข้าพเจ้ายินดีรับผิดชอบ</span
+              >
+            </label>
+          </div>
+          <button type="submit" class="btn-confirm">ยื่นคำขอยืมอุปกรณ์</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+    <script>
+      // ระบบค้นหาและหมวดหมู่
+      document.addEventListener("DOMContentLoaded", () => {
+        let currentCategory = "all";
+        let currentSearch = "";
+
+        function applyFilters() {
+          const cards = document.querySelectorAll(".device-card");
+          cards.forEach((card) => {
+            const matchesCategory =
+              currentCategory === "all" ||
+              card.getAttribute("data-category") === currentCategory;
+            const textData = card.textContent.toLowerCase();
+            const matchesSearch =
+              currentSearch === "" || textData.includes(currentSearch);
+
+            if (matchesCategory && matchesSearch) {
+              card.style.display = "flex";
+            } else {
+              card.style.display = "none";
+            }
+          });
+        }
+
+        const searchInput = document.getElementById("search-product");
+        if (searchInput) {
+          searchInput.addEventListener("input", function () {
+            currentSearch = this.value.toLowerCase();
+            applyFilters();
+          });
+        }
+
+        const filterBtns = document.querySelectorAll(".filter-btn");
+        filterBtns.forEach((btn) => {
+          btn.addEventListener("click", function () {
+            filterBtns.forEach((b) => b.classList.remove("active"));
+            this.classList.add("active");
+            currentCategory = this.getAttribute("data-filter");
+            applyFilters();
+          });
+        });
+      });
+
+      function updatePurposeText() {
+        const select = document.getElementById("borrow-purpose-select");
+        const textarea = document.getElementById("borrow-purpose");
+        if (select.value === "อื่นๆ") {
+          textarea.style.display = "block";
+          textarea.value = "";
+          textarea.required = true;
+        } else {
+          textarea.style.display = "none";
+          textarea.value = select.value;
+          textarea.required = false;
+        }
+      }
+    </script>
+    <script src="/static/js/noti.js"></script>
+    <script src="/static/js/wow.js"></script>
+  </body>
+</html>

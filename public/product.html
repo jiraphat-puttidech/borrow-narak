@@ -15,7 +15,6 @@
     <link rel="stylesheet" href="/static/index.css" />
 
     <style>
-      /* Search Bar */
       .search-box {
         padding: 12px 24px;
         border-radius: 30px;
@@ -32,8 +31,6 @@
         border-color: var(--primary);
         box-shadow: 0 4px 15px rgba(242, 112, 68, 0.15);
       }
-
-      /* ✅ CSS ปุ่ม Filter หมวดหมู่ */
       .category-filters {
         display: flex;
         gap: 10px;
@@ -59,8 +56,6 @@
         border-color: var(--primary);
         box-shadow: 0 4px 10px rgba(242, 112, 68, 0.2);
       }
-
-      /* Product Grid & Cards */
       .device-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -84,7 +79,6 @@
         box-shadow: var(--shadow-hover);
         border-color: var(--primary);
       }
-
       .device-status {
         display: inline-block;
         padding: 6px 14px;
@@ -102,7 +96,6 @@
         background: var(--danger-bg);
         color: var(--danger);
       }
-
       .btn-borrow {
         background: var(--primary);
         color: white;
@@ -123,7 +116,6 @@
         cursor: not-allowed;
       }
 
-      /* Modal Styles */
       .modal {
         display: none;
         position: fixed;
@@ -160,14 +152,12 @@
         max-height: 90vh;
         overflow-y: auto;
       }
-
       #borrowModal h2 {
         text-align: center;
         margin-bottom: 25px;
         color: var(--text-main);
         font-weight: 700;
       }
-
       .item-preview-box {
         background: var(--bg);
         border: 1px solid var(--border);
@@ -187,7 +177,6 @@
         font-size: 13px;
         color: var(--text-muted);
       }
-
       .form-group {
         margin-bottom: 20px;
         text-align: left;
@@ -225,7 +214,6 @@
         color: var(--text-muted) !important;
         font-weight: 500;
       }
-
       .btn-confirm {
         width: 100%;
         padding: 14px;
@@ -339,11 +327,10 @@
         </div>
         <form id="borrowForm" onsubmit="confirmBorrow(event)">
           <input type="hidden" id="borrow-dvid" />
-
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
             <div class="form-group">
-              <label>📅 วันที่ยืม (วันนี้)</label>
-              <input
+              <label>📅 วันที่ยืม (วันนี้)</label
+              ><input
                 type="text"
                 id="borrow-today"
                 class="input-disabled"
@@ -351,21 +338,19 @@
               />
             </div>
             <div class="form-group">
-              <label>⏰ กำหนดคืน (Due Date) *</label>
-              <input type="date" id="borrow-duedate" required />
+              <label>⏰ กำหนดคืน (Due Date) *</label
+              ><input type="date" id="borrow-duedate" required />
             </div>
           </div>
-
           <div class="form-group">
-            <label>📍 สถานที่นำไปใช้งาน *</label>
-            <input
+            <label>📍 สถานที่นำไปใช้งาน *</label
+            ><input
               type="text"
               id="borrow-location"
               placeholder="เช่น ห้องประชุมชั้น 2, Work from Home"
               required
             />
           </div>
-
           <div class="form-group">
             <label>💬 วัตถุประสงค์การยืม (IT Context) *</label>
             <select
@@ -395,7 +380,6 @@
               style="display: none"
             ></textarea>
           </div>
-
           <div
             class="form-group"
             style="
@@ -423,15 +407,14 @@
                 style="width: 20px; height: 20px; margin-top: 2px"
                 required
               />
-              <span>
-                <strong>ข้อตกลง IT Security:</strong>
+              <span
+                ><strong>ข้อตกลง IT Security:</strong>
                 ข้าพเจ้ายอมรับว่าจะไม่ติดตั้งซอฟต์แวร์ละเมิดลิขสิทธิ์
                 และไม่บันทึกข้อมูลส่วนตัว/รหัสผ่านลงในอุปกรณ์ของบริษัท
-                หากเกิดความเสียหาย ข้าพเจ้ายินดีรับผิดชอบ
-              </span>
+                หากเกิดความเสียหาย ข้าพเจ้ายินดีรับผิดชอบ</span
+              >
             </label>
           </div>
-
           <button type="submit" class="btn-confirm">ยื่นคำขอยืมอุปกรณ์</button>
         </form>
       </div>
@@ -439,42 +422,52 @@
 
     <script src="/static/js/dashboard.js"></script>
     <script>
+      // ✅ จัดการระบบค้นหา และ ระบบหมวดหมู่ ให้ทำงานร่วมกันได้ 100%
       document.addEventListener("DOMContentLoaded", () => {
-        const searchInput = document.getElementById("search-product");
-        const deviceGrid = document.getElementById("device-grid");
+        let currentCategory = "all";
+        let currentSearch = "";
 
-        // ระบบค้นหา (Search)
-        function filterProducts(keyword) {
-          const filter = keyword.toLowerCase();
+        function applyFilters() {
           const cards = document.querySelectorAll(".device-card");
           cards.forEach((card) => {
+            const matchesCategory =
+              currentCategory === "all" ||
+              card.getAttribute("data-category") === currentCategory;
             const textData = card.textContent.toLowerCase();
-            card.style.display = textData.includes(filter) ? "" : "none";
+            const matchesSearch =
+              currentSearch === "" || textData.includes(currentSearch);
+
+            if (matchesCategory && matchesSearch) {
+              card.style.display = "flex";
+            } else {
+              card.style.display = "none";
+            }
           });
         }
 
-        if (searchInput && deviceGrid) {
-          searchInput.addEventListener("keyup", function () {
-            filterProducts(this.value);
+        const searchInput = document.getElementById("search-product");
+        if (searchInput) {
+          searchInput.addEventListener("input", function () {
+            // ใช้ input แทน keyup เพื่อดักการกดลบข้อความด้วย
+            currentSearch = this.value.toLowerCase();
+            applyFilters();
           });
         }
 
-        // UI ปุ่ม Filter หมวดหมู่ (กดแล้วเปลี่ยนสี)
         const filterBtns = document.querySelectorAll(".filter-btn");
         filterBtns.forEach((btn) => {
           btn.addEventListener("click", function () {
             filterBtns.forEach((b) => b.classList.remove("active"));
             this.classList.add("active");
-            // ตอนนี้ปุ่มกดเปลี่ยนสีได้แล้ว เดี๋ยวเราค่อยมาต่อ API ให้มันกรองของได้จริงครับ
+            currentCategory = this.getAttribute("data-filter");
+            applyFilters();
           });
         });
       });
 
-      // ✅ ฟังก์ชันจัดการ Dropdown วัตถุประสงค์
       function updatePurposeText() {
         const select = document.getElementById("borrow-purpose-select");
         const textarea = document.getElementById("borrow-purpose");
-
         if (select.value === "อื่นๆ") {
           textarea.style.display = "block";
           textarea.value = "";
@@ -485,45 +478,8 @@
           textarea.required = false;
         }
       }
-
-      // ปรับปรุงฟังก์ชันเปิด Modal ให้เคลียร์ข้อมูลเก่าทุกครั้ง
-      function openBorrowModal(dvid, deviceName = "อุปกรณ์", stickerId = "-") {
-        document.getElementById("borrow-dvid").value = dvid;
-        document.getElementById("preview-name").innerText = deviceName;
-        document.getElementById("preview-sticker").innerText =
-          "รหัสครุภัณฑ์: " + stickerId;
-
-        const today = new Date();
-        const options = { year: "numeric", month: "short", day: "numeric" };
-        document.getElementById("borrow-today").value =
-          today.toLocaleDateString("th-TH", options);
-
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, "0");
-        const day = String(today.getDate()).padStart(2, "0");
-        document.getElementById("borrow-duedate").min =
-          `${year}-${month}-${day}`;
-
-        // เคลียร์ค่าในฟอร์ม
-        document.getElementById("borrow-duedate").value = "";
-        document.getElementById("borrow-location").value = "";
-        document.getElementById("borrow-purpose-select").value = "";
-        document.getElementById("borrow-purpose").value = "";
-        document.getElementById("borrow-purpose").style.display = "none";
-        document.getElementById("it-policy-check").checked = false;
-
-        document.getElementById("borrowModal").style.display = "flex";
-      }
-
-      function closeModal() {
-        document.getElementById("borrowModal").style.display = "none";
-      }
-      window.onclick = function (event) {
-        const modal = document.getElementById("borrowModal");
-        if (event.target == modal) {
-          closeModal();
-        }
-      };
     </script>
+    <script src="/static/js/noti.js"></script>
+    <script src="/static/js/wow.js"></script>
   </body>
 </html>

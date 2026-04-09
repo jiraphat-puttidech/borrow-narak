@@ -131,7 +131,6 @@
             หน้าหลักแอดมิน</a
           >
         </li>
-
         <li>
           <a href="/admin/approve" class="menu-item"
             ><i
@@ -141,35 +140,47 @@
             อนุมัติการยืม</a
           >
         </li>
-
+        <li>
+          <a href="/admin/product" class="menu-item"
+            ><i
+              class="fas fa-shopping-cart fa-fw"
+              style="margin-right: 10px"
+            ></i>
+            ยืมอุปกรณ์ (Admin)</a
+          >
+        </li>
         <li>
           <a href="/admin/device" class="menu-item"
             ><i class="fas fa-laptop fa-fw" style="margin-right: 10px"></i>
             จัดการอุปกรณ์</a
           >
         </li>
-
         <li>
-          <a href="/admin/users" class="menu-item active"
-            ><i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
-            จัดการผู้ใช้งาน</a
+          <a
+            href="/admin/users"
+            class="menu-item active"
+            style="
+              background: rgba(242, 112, 68, 0.2);
+              color: var(--primary);
+              border-left: 4px solid var(--primary);
+            "
           >
+            <i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
+            จัดการผู้ใช้งาน
+          </a>
         </li>
-
         <li>
           <a href="/admin/history" class="menu-item"
             ><i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
             ประวัติทั้งหมด</a
           >
         </li>
-
         <li>
           <a href="/admin/log" class="menu-item"
             ><i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
             ประวัติ Log</a
           >
         </li>
-
         <li>
           <a href="/admin/others" class="menu-item"
             ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 10px"></i>
@@ -204,7 +215,10 @@
         </a>
       </header>
 
-      <div class="toolbar">
+      <div
+        class="toolbar"
+        style="display: flex; justify-content: space-between"
+      >
         <div class="search-box-container">
           <i class="fas fa-search"></i>
           <input
@@ -214,6 +228,22 @@
             placeholder="ค้นหาด้วยชื่อ, รหัสพนักงาน หรือ อีเมล..."
           />
         </div>
+        <button
+          onclick="exportExcel()"
+          style="
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: Kanit;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+          "
+        >
+          <i class="fas fa-file-excel"></i> ดาวน์โหลดรายชื่อ
+        </button>
       </div>
 
       <div class="table-card">
@@ -238,6 +268,8 @@
         </table>
       </div>
     </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
       let allUsers = [];
@@ -393,6 +425,30 @@
             });
         }
       }
+
+      // ADDED exportExcel function at the end
+      function exportExcel() {
+        if (allUsers.length === 0)
+          return Swal.fire("แจ้งเตือน", "ไม่มีข้อมูล", "warning");
+        const exportData = allUsers.map((u) => ({
+          รหัสพนักงาน: u.EMP_NUM || "-",
+          "ชื่อ-นามสกุล": u.fname ? `${u.fname} ${u.lname}` : u.username,
+          อีเมล: u.email || "-",
+          "ฝ่าย (Department)": u.DepartmentName || "-",
+          ระดับสิทธิ์:
+            u.RoleID == 3 ? "Super Admin" : u.RoleID == 2 ? "Admin" : "User",
+          สถานะ: u.EMPStatusID == 2 ? "Online" : "Offline",
+        }));
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Users");
+        XLSX.writeFile(
+          wb,
+          `Users_Report_${new Date().toISOString().split("T")[0]}.xlsx`,
+        );
+      }
     </script>
+    <script src="/static/js/noti.js"></script>
+    <script src="/static/js/wow.js"></script>
   </body>
 </html>

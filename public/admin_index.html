@@ -123,12 +123,19 @@
       </div>
       <ul class="menu-list">
         <li>
-          <a href="/admin" class="menu-item active"
-            ><i class="fas fa-home fa-fw" style="margin-right: 10px"></i>
-            หน้าหลักแอดมิน</a
+          <a
+            href="/admin"
+            class="menu-item active"
+            style="
+              background: rgba(242, 112, 68, 0.2);
+              color: var(--primary);
+              border-left: 4px solid var(--primary);
+            "
           >
+            <i class="fas fa-home fa-fw" style="margin-right: 10px"></i>
+            หน้าหลักแอดมิน
+          </a>
         </li>
-
         <li>
           <a href="/admin/approve" class="menu-item"
             ><i
@@ -138,35 +145,39 @@
             อนุมัติการยืม</a
           >
         </li>
-
+        <li>
+          <a href="/admin/product" class="menu-item"
+            ><i
+              class="fas fa-shopping-cart fa-fw"
+              style="margin-right: 10px"
+            ></i>
+            ยืมอุปกรณ์ (Admin)</a
+          >
+        </li>
         <li>
           <a href="/admin/device" class="menu-item"
             ><i class="fas fa-laptop fa-fw" style="margin-right: 10px"></i>
             จัดการอุปกรณ์</a
           >
         </li>
-
         <li>
           <a href="/admin/users" class="menu-item"
             ><i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
             จัดการผู้ใช้งาน</a
           >
         </li>
-
         <li>
           <a href="/admin/history" class="menu-item"
             ><i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
             ประวัติทั้งหมด</a
           >
         </li>
-
         <li>
           <a href="/admin/log" class="menu-item"
             ><i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
             ประวัติ Log</a
           >
         </li>
-
         <li>
           <a href="/admin/others" class="menu-item"
             ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 10px"></i>
@@ -356,5 +367,7 @@
         });
       }
     </script>
+    <script src="/static/js/noti.js"></script>
+    <script src="/static/js/wow.js"></script>
   </body>
 </html>

@@ -15,7 +15,6 @@
     <link rel="stylesheet" href="/static/index.css" />
 
     <style>
-      /* ลบ :root ออก และจัด Layout ทั่วไปตามโครงเดิม */
       body {
         margin: 0;
         background-color: var(--bg);
@@ -25,7 +24,6 @@
         overflow: hidden;
       }
 
-      /* CSS รองรับ Badge จากโค้ด JS ของคุณ (เปลี่ยนสีให้เข้าธีม) */
       .log-badge {
         padding: 6px 12px;
         border-radius: 20px;
@@ -54,10 +52,51 @@
         color: var(--text-main);
       }
 
-      /* ทำให้ Search Box ดูเข้ากับธีม */
       #search-log:focus {
         border-color: var(--primary) !important;
         box-shadow: 0 0 0 3px var(--primary-light);
+      }
+
+      /* ================= Pagination CSS ================= */
+      .pagination {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 5px;
+        padding: 15px 20px;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+      }
+      .page-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: "Kanit", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        transition: 0.2s;
+      }
+      .page-btn:hover:not(:disabled) {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+        color: var(--primary);
+      }
+      .page-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+      }
+      .page-btn:disabled {
+        background: #f8fafc;
+        color: #cbd5e1;
+        cursor: not-allowed;
+      }
+      .page-dots {
+        color: var(--text-muted);
+        padding: 0 5px;
       }
     </style>
   </head>
@@ -76,7 +115,6 @@
             หน้าหลักแอดมิน</a
           >
         </li>
-
         <li>
           <a href="/admin/approve" class="menu-item"
             ><i
@@ -86,35 +124,47 @@
             อนุมัติการยืม</a
           >
         </li>
-
+        <li>
+          <a href="/admin/product" class="menu-item"
+            ><i
+              class="fas fa-shopping-cart fa-fw"
+              style="margin-right: 10px"
+            ></i>
+            ยืมอุปกรณ์ (Admin)</a
+          >
+        </li>
         <li>
           <a href="/admin/device" class="menu-item"
             ><i class="fas fa-laptop fa-fw" style="margin-right: 10px"></i>
             จัดการอุปกรณ์</a
           >
         </li>
-
         <li>
           <a href="/admin/users" class="menu-item"
             ><i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
             จัดการผู้ใช้งาน</a
           >
         </li>
-
         <li>
           <a href="/admin/history" class="menu-item"
             ><i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
             ประวัติทั้งหมด</a
           >
         </li>
-
         <li>
-          <a href="/admin/log" class="menu-item active"
-            ><i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
-            ประวัติ Log</a
+          <a
+            href="/admin/log"
+            class="menu-item active"
+            style="
+              background: rgba(242, 112, 68, 0.2);
+              color: var(--primary);
+              border-left: 4px solid var(--primary);
+            "
           >
+            <i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
+            ประวัติ Log
+          </a>
         </li>
-
         <li>
           <a href="/admin/others" class="menu-item"
             ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 10px"></i>
@@ -122,7 +172,6 @@
           >
         </li>
       </ul>
-
       <a
         href="/logout"
         class="menu-item logout-link"
@@ -176,21 +225,38 @@
             "
           >
             <span>🔍 รายการ Log ทั้งหมด</span>
-            <input
-              type="text"
-              id="search-log"
-              placeholder="ค้นหาการกระทำ, ผู้ใช้, รายละเอียด..."
-              style="
-                padding: 6px 15px;
-                border-radius: 20px;
-                border: 1px solid var(--border);
-                outline: none;
-                width: 250px;
-                background: var(--surface);
-                color: var(--text-main);
-                transition: 0.3s;
-              "
-            />
+            <div style="display: flex; gap: 10px">
+              <input
+                type="text"
+                id="search-log"
+                placeholder="ค้นหาการกระทำ, ผู้ใช้, รายละเอียด..."
+                style="
+                  padding: 6px 15px;
+                  border-radius: 20px;
+                  border: 1px solid var(--border);
+                  outline: none;
+                  width: 250px;
+                  background: var(--surface);
+                  color: var(--text-main);
+                  transition: 0.3s;
+                "
+              />
+              <button
+                onclick="exportExcel()"
+                style="
+                  background: #10b981;
+                  color: white;
+                  border: none;
+                  padding: 6px 15px;
+                  border-radius: 20px;
+                  cursor: pointer;
+                  font-family: Kanit;
+                  font-weight: 600;
+                "
+              >
+                <i class="fas fa-file-excel"></i> Export
+              </button>
+            </div>
           </div>
 
           <div class="panel-body">
@@ -199,25 +265,44 @@
                 <tr>
                   <th>ลำดับ (LogID)</th>
                   <th>เวลา</th>
-                  <th>ผู้ใช้งาน</th>
-                  <th>ประเภท (Action)</th>
+                  <th>หมวดหมู่</th>
+                  <th>ครุภัณฑ์</th>
+                  <th>ผู้ดำเนินการ (ชื่อ)</th>
+                  <th>รหัสพนักงาน</th>
+                  <th>รหัสการยืม</th>
+                  <th>การกระทำ</th>
                   <th>รายละเอียด</th>
                 </tr>
               </thead>
               <tbody id="log-list">
                 <tr>
-                  <td colspan="5" style="text-align: center; padding: 20px">
+                  <td colspan="9" style="text-align: center; padding: 20px">
                     กำลังโหลดข้อมูล Log...
                   </td>
                 </tr>
               </tbody>
             </table>
+            <div
+              id="pagination"
+              class="pagination"
+              style="
+                border-bottom-left-radius: 16px;
+                border-bottom-right-radius: 16px;
+              "
+            ></div>
           </div>
         </div>
       </div>
     </main>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <script>
+      let allLogsData = [];
+      let filteredLogs = [];
+      let currentPage = 1;
+      const rowsPerPage = 15; // Log ข้อมูลเยอะ ให้หน้าละ 15
+
       document.addEventListener("DOMContentLoaded", () => {
         loadAdminProfile();
         loadSystemLogs();
@@ -239,64 +324,209 @@
       }
 
       function loadSystemLogs() {
-        const tbody = document.getElementById("log-list");
-        // เดี๋ยวเราจะมาสร้าง API ตัวนี้กันในไฟล์หลังบ้านที่คุณจะส่งมาครับ!
         fetch("/api/admin/logs")
           .then((res) => res.json())
           .then((data) => {
-            tbody.innerHTML = "";
-            if (data.length === 0) {
-              tbody.innerHTML =
-                "<tr><td colspan='5' style='text-align:center; padding:30px; color:#999;'>🚫 ไม่พบประวัติระบบ</td></tr>";
-              return;
-            }
-            data.forEach((item) => {
-              const dateTxt = new Date(item.LogDate).toLocaleString("th-TH");
-
-              // กำหนดสีของ Badge ตามประเภท Action
-              let badgeClass = "bg-primary";
-              const action = item.ActionType.toUpperCase();
-              if (action.includes("LOGIN")) badgeClass = "bg-success";
-              if (action.includes("ADD")) badgeClass = "bg-primary";
-              if (action.includes("APPROVE")) badgeClass = "bg-success";
-              if (action.includes("REJECT") || action.includes("DELETE"))
-                badgeClass = "bg-danger";
-              if (action.includes("EDIT") || action.includes("RETURN"))
-                badgeClass = "bg-warning";
-
-              const userName = item.fname
-                ? `${item.fname} (${item.EMP_NUM})`
-                : `User ID: ${item.EMPID}`;
-
-              tbody.innerHTML += `
-                <tr>
-                    <td style="color:#888;">#${item.LogID}</td>
-                    <td>${dateTxt}</td>
-                    <td style="font-weight:bold;">${userName}</td>
-                    <td><span class="log-badge ${badgeClass}">${item.ActionType}</span></td>
-                    <td style="color:#555; font-size:13px;">${item.ActionDetail}</td>
-                </tr>
-              `;
-            });
+            allLogsData = data;
+            filteredLogs = data;
+            currentPage = 1;
+            renderLogTable();
           })
           .catch((err) => {
-            tbody.innerHTML =
-              "<tr><td colspan='5' style='text-align:center; padding:30px; color:red;'>ยังไม่ได้เชื่อมต่อ API Backend หรือไม่มีตาราง Log</td></tr>";
+            document.getElementById("log-list").innerHTML =
+              "<tr><td colspan='9' style='text-align:center; padding:30px; color:red;'>ยังไม่ได้เชื่อมต่อ API Backend หรือไม่มีตาราง Log</td></tr>";
           });
       }
 
-      // ระบบค้นหา
+      function renderLogTable() {
+        const tbody = document.getElementById("log-list");
+        tbody.innerHTML = "";
+
+        if (filteredLogs.length === 0) {
+          tbody.innerHTML =
+            "<tr><td colspan='9' style='text-align:center; padding:30px; color:#999;'>🚫 ไม่พบประวัติระบบ</td></tr>";
+          document.getElementById("pagination").innerHTML = "";
+          return;
+        }
+
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const paginatedData = filteredLogs.slice(start, end);
+
+        paginatedData.forEach((item) => {
+          const dateTxt = new Date(item.LogDate).toLocaleString("th-TH");
+
+          let badgeClass = "bg-primary";
+          const action = item.ActionType.toUpperCase();
+          if (action.includes("LOGIN")) badgeClass = "bg-success";
+          if (action.includes("ADD")) badgeClass = "bg-primary";
+          if (action.includes("APPROVE")) badgeClass = "bg-success";
+          if (action.includes("REJECT") || action.includes("DELETE"))
+            badgeClass = "bg-danger";
+          if (action.includes("EDIT") || action.includes("RETURN"))
+            badgeClass = "bg-warning";
+
+          const userName = item.fname ? item.fname : `User ID: ${item.EMPID}`;
+
+          let borrowId = "-";
+          let deviceName = "-";
+          let category = "-";
+
+          const matchId = item.ActionDetail.match(/#(\d+)/);
+          if (matchId) borrowId = matchId[1];
+
+          if (item.ActionDetail.includes("อุปกรณ์")) {
+            const dMatch = item.ActionDetail.match(/อุปกรณ์[:\s]*([^\(\)]*)/);
+            if (dMatch) deviceName = dMatch[1].trim();
+          } else if (item.ActionDetail.includes("เครื่อง:")) {
+            const dMatch = item.ActionDetail.match(/เครื่อง:\s*(\d+)/);
+            if (dMatch) deviceName = "DVID-" + dMatch[1];
+          }
+
+          const devLower = deviceName.toLowerCase();
+          if (devLower.includes("mac") || devLower.includes("imac"))
+            category = "MAC";
+          else if (
+            devLower.includes("notebook") ||
+            devLower.includes("pc") ||
+            devLower.includes("คอม")
+          )
+            category = "PC";
+          else if (
+            devLower.includes("ipad") ||
+            devLower.includes("phone") ||
+            devLower.includes("สมาร์ท")
+          )
+            category = "Device";
+          else if (
+            devLower.includes("wifi") ||
+            devLower.includes("network") ||
+            devLower.includes("pocket")
+          )
+            category = "Network";
+
+          const displayEmpNum = item.EMP_NUM || "-";
+
+          tbody.innerHTML += `
+            <tr>
+                <td style="color:#888;">#${item.LogID}</td>
+                <td>${dateTxt}</td>
+                <td style="color:#64748b;">${category}</td>
+                <td style="font-weight:500;">${deviceName}</td>
+                <td style="font-weight:bold;">${userName}</td>
+                <td><span class="log-badge bg-dark">${displayEmpNum}</span></td>
+                <td style="font-weight:bold; color:var(--primary);">${borrowId}</td>
+                <td><span class="log-badge ${badgeClass}">${item.ActionType}</span></td>
+                <td style="color:#555; font-size:13px;">${item.ActionDetail}</td>
+            </tr>
+          `;
+        });
+
+        renderPagination("pagination", filteredLogs.length, renderLogTable);
+      }
+
+      function renderPagination(elementId, totalItems, renderCallback) {
+        const paginationEl = document.getElementById(elementId);
+        paginationEl.innerHTML = "";
+        const totalPages = Math.ceil(totalItems / rowsPerPage);
+        if (totalPages <= 1) return;
+
+        const createBtn = (text, disabled, onClick, isActive = false) => {
+          const btn = document.createElement("button");
+          btn.className = `page-btn ${isActive ? "active" : ""}`;
+          btn.innerHTML = text;
+          btn.disabled = disabled;
+          btn.onclick = onClick;
+          return btn;
+        };
+
+        paginationEl.appendChild(
+          createBtn(
+            "<i class='fas fa-chevron-left'></i>",
+            currentPage === 1,
+            () => {
+              currentPage--;
+              renderCallback();
+            },
+          ),
+        );
+
+        for (let i = 1; i <= totalPages; i++) {
+          if (
+            i === 1 ||
+            i === totalPages ||
+            (i >= currentPage - 1 && i <= currentPage + 1)
+          ) {
+            paginationEl.appendChild(
+              createBtn(
+                i,
+                false,
+                () => {
+                  currentPage = i;
+                  renderCallback();
+                },
+                i === currentPage,
+              ),
+            );
+          } else if (i === currentPage - 2 || i === currentPage + 2) {
+            const dots = document.createElement("span");
+            dots.className = "page-dots";
+            dots.innerHTML = "...";
+            paginationEl.appendChild(dots);
+          }
+        }
+
+        paginationEl.appendChild(
+          createBtn(
+            "<i class='fas fa-chevron-right'></i>",
+            currentPage === totalPages,
+            () => {
+              currentPage++;
+              renderCallback();
+            },
+          ),
+        );
+      }
+
       document
         .getElementById("search-log")
-        .addEventListener("keyup", function () {
+        .addEventListener("input", function () {
           const filter = this.value.toLowerCase();
-          const rows = document.querySelectorAll("#log-list tr");
-          rows.forEach((row) => {
-            if (row.cells.length < 5) return;
-            const textData = row.textContent.toLowerCase();
-            row.style.display = textData.includes(filter) ? "" : "none";
+          filteredLogs = allLogsData.filter((item) => {
+            const searchStr = Object.values(item)
+              .map((val) =>
+                val !== null && val !== undefined
+                  ? String(val).toLowerCase()
+                  : "",
+              )
+              .join(" ");
+            return searchStr.includes(filter);
           });
+          currentPage = 1;
+          renderLogTable();
         });
+
+      function exportExcel() {
+        if (filteredLogs.length === 0)
+          return Swal.fire("แจ้งเตือน", "ไม่มีข้อมูล", "warning");
+        const exportData = filteredLogs.map((item) => ({
+          "Log ID": item.LogID,
+          "วัน-เวลา": new Date(item.LogDate).toLocaleString("th-TH"),
+          ผู้ดำเนินการ: item.fname || `User ID: ${item.EMPID}`,
+          รหัสพนักงาน: item.EMP_NUM || "-",
+          "การกระทำ (Action)": item.ActionType,
+          รายละเอียด: item.ActionDetail,
+        }));
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "System_Log");
+        XLSX.writeFile(
+          wb,
+          `System_Log_${new Date().toISOString().split("T")[0]}.xlsx`,
+        );
+      }
     </script>
+    <script src="/static/js/noti.js"></script>
+    <script src="/static/js/wow.js"></script>
   </body>
 </html>

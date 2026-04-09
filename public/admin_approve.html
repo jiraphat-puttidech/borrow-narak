@@ -127,7 +127,6 @@
         color: white;
       }
 
-      /* ✅ ปุ่มตรวจสอบที่เพิ่มเข้ามา */
       .btn-inspect {
         background: #f39c12;
       }
@@ -168,7 +167,6 @@
         color: var(--text-muted);
       }
 
-      /* ✅ สไตล์ของ Modal เช็คข้อมูลอุปกรณ์ */
       .modal {
         display: none;
         position: fixed;
@@ -289,45 +287,53 @@
             หน้าหลักแอดมิน</a
           >
         </li>
-
         <li>
-          <a href="/admin/approve" class="menu-item active"
+          <a
+            href="/admin/approve"
+            class="menu-item active"
+            style="
+              background: rgba(242, 112, 68, 0.2);
+              color: var(--primary);
+              border-left: 4px solid var(--primary);
+            "
+          >
+            <i class="fas fa-check-double fa-fw" style="margin-right: 10px"></i>
+            อนุมัติการยืม
+          </a>
+        </li>
+        <li>
+          <a href="/admin/product" class="menu-item"
             ><i
-              class="fas fa-check-double fa-fw"
+              class="fas fa-shopping-cart fa-fw"
               style="margin-right: 10px"
             ></i>
-            อนุมัติการยืม</a
+            ยืมอุปกรณ์ (Admin)</a
           >
         </li>
-
         <li>
           <a href="/admin/device" class="menu-item"
             ><i class="fas fa-laptop fa-fw" style="margin-right: 10px"></i>
             จัดการอุปกรณ์</a
           >
         </li>
-
         <li>
           <a href="/admin/users" class="menu-item"
             ><i class="fas fa-users-cog fa-fw" style="margin-right: 10px"></i>
             จัดการผู้ใช้งาน</a
           >
         </li>
-
         <li>
           <a href="/admin/history" class="menu-item"
             ><i class="fas fa-history fa-fw" style="margin-right: 10px"></i>
             ประวัติทั้งหมด</a
           >
         </li>
-
         <li>
           <a href="/admin/log" class="menu-item"
             ><i class="fas fa-scroll fa-fw" style="margin-right: 10px"></i>
             ประวัติ Log</a
           >
         </li>
-
         <li>
           <a href="/admin/others" class="menu-item"
             ><i class="fas fa-ellipsis-h fa-fw" style="margin-right: 10px"></i>
@@ -471,7 +477,6 @@
     </div>
 
     <script>
-      // ✅ เพิ่มตัวแปรเก็บข้อมูลชั่วคราวให้ Modal ดึงไปใช้
       let currentPendingData = [];
       let currentReturnData = [];
 
@@ -514,7 +519,7 @@
         fetch("/api/admin/pending")
           .then((res) => res.json())
           .then((data) => {
-            currentPendingData = data; // ✅ เก็บข้อมูลไว้ใช้ตอนเปิด Modal
+            currentPendingData = data;
             const container = document.getElementById("pending-list");
             container.innerHTML = "";
             if (data.length === 0) {
@@ -535,6 +540,12 @@
                     ? item.image
                     : "/static/default.png";
 
+              // ✅ เพิ่มเกราะป้องกันบั๊กชื่ออุปกรณ์ที่มีเครื่องหมาย " หรือ '
+              const safeName = item.devicename
+                ? item.devicename.replace(/'/g, "\\'").replace(/"/g, "&quot;")
+                : "";
+
+              // ✅ นำตัวแปร safeName ไปใส่ในปุ่มอนุมัติ
               container.innerHTML += `
                 <div class="approve-card">
                   <div class="ac-header"><span>#${item.TSTID}</span><span>ยื่นเมื่อ: ${bDate}</span></div>
@@ -542,7 +553,7 @@
                     <img src="${imgSrc}" class="ac-img" onerror="this.src='/static/default.png'">
                     <div class="ac-info">
                       <h4>${item.devicename}</h4>
-                      <p>รหัส: ${item.stickerid}</p>
+                      <p>รหัส: รอแอดมินจัดสรรอุปกรณ์ให้</p>
                       <p>ผู้ยืม: <span class="user-name">${item.fname || item.username}</span></p>
                       <p>วัตถุประสงค์: <strong>${item.purpose}</strong></p>
                       <p style="color:var(--danger); font-weight:600;">กำหนดคืน: ${dDate}</p>
@@ -550,7 +561,7 @@
                   </div>
                   <div class="ac-footer">
                     <button class="btn-inspect" onclick="openInspectModal(${item.TSTID}, 'pending')">👁️ ตรวจสอบ</button>
-                    <button class="btn-approve" onclick="actionRequest(${item.TSTID}, 'approve', ${item.DVID})">✅ อนุมัติ</button>
+                    <button class="btn-approve" onclick="approveRequest(${item.TSTID}, ${item.DVID}, '${safeName}')">✅ อนุมัติ</button>
                     <button class="btn-reject" onclick="actionRequest(${item.TSTID}, 'reject', ${item.DVID})">❌ ไม่อนุมัติ</button>
                   </div>
                 </div>`;
@@ -562,7 +573,7 @@
         fetch("/api/admin/pending-return")
           .then((res) => res.json())
           .then((data) => {
-            currentReturnData = data; // ✅ เก็บข้อมูลไว้ใช้ตอนเปิด Modal
+            currentReturnData = data;
             const container = document.getElementById("return-list");
             container.innerHTML = "";
             if (data.length === 0) {
@@ -598,7 +609,7 @@
           });
       }
 
-      // ✅ เพิ่มฟังก์ชันเปิด/ปิด หน้าต่าง Modal
+      // ฟังก์ชันเปิด/ปิด หน้าต่าง Modal
       function openInspectModal(tstid, type) {
         const sourceData =
           type === "pending" ? currentPendingData : currentReturnData;
@@ -610,16 +621,26 @@
         document.getElementById("m-trans").innerText =
           item.transaction_num || item.TSTID;
         document.getElementById("m-name").innerText = item.devicename || "-";
-        document.getElementById("m-sticker").innerText = item.stickerid || "-";
+
+        // ถ้าเป็น pending ให้โชว์รอแอดมินจัดสรร
+        if (type === "pending") {
+          document.getElementById("m-sticker").innerText =
+            "รอแอดมินจัดสรรอุปกรณ์ให้";
+          document.getElementById("m-serial").innerText =
+            "รอแอดมินจัดสรรอุปกรณ์ให้";
+        } else {
+          document.getElementById("m-sticker").innerText =
+            item.stickerid || "-";
+          document.getElementById("m-serial").innerText =
+            item.serialnumber || "-";
+        }
+
         document.getElementById("m-user").innerText =
           item.fname || item.username || "-";
         document.getElementById("m-purpose").innerText = item.purpose || "-";
         document.getElementById("m-location").innerText = item.location || "-";
 
-        // ข้อมูลเชิงลึกจาก DB (ถ้า API หลังบ้านส่งมาแล้ว)
         document.getElementById("m-itcode").innerText = item.it_code || "-";
-        document.getElementById("m-serial").innerText =
-          item.serialnumber || "-";
         document.getElementById("m-brand").innerText = item.BrandName || "-";
         document.getElementById("m-model").innerText = item.ModelName || "-";
 
@@ -652,13 +673,89 @@
         if (event.target == modal) closeInspectModal();
       };
 
-      // ฟังก์ชันกด อนุมัติ/ไม่อนุมัติ/รับของ (ของเดิม)
+      // ✅ ฟังก์ชันใหม่: อนุมัติแบบเลือกรหัสเครื่องได้
+      function approveRequest(tstid, original_dvid, devicename) {
+        // 1. ยิงไปขอรายชื่อเครื่องรุ่นนี้ที่ "ว่างอยู่" จากหลังบ้าน
+        fetch(
+          `/api/admin/available-devices-by-name?devicename=${encodeURIComponent(devicename)}&current_dvid=${original_dvid}`,
+        )
+          .then((res) => res.json())
+          .then((devices) => {
+            // 2. สร้างตัวเลือก (Dropdown) สำหรับ SweetAlert2
+            let optionsHtml = "";
+            devices.forEach((d) => {
+              let isAutoReserved = d.DVID == original_dvid;
+              let selected = isAutoReserved ? "selected" : "";
+              let tag = isAutoReserved ? "⭐ (ระบบจองไว้ให้)" : "(ว่าง)";
+
+              optionsHtml += `<option value="${d.DVID}" ${selected}>รหัส: ${d.stickerid} ${tag}</option>`;
+            });
+
+            // 3. เด้ง Popup ให้แอดมินเลือก
+            Swal.fire({
+              title: "เลือกอุปกรณ์ที่จะจ่ายให้ User",
+              html: `
+                      <div style="text-align: left; margin-bottom: 15px;">
+                          <label style="font-size: 14px; font-weight: 600; color: #475569;">รุ่นอุปกรณ์: <span style="color:var(--primary);">${devicename}</span></label>
+                      </div>
+                      <select id="swal-assign-dvid" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: 'Kanit'; font-size: 14px; outline: none;">
+                          ${optionsHtml}
+                      </select>
+                      <p style="font-size: 12px; color: #94a3b8; text-align: left; margin-top: 10px;">
+                         * ระบบเลือกเครื่องที่ว่างอยู่ให้ 1 เครื่องอัตโนมัติ คุณสามารถเลือกจ่ายเครื่องอื่นได้
+                      </p>
+                  `,
+              icon: "info",
+              showCancelButton: true,
+              confirmButtonColor: "#10b981",
+              cancelButtonColor: "#94a3b8",
+              confirmButtonText: "✅ ยืนยันและอนุมัติ",
+              cancelButtonText: "ยกเลิก",
+              preConfirm: () => {
+                return document.getElementById("swal-assign-dvid").value;
+              },
+            }).then((result) => {
+              if (result.isConfirmed) {
+                const assign_dvid = result.value;
+
+                // 4. ส่งข้อมูลไปที่ API อนุมัติ
+                fetch("/api/admin/action", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    tstid: tstid,
+                    action: "approve",
+                    original_dvid: original_dvid,
+                    assign_dvid: assign_dvid,
+                  }),
+                })
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (data.success) {
+                      Swal.fire(
+                        "อนุมัติสำเร็จ!",
+                        "จ่ายอุปกรณ์เรียบร้อยแล้ว",
+                        "success",
+                      );
+                      loadPending();
+                    } else {
+                      Swal.fire(
+                        "เกิดข้อผิดพลาด",
+                        "ไม่สามารถอนุมัติได้",
+                        "error",
+                      );
+                    }
+                  });
+              }
+            });
+          });
+      }
+
+      // ✅ ฟังก์ชันเก่า: ตอนนี้ใช้แค่ตอนกด ไม่อนุมัติ
       function actionRequest(tstid, action, dvid) {
-        const title =
-          action === "approve"
-            ? "✅ ยืนยันการอนุมัติ?"
-            : "❌ ยืนยันการไม่อนุมัติ?";
-        const btnColor = action === "approve" ? "#2ecc71" : "#e74c3c";
+        const title = "❌ ยืนยันการไม่อนุมัติ?";
+        const btnColor = "#e74c3c";
+
         Swal.fire({
           title: title,
           icon: "warning",
@@ -671,7 +768,12 @@
             fetch("/api/admin/action", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ tstid, action, dvid }),
+              // แก้ไข: ส่ง original_dvid ไปปลดล็อคสถานะให้กลับเป็นว่าง
+              body: JSON.stringify({
+                tstid: tstid,
+                action: action,
+                original_dvid: dvid,
+              }),
             })
               .then((res) => res.json())
               .then((data) => {
@@ -716,5 +818,7 @@
         });
       }
     </script>
+    <script src="/static/js/noti.js"></script>
+    <script src="/static/js/wow.js"></script>
   </body>
 </html>
