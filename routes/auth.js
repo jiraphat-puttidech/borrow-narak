@@ -1,11 +1,29 @@
+require("dotenv").config(); // ✅ แปะไว้บรรทัดที่ 1 บนสุดเลยครับ
+
 const express = require("express");
-const router = express.Router();
+const session = require("express-session"); // (หรือตัวอื่นๆ ที่มีอยู่แล้ว)
 const path = require("path");
+// ... โค้ดเดิมของคุณ ...
+
+const router = express.Router();
 const fs = require("fs"); // ✅ เพิ่ม fs เพื่อใช้เช็คและสร้างโฟลเดอร์อัตโนมัติ
 const bcrypt = require("bcryptjs");
 const db = require("../config/db");
 const multer = require("multer");
 const axios = require("axios");
+
+const rateLimit = require("express-rate-limit");
+
+// สร้างด่านกั้น: 15 นาที ยอมให้ล็อกอินได้แค่ 5 ครั้ง
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 นาที
+  max: 5, // ล็อกอินผิดได้ 5 ครั้ง
+
+  // ✅ ใช้ handler เพื่อสั่งให้มัน Redirect กลับไปหน้า Login พร้อมแนบข้อความ error ไปโชว์เป็นป๊อปอัป
+  handler: (req, res) => {
+    res.redirect("/?error=คุณพยายามเข้าสู่ระบบบ่อยเกินไป กรุณารอ 15 นาทีครับ");
+  },
+});
 // ==========================================
 // 🛠️ ฟังก์ชันช่วยเหลือ: บันทึก Log อัตโนมัติ
 // ==========================================
@@ -55,7 +73,7 @@ router.get("/", (req, res) => {
 // ==========================================
 // 2. ฟังก์ชัน Login (POST)
 // ==========================================
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   const { username, password } = req.body;
 
   const captchaResponse = req.body["g-recaptcha-response"];
@@ -147,6 +165,11 @@ router.get("/register", (req, res) => {
 // ==========================================
 // ✅ เพิ่ม async ตรงนี้ เพื่อให้รอผลจาก Google ได้
 router.post("/register", upload.single("image"), async (req, res) => {
+  // ✅ ดัก Error จาก Multer ก่อนเป็นอันดับแรก (ถ้าไม่ใช่รูปภาพให้เด้งกลับ)
+  if (req.fileError) {
+    return res.redirect("/register?error=" + encodeURIComponent(req.fileError));
+  }
+
   // 1. รับค่าจากฟอร์ม
   const {
     emp_num,
@@ -178,7 +201,17 @@ router.post("/register", upload.single("image"), async (req, res) => {
     return res.redirect("/register?error=รหัสผ่านยืนยันไม่ถูกต้อง");
   }
 
-  // ✅ 3.2 ด่านตรวจจับบอท (ตรวจสอบ Captcha)
+  // 🚨 3.2 ตรวจสอบความปลอดภัยของรหัสผ่านฝั่ง Backend (ต้องรัดกุม)
+  const strongRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+\-\/]).{8,}$/;
+  if (!strongRegex.test(password)) {
+    return res.redirect(
+      "/register?error=" +
+        encodeURIComponent("รหัสผ่านอ่อนเกินไป กรุณาตั้งให้ยากขึ้น"),
+    );
+  }
+
+  // ✅ 3.3 ด่านตรวจจับบอท (ตรวจสอบ Captcha)
   if (!captchaResponse) {
     return res.redirect(
       "/register?error=กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ",

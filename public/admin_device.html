@@ -1199,35 +1199,297 @@
         });
 
       // [ฟังก์ชัน Master Modal, Edit Modal, Delete คงเดิมทั้งหมด ขอข้ามการพิมพ์ซ้ำเพื่อความกระชับ แต่โครงสร้างยังทำงานได้ 100% ตามเดิมครับ]
+      // ==========================================
+      // ฟังก์ชันเปิด/ปิด และจัดการ Master Data (ยี่ห้อ, รุ่น ฯลฯ)
+      // ==========================================
       function openMasterModal(type, title) {
-        /* โค้ดเดิม */
+        document.getElementById("master-title").innerText = "จัดการ " + title;
+        document.getElementById("m-type").value = type;
+        document.getElementById("m-name").value = "";
+
+        const listContainer = document.getElementById("master-list");
+        listContainer.innerHTML = "";
+
+        let items = [];
+        let nameField = "";
+
+        if (type === "brand") {
+          items = masterDataCache.brands || [];
+          nameField = "BrandName";
+        } else if (type === "model") {
+          items = masterDataCache.models || [];
+          nameField = "ModelName";
+        } else if (type === "category") {
+          items = masterDataCache.categories || [];
+          nameField = "CategoryName";
+        } else if (type === "type") {
+          items = masterDataCache.types || [];
+          nameField = "TypeName";
+        }
+
+        if (items.length === 0) {
+          listContainer.innerHTML =
+            "<div class='master-item' style='color:#999; text-align:center;'>ไม่มีข้อมูล</div>";
+        } else {
+          items.forEach((item) => {
+            listContainer.innerHTML += `<div class='master-item'>${item[nameField]}</div>`;
+          });
+        }
+
+        document.getElementById("masterModal").style.display = "flex";
       }
+
       function closeMasterModal() {
         document.getElementById("masterModal").style.display = "none";
       }
+
       function saveMasterData() {
-        /* โค้ดเดิม */
+        const type = document.getElementById("m-type").value;
+        const name = document.getElementById("m-name").value.trim();
+
+        if (!name) {
+          Swal.fire("แจ้งเตือน", "กรุณากรอกชื่อข้อมูลใหม่", "warning");
+          return;
+        }
+
+        fetch("/api/admin/master-data/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: type, name: name }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              Swal.fire({
+                icon: "success",
+                title: "สำเร็จ",
+                text: "เพิ่มข้อมูลเรียบร้อย",
+                timer: 1500,
+                showConfirmButton: false,
+              });
+              loadMasterData();
+              closeMasterModal();
+            } else {
+              Swal.fire(
+                "ข้อผิดพลาด",
+                data.message || "ไม่สามารถบันทึกข้อมูลได้",
+                "error",
+              );
+            }
+          })
+          .catch((err) => console.error(err));
       }
+
+      // ==========================================
+      // ฟังก์ชัน เพิ่มอุปกรณ์ใหม่ (Add Device)
+      // ==========================================
       function openModal() {
         document.getElementById("addModal").style.display = "flex";
       }
+
       function closeModal() {
         document.getElementById("addModal").style.display = "none";
       }
-      function openEditModal(dvid) {
-        /* โค้ดเดิม */
+
+      function addDevice(e) {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append(
+          "stickerid",
+          document.getElementById("d-sticker").value,
+        );
+        formData.append("it_code", document.getElementById("d-it-code").value);
+        formData.append("devicename", document.getElementById("d-name").value);
+        formData.append(
+          "devicename_th",
+          document.getElementById("d-name-th").value,
+        );
+        formData.append("BrandID", document.getElementById("d-brand").value);
+        formData.append("ModelID", document.getElementById("d-model").value);
+        formData.append(
+          "serialnumber",
+          document.getElementById("d-serial").value,
+        );
+        formData.append(
+          "CategoryID",
+          document.getElementById("d-category").value,
+        );
+        formData.append("TypeID", document.getElementById("d-type").value);
+        formData.append(
+          "DVStatusID",
+          document.getElementById("d-status").value,
+        );
+
+        const imageFile = document.getElementById("d-image").files[0];
+        if (imageFile) {
+          formData.append("image", imageFile);
+        }
+
+        fetch("/api/admin/device/add", {
+          method: "POST",
+          body: formData,
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success || data.redirect) {
+              Swal.fire({
+                icon: "success",
+                title: "สำเร็จ",
+                text: "เพิ่มอุปกรณ์เรียบร้อย",
+                timer: 1500,
+                showConfirmButton: false,
+              });
+              closeModal();
+              loadDevices();
+              if (data.redirect) window.location.href = data.redirect;
+            } else {
+              Swal.fire(
+                "ข้อผิดพลาด",
+                data.message || "ไม่สามารถเพิ่มอุปกรณ์ได้",
+                "error",
+              );
+            }
+          })
+          .catch((err) => {
+            // กรณี Backend ตั้งค่าให้ Redirect กลับมาแทนการส่ง JSON
+            window.location.reload();
+          });
       }
+
+      // ==========================================
+      // ฟังก์ชัน แก้ไขอุปกรณ์ (Edit Device)
+      // ==========================================
+      function openEditModal(dvid) {
+        const device = allDevices.find((d) => d.DVID === dvid);
+        if (!device) return;
+
+        document.getElementById("e-dvid").value = device.DVID;
+        document.getElementById("e-sticker").value = device.stickerid || "";
+        document.getElementById("e-it-code").value = device.it_code || "";
+        document.getElementById("e-name").value = device.devicename || "";
+        document.getElementById("e-name-th").value = device.devicename_th || "";
+        document.getElementById("e-brand").value = device.BrandID || "1";
+        document.getElementById("e-model").value = device.ModelID || "1";
+        document.getElementById("e-serial").value = device.serialnumber || "";
+        document.getElementById("e-category").value = device.CategoryID || "1";
+        document.getElementById("e-type").value = device.TypeID || "1";
+        document.getElementById("e-status").value = device.DVStatusID || "1";
+
+        document.getElementById("editModal").style.display = "flex";
+      }
+
       function closeEditModal() {
         document.getElementById("editModal").style.display = "none";
       }
-      function addDevice(e) {
-        /* โค้ดเดิม */
-      }
+
       function submitEditDevice(e) {
-        /* โค้ดเดิม */
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append("dvid", document.getElementById("e-dvid").value);
+        formData.append(
+          "stickerid",
+          document.getElementById("e-sticker").value,
+        );
+        formData.append("it_code", document.getElementById("e-it-code").value);
+        formData.append("devicename", document.getElementById("e-name").value);
+        formData.append(
+          "devicename_th",
+          document.getElementById("e-name-th").value,
+        );
+        formData.append("BrandID", document.getElementById("e-brand").value);
+        formData.append("ModelID", document.getElementById("e-model").value);
+        formData.append(
+          "serialnumber",
+          document.getElementById("e-serial").value,
+        );
+        formData.append(
+          "CategoryID",
+          document.getElementById("e-category").value,
+        );
+        formData.append("TypeID", document.getElementById("e-type").value);
+        formData.append(
+          "DVStatusID",
+          document.getElementById("e-status").value,
+        );
+
+        const imageFile = document.getElementById("e-image").files[0];
+        if (imageFile) {
+          formData.append("image", imageFile);
+        }
+
+        fetch("/api/admin/device/edit", {
+          method: "POST",
+          body: formData,
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success || data.redirect) {
+              Swal.fire({
+                icon: "success",
+                title: "สำเร็จ",
+                text: "แก้ไขอุปกรณ์เรียบร้อย",
+                timer: 1500,
+                showConfirmButton: false,
+              });
+              closeEditModal();
+              loadDevices();
+              if (data.redirect) window.location.href = data.redirect;
+            } else {
+              Swal.fire(
+                "ข้อผิดพลาด",
+                data.message || "ไม่สามารถแก้ไขอุปกรณ์ได้",
+                "error",
+              );
+            }
+          })
+          .catch((err) => {
+            window.location.reload();
+          });
       }
+
+      // ==========================================
+      // ฟังก์ชัน ลบอุปกรณ์ (Delete Device)
+      // ==========================================
       function deleteDevice(dvid) {
-        /* โค้ดเดิม */
+        Swal.fire({
+          title: "ยืนยันการลบ?",
+          text: "คุณจะไม่สามารถกู้คืนข้อมูลนี้ได้!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#ef4444",
+          cancelButtonColor: "#64748b",
+          confirmButtonText: "ใช่, ลบเลย!",
+          cancelButtonText: "ยกเลิก",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            fetch("/api/admin/device/delete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ dvid: dvid }),
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.success || data.redirect) {
+                  Swal.fire({
+                    icon: "success",
+                    title: "ลบสำเร็จ!",
+                    timer: 1500,
+                    showConfirmButton: false,
+                  });
+                  loadDevices();
+                } else {
+                  Swal.fire(
+                    "ข้อผิดพลาด",
+                    data.message || "ลบข้อมูลไม่สำเร็จ",
+                    "error",
+                  );
+                }
+              })
+              .catch((err) => {
+                window.location.reload();
+              });
+          }
+        });
       }
 
       function exportExcel() {

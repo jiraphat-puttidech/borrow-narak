@@ -310,10 +310,26 @@ function confirmBorrow(event) {
     return;
   }
 
+  // ตรวจสอบ DVID เป็นตัวเลข
+  const dvidNum = parseInt(dvid, 10);
+  if (isNaN(dvidNum)) {
+    Swal.fire({
+      icon: "error",
+      title: "อุปกรณ์ไม่ถูกต้อง",
+      text: "กรุณาเลือกอุปกรณ์ใหม่",
+    });
+    return;
+  }
+
+  // ป้องกันการกดปุ่มซ้ำ
+  const submitBtn = document.querySelector("#borrowForm .btn-confirm");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "กำลังประมวลผล...";
+
   fetch("/api/borrow", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ dvid, duedate, location, purpose }),
+    body: JSON.stringify({ dvid: dvidNum, duedate, location, purpose }),
   })
     .then((res) => res.json())
     .then((data) => {
@@ -334,6 +350,18 @@ function confirmBorrow(event) {
           text: data.message,
         });
       }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาดในการเชื่อมต่อ",
+        text: "กรุณาลองใหม่อีกครั้ง",
+      });
+    })
+    .finally(() => {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "ยื่นคำขอยืมอุปกรณ์";
     });
 }
 

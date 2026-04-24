@@ -1,7 +1,52 @@
+require("dotenv").config(); // ✅ แปะไว้บรรทัดที่ 1 บนสุดเลยครับ
+
 const express = require("express");
-const router = express.Router();
+const session = require("express-session"); // (หรือตัวอื่นๆ ที่มีอยู่แล้ว)
 const path = require("path");
+// ... โค้ดเดิมของคุณ ...
+
+const router = express.Router();
 const db = require("../config/db");
+
+// ✅ 1. เพิ่ม Library สำหรับส่งอีเมล
+const nodemailer = require("nodemailer");
+
+// ✅ 2. ตั้งค่า บัญชีผู้ส่งอีเมล (เปลี่ยนเป็นข้อมูลของคุณ)
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER, // ✅ ดึงอีเมลจากไฟล์ .env
+    pass: process.env.EMAIL_PASS, // ✅ ดึง App Password จากไฟล์ .env
+  },
+});
+
+// ✅ 3. ฟังก์ชันหลักสำหรับจัดรูปแบบและส่งอีเมล
+const sendEmail = (to, subject, title, detail, color = "#ea580c") => {
+  if (!to) return;
+  const htmlContent = `
+    <div style="font-family: 'Kanit', sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+      <div style="background: ${color}; padding: 20px; text-align: center; color: white;">
+        <h2 style="margin: 0;">${title}</h2>
+      </div>
+      <div style="padding: 30px; color: #1e293b; line-height: 1.6;">
+        ${detail}
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+        <p style="font-size: 12px; color: #64748b; text-align: center;">นี่คือการแจ้งเตือนอัตโนมัติจากระบบยืม-คืน อุปกรณ์ IT</p>
+      </div>
+    </div>
+  `;
+  transporter.sendMail(
+    {
+      from: '"IT Borrow System" <jiraphat0puttidech@gmail.com>', // 📧 ใส่อีเมลของคุณตรงนี้ด้วย
+      to: to,
+      subject: subject,
+      html: htmlContent,
+    },
+    (err) => {
+      if (err) console.error("❌ Email Error:", err);
+    },
+  );
+};
 
 // 🔔 Helper: ฟังก์ชันส่งแจ้งเตือนหา User
 const sendNotiToUser = (empid, message) => {
@@ -215,21 +260,33 @@ router.post("/api/admin/action", checkAdmin, (req, res) => {
                   `อนุมัติยืม (รายการ: #${tstid}) จ่ายเครื่อง: ${finalDvid}`,
                 );
 
-                // ✅ 🔔 แจ้งเตือน อนุมัติ: ให้ User รับทราบกำหนดคืน และแอดมินคนอื่นรับรู้
+                // ✅ 🔔 อัปเดต Query ให้ดึง Email กับ Fname มาด้วย
                 db.query(
-                  "SELECT t.EMPID, d.devicename, t.duedate FROM TB_T_BorrowTrans t JOIN TB_T_Device d ON t.DVID=d.DVID WHERE t.TSTID=?",
+                  "SELECT t.EMPID, e.email, e.fname, d.devicename, t.duedate FROM TB_T_BorrowTrans t JOIN TB_T_Device d ON t.DVID=d.DVID JOIN TB_T_Employee e ON t.EMPID = e.EMPID WHERE t.TSTID=?",
                   [tstid],
                   (err, rows) => {
                     if (!err && rows.length > 0) {
                       const dDate = new Date(
                         rows[0].duedate,
                       ).toLocaleDateString("th-TH");
+
                       sendNotiToUser(
                         rows[0].EMPID,
                         `✅ อนุมัติแล้ว: ${rows[0].devicename} (กำหนดคืน: ${dDate})`,
                       );
                       sendNotiToAdmins(
                         `✅ แอดมิน ${adminName} อนุมัติคำขอยืม ${rows[0].devicename} แล้ว`,
+                      );
+
+                      // ✅ ส่งอีเมลแจ้ง User ว่าอนุมัติ
+                      sendEmail(
+                        rows[0].email,
+                        "✅ อนุมัติการยืมอุปกรณ์",
+                        "คำขอยืมของคุณได้รับการอนุมัติ",
+                        `<p>สวัสดีคุณ ${rows[0].fname},</p>
+                         <p>อุปกรณ์ <b>${rows[0].devicename}</b> ของคุณได้รับการอนุมัติเรียบร้อยแล้ว กรุณามารับที่แผนก IT ครับ</p>
+                         <p>📅 <b>กำหนดคืน:</b> ${dDate}</p>`,
+                        "#10b981", // สีเขียว
                       );
                     }
                   },
@@ -259,9 +316,9 @@ router.post("/api/admin/action", checkAdmin, (req, res) => {
               `ไม่อนุมัติคำขอยืม (รายการ: #${tstid})`,
             );
 
-            // ✅ 🔔 แจ้งเตือน ไม่อนุมัติ: ให้ User และแอดมินคนอื่นรับรู้
+            // ✅ 🔔 อัปเดต Query ให้ดึง Email กับ Fname มาด้วย
             db.query(
-              "SELECT t.EMPID, d.devicename FROM TB_T_BorrowTrans t JOIN TB_T_Device d ON t.DVID=d.DVID WHERE t.TSTID=?",
+              "SELECT t.EMPID, e.email, e.fname, d.devicename FROM TB_T_BorrowTrans t JOIN TB_T_Device d ON t.DVID=d.DVID JOIN TB_T_Employee e ON t.EMPID = e.EMPID WHERE t.TSTID=?",
               [tstid],
               (err, rows) => {
                 if (!err && rows.length > 0) {
@@ -271,6 +328,17 @@ router.post("/api/admin/action", checkAdmin, (req, res) => {
                   );
                   sendNotiToAdmins(
                     `❌ แอดมิน ${adminName} ปฏิเสธคำขอยืม ${rows[0].devicename} แล้ว`,
+                  );
+
+                  // ✅ ส่งอีเมลแจ้ง User ว่าไม่อนุมัติ
+                  sendEmail(
+                    rows[0].email,
+                    "❌ ปฏิเสธการยืมอุปกรณ์",
+                    "คำขอยืมไม่ได้รับการอนุมัติ",
+                    `<p>สวัสดีคุณ ${rows[0].fname},</p>
+                     <p>คำขอยืมอุปกรณ์ <b>${rows[0].devicename}</b> ของคุณ <b>ไม่ได้รับการอนุมัติ</b></p>
+                     <p>กรุณาติดต่อแอดมินเพื่อสอบถามสาเหตุ หรือยื่นคำขอใหม่อีกครั้งครับ</p>`,
+                    "#e74c3c", // สีแดง
                   );
                 }
               },

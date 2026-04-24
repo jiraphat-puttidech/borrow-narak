@@ -1,7 +1,21 @@
+require("dotenv").config(); // ✅ แปะไว้บรรทัดที่ 1 บนสุดเลยครับ
+
 const express = require("express");
-const router = express.Router();
+const session = require("express-session"); // (หรือตัวอื่นๆ ที่มีอยู่แล้ว)
 const path = require("path");
+// ... โค้ดเดิมของคุณ ...
+
+const router = express.Router();
 const db = require("../config/db");
+
+const nodemailer = require("nodemailer");
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER, // ✅ ดึงอีเมลจากไฟล์ .env
+    pass: process.env.EMAIL_PASS, // ✅ ดึง App Password จากไฟล์ .env
+  },
+});
 
 // 🔔 Helper: ฟังก์ชันส่งแจ้งเตือนหา "แอดมินทุกคน" เวลามีคนขอยืมของ
 const sendNotiToAdmins = (message) => {
@@ -240,6 +254,26 @@ router.post("/api/borrow", (req, res) => {
                     sendNotiToUser(
                       empid,
                       `⏳ ส่งคำขอยืมสำเร็จ: ${device.devicename} (รอแอดมินอนุมัติ)`,
+                    );
+
+                    // ✅ ✉️ ส่งอีเมลหา "แอดมินทุกคน" ว่ามีคำขอยืม
+                    db.query(
+                      "SELECT email FROM TB_T_Employee WHERE RoleID IN (2,3) AND email IS NOT NULL",
+                      (err, admins) => {
+                        if (!err && admins.length > 0) {
+                          admins.forEach((admin) => {
+                            transporter.sendMail({
+                              from: '"IT Borrow System" <jiraphat0puttidech@gmail.com>',
+                              to: admin.email,
+                              subject: "🔔 แจ้งเตือน: มีคำขอยืมอุปกรณ์ใหม่",
+                              html: `<p>สวัสดีแอดมิน,</p>
+                                   <p>มีคำขอยืมอุปกรณ์ <b>${device.devicename}</b> เข้ามาในระบบ</p>
+                                   <p><b>ผู้ยืม:</b> คุณ ${user.fname}</p>
+                                   <p>กรุณาเข้าสู่ระบบเพื่อตรวจสอบและอนุมัติครับ</p>`,
+                            });
+                          });
+                        }
+                      },
                     );
 
                     res.json({

@@ -285,11 +285,30 @@
           .then((data) => {
             if (data.loggedIn) {
               document.getElementById("user-name").innerText = data.fullname;
-              if (data.image)
-                document.getElementById("header-avatar").src =
-                  `/uploads/${data.image}`;
+              const headerImg = document.getElementById("header-avatar");
+              headerImg.onerror = () => {
+                headerImg.src = "/static/default.png";
+              };
+              if (data.image) {
+                const realSrc =
+                  data.image && data.image.includes("http")
+                    ? data.image
+                    : `/uploads/${data.image}`;
+                // Avoid reloading if already set
+                if (headerImg.getAttribute("data-src") === realSrc) return;
+                headerImg.setAttribute("data-src", realSrc);
+                const tmp = new Image();
+                tmp.onload = () => {
+                  headerImg.src = realSrc;
+                };
+                tmp.onerror = () => {
+                  headerImg.src = "/static/default.png";
+                };
+                tmp.src = realSrc;
+              }
             }
-          });
+          })
+          .catch((err) => console.error("loadAdminProfile error:", err));
       }
 
       function loadUsers() {
@@ -333,7 +352,7 @@
                 <tr>
                     <td>
                         <div class="user-col">
-                            <img src="${imgSrc}" class="user-img-mini" onerror="this.src='/static/default.png'">
+                      <img src="/static/default.png" data-src="${imgSrc}" class="user-img-mini">
                             <div>
                                 ${fullName}
                                 <span class="user-subtext">${user.email || "-"}</span>
@@ -355,6 +374,25 @@
                     </td>
                 </tr>
               `;
+            });
+
+            // Preload images to avoid flicker: keep placeholder until actual image is fully loaded
+            const lazyImgs = tbody.querySelectorAll(
+              "img.user-img-mini[data-src]",
+            );
+            lazyImgs.forEach((img) => {
+              const src = img.getAttribute("data-src");
+              if (!src) return;
+              // If src is already the placeholder, skip
+              if (src === "/static/default.png") return;
+              const tmp = new Image();
+              tmp.onload = () => {
+                img.src = src;
+              };
+              tmp.onerror = () => {
+                img.src = "/static/default.png";
+              };
+              tmp.src = src;
             });
           });
       }

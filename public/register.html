@@ -123,8 +123,28 @@
         <label>Username</label>
         <input type="text" name="username" required />
 
-        <label>Password</label>
+        <label
+          >Password
+          <span style="font-size: 12px; color: #666"
+            >(อย่างน้อย 8 ตัวอักษร ประกอบด้วย A-Z, a-z, 0-9
+            และสัญลักษณ์พิเศษ)</span
+          ></label
+        >
         <input type="password" name="password" id="password" required />
+
+        <p
+          id="strong-error"
+          style="
+            color: red;
+            display: none;
+            font-size: 13px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+          "
+        >
+          ❌ รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร มีตัวพิมพ์ใหญ่ พิมพ์เล็ก ตัวเลข
+          และสัญลักษณ์ (เช่น - / @ !)
+        </p>
 
         <label>Confirm Password (ยืนยันรหัสผ่าน)</label>
         <input
@@ -140,7 +160,7 @@
           style="
             color: red;
             display: none;
-            font-size: 14px;
+            font-size: 13px;
             margin-top: -10px;
             margin-bottom: 10px;
           "
@@ -178,20 +198,41 @@
         msgBox.innerText = successMsg;
       }
 
-      // ✅ 4. Script ตรวจสอบรหัสผ่านก่อนกดส่ง
+      // ✅ 4. Script ตรวจสอบรหัสผ่านก่อนกดส่ง (อัปเกรดความปลอดภัย)
       document
         .getElementById("regForm")
         .addEventListener("submit", function (e) {
           const pass = document.getElementById("password").value;
           const confirm = document.getElementById("confirm_password").value;
           const errorText = document.getElementById("pass-error");
+          const strongErrorText = document.getElementById("strong-error");
 
+          // กฎของรหัสผ่าน: ยาว 8+, พิมพ์ใหญ่ 1, พิมพ์เล็ก 1, ตัวเลข 1, สัญลักษณ์ 1
+          const strongRegex = new RegExp(
+            "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+\\-//]).{8,}$",
+          );
+
+          let isValid = true;
+
+          // 1. เช็กความยากของรหัสผ่าน
+          if (!strongRegex.test(pass)) {
+            strongErrorText.style.display = "block";
+            isValid = false;
+          } else {
+            strongErrorText.style.display = "none";
+          }
+
+          // 2. เช็กรหัสผ่านตรงกันไหม
           if (pass !== confirm) {
-            e.preventDefault(); // ห้ามส่งฟอร์ม
-            errorText.style.display = "block"; // โชว์ตัวแดง
-            // alert("รหัสผ่านไม่ตรงกัน!"); // (ถ้าอยากให้เด้งแจ้งเตือนด้วย ให้เปิดบรรทัดนี้)
+            errorText.style.display = "block";
+            isValid = false;
           } else {
             errorText.style.display = "none";
+          }
+
+          // ถ้าไม่ผ่านกฎข้อใดข้อหนึ่ง ให้ระงับการส่งฟอร์ม
+          if (!isValid) {
+            e.preventDefault();
           }
         });
     </script>
