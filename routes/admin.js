@@ -11,13 +11,21 @@ const db = require("../config/db");
 // ✅ 1. เพิ่ม Library สำหรับส่งอีเมล
 const nodemailer = require("nodemailer");
 
-// ✅ 2. ตั้งค่า บัญชีผู้ส่งอีเมล (เปลี่ยนเป็นข้อมูลของคุณ)
+// ✅ ตั้งค่า บัญชีผู้ส่งอีเมล (อัปเกรดแก้ปัญหา Render IPv6)
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, 
   auth: {
-    user: process.env.EMAIL_USER, // ✅ ดึงอีเมลจากไฟล์ .env
-    pass: process.env.EMAIL_PASS, // ✅ ดึง App Password จากไฟล์ .env
+    user: process.env.EMAIL_USER, 
+    pass: process.env.EMAIL_PASS, 
   },
+  tls: {
+    rejectUnauthorized: false
+  },
+  family: 4, // 👈 🚀 เติมบรรทัดนี้เข้าไปครับ! บังคับใช้ IPv4 
+  debug: true, 
+  logger: true 
 });
 
 // ✅ 3. ฟังก์ชันหลักสำหรับจัดรูปแบบและส่งอีเมล
