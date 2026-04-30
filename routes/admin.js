@@ -37,7 +37,7 @@ const sendEmail = (to, subject, title, detail, color = "#ea580c") => {
   `;
   transporter.sendMail(
     {
-      from: '"IT Borrow System" <jiraphat0puttidech@gmail.com>', // 📧 ใส่อีเมลของคุณตรงนี้ด้วย
+      from: '"IT Borrow System" <${process.env.EMAIL_USER}>', // 📧 ใส่อีเมลของคุณตรงนี้ด้วย
       to: to,
       subject: subject,
       html: htmlContent,
