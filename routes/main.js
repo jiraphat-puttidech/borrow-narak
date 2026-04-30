@@ -12,20 +12,25 @@ const nodemailer = require("nodemailer");
 // ✅ ตั้งค่า บัญชีผู้ส่งอีเมล (อัปเกรดทะลวงบล็อกของ Render)
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 587,             // 👈 1. เปลี่ยนพอร์ตเป็น 587
-  secure: false,         // 👈 2. ต้องแก้เป็น false (เพราะเราไม่ได้ใช้พอร์ต 465 แล้ว)
-  requireTLS: true,      // 👈 3. เพิ่มบรรทัดนี้ เพื่อบังคับใช้ความปลอดภัยแบบ TLS
+  port: 587, // 👈 1. เปลี่ยนพอร์ตเป็น 587
+  secure: false, // 👈 2. ต้องแก้เป็น false (เพราะเราไม่ได้ใช้พอร์ต 465 แล้ว)
+  requireTLS: true, // 👈 3. เพิ่มบรรทัดนี้ เพื่อบังคับใช้ความปลอดภัยแบบ TLS
   auth: {
-    user: process.env.EMAIL_USER, 
-    pass: process.env.EMAIL_PASS, 
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
   tls: {
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
   },
-  family: 4,             // 👈 4. ยังคงบังคับใช้ IPv4 ไว้เหมือนเดิม
+  family: 4, // 👈 4. ยังคงบังคับใช้ IPv4 ไว้เหมือนเดิม
   debug: true,
-  logger: true
+  logger: true,
 });
+
+// ✅ เปลี่ยนมาใช้ SendGrid API
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 // 🔔 Helper: ฟังก์ชันส่งแจ้งเตือนหา "แอดมินทุกคน" เวลามีคนขอยืมของ
 const sendNotiToAdmins = (message) => {
   db.query(
@@ -265,21 +270,29 @@ router.post("/api/borrow", (req, res) => {
                       `⏳ ส่งคำขอยืมสำเร็จ: ${device.devicename} (รอแอดมินอนุมัติ)`,
                     );
 
-                    // ✅ ✉️ ส่งอีเมลหา "แอดมินทุกคน" ว่ามีคำขอยืม
+                    // ✅ ✉️ ส่งอีเมลหา "แอดมินทุกคน" ว่ามีคำขอยืม (อัปเกรดเป็น SendGrid)
                     db.query(
                       "SELECT email FROM TB_T_Employee WHERE RoleID IN (2,3) AND email IS NOT NULL",
                       (err, admins) => {
                         if (!err && admins.length > 0) {
-                          admins.forEach((admin) => {
-                            transporter.sendMail({
-                              from: '"IT Borrow System" <jiraphat0puttidech@gmail.com>',
+                          admins.forEach(async (admin) => {
+                            const msg = {
                               to: admin.email,
+                              from: process.env.SENDGRID_FROM_EMAIL, // 📧 ดึงจาก Render
                               subject: "🔔 แจ้งเตือน: มีคำขอยืมอุปกรณ์ใหม่",
                               html: `<p>สวัสดีแอดมิน,</p>
                                    <p>มีคำขอยืมอุปกรณ์ <b>${device.devicename}</b> เข้ามาในระบบ</p>
                                    <p><b>ผู้ยืม:</b> คุณ ${user.fname}</p>
                                    <p>กรุณาเข้าสู่ระบบเพื่อตรวจสอบและอนุมัติครับ</p>`,
-                            });
+                            };
+                            try {
+                              await sgMail.send(msg);
+                            } catch (error) {
+                              console.error(
+                                "❌ SendGrid Admin Email Error:",
+                                error,
+                              );
+                            }
                           });
                         }
                       },

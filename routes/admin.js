@@ -11,26 +11,17 @@ const db = require("../config/db");
 // ✅ 1. เพิ่ม Library สำหรับส่งอีเมล
 const nodemailer = require("nodemailer");
 
-// ✅ ตั้งค่า บัญชีผู้ส่งอีเมล (อัปเกรดทะลวงบล็อกของ Render)
+// ✅ 2. ตั้งค่า บัญชีผู้ส่งอีเมล (เปลี่ยนเป็นข้อมูลของคุณ)
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,             // 👈 1. เปลี่ยนพอร์ตเป็น 587
-  secure: false,         // 👈 2. ต้องแก้เป็น false (เพราะเราไม่ได้ใช้พอร์ต 465 แล้ว)
-  requireTLS: true,      // 👈 3. เพิ่มบรรทัดนี้ เพื่อบังคับใช้ความปลอดภัยแบบ TLS
+  service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER, 
-    pass: process.env.EMAIL_PASS, 
+    user: process.env.EMAIL_USER, // ✅ ดึงอีเมลจากไฟล์ .env
+    pass: process.env.EMAIL_PASS, // ✅ ดึง App Password จากไฟล์ .env
   },
-  tls: {
-    rejectUnauthorized: false
-  },
-  family: 4,             // 👈 4. ยังคงบังคับใช้ IPv4 ไว้เหมือนเดิม
-  debug: true,
-  logger: true
 });
 
-// ✅ 3. ฟังก์ชันหลักสำหรับจัดรูปแบบและส่งอีเมล
-const sendEmail = (to, subject, title, detail, color = "#ea580c") => {
+// ✅ 2. ฟังก์ชันหลักสำหรับจัดรูปแบบและส่งอีเมล (อัปเกรดเป็น SendGrid)
+const sendEmail = async (to, subject, title, detail, color = "#ea580c") => {
   if (!to) return;
   const htmlContent = `
     <div style="font-family: 'Kanit', sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
@@ -46,7 +37,7 @@ const sendEmail = (to, subject, title, detail, color = "#ea580c") => {
   `;
   transporter.sendMail(
     {
-      from: '"IT Borrow System" <${process.env.EMAIL_USER}>', // 📧 ใส่อีเมลของคุณตรงนี้ด้วย
+      from: '"IT Borrow System" <jiraphat0puttidech@gmail.com>', // 📧 ใส่อีเมลของคุณตรงนี้ด้วย
       to: to,
       subject: subject,
       html: htmlContent,

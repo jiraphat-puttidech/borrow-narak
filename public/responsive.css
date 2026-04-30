@@ -1,0 +1,148 @@
+/* responsive.css
+   Small helper rules to improve mobile support across pages
+*/
+
+/* Make media scale down naturally */
+img,
+picture,
+video,
+svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.responsive-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+/* Avatars and small inline images */
+.avatar,
+.profile-avatar,
+.user-img-mini,
+.order-img,
+.device-card img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Make buttons and touch targets comfortably tappable */
+button,
+.btn-action,
+.btn-borrow,
+.btn-confirm {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 14px;
+}
+
+/* Forms: full width inputs on small screens */
+.form-fullwidth input,
+.form-fullwidth select,
+.form-fullwidth textarea,
+input[type="text"],
+input[type="password"],
+select,
+textarea {
+  box-sizing: border-box;
+}
+
+/* Small-screen layout tweaks */
+@media (max-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+
+  .main-content {
+    padding: 16px;
+    padding-bottom: 100px; /* room for bottom nav */
+  }
+
+  /* Convert sidebar into a bottom nav on small screens */
+  .sidebar {
+    width: 100% !important;
+    padding: 8px 10px !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 58px !important;
+    border-top: 1px solid var(--border) !important;
+    box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.06) !important;
+    z-index: 999;
+  }
+
+  .sidebar .brand-title,
+  .sidebar .logout-link {
+    display: none !important;
+  }
+
+  .menu-list {
+    display: flex !important;
+    width: 100% !important;
+    justify-content: space-around !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .menu-item {
+    padding: 8px 6px !important;
+    font-size: 12px !important;
+    gap: 4px !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .header-bar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1100 !important;
+  }
+
+  .welcome-card {
+    padding: 18px !important;
+  }
+
+  .device-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+  }
+
+  .device-card {
+    padding: 12px !important;
+  }
+
+  .avatar {
+    width: 36px !important;
+    height: 36px !important;
+    object-fit: cover !important;
+  }
+
+  .profile-avatar {
+    width: 80px !important;
+    height: 80px !important;
+    object-fit: cover !important;
+  }
+
+  .panel,
+  .card {
+    border-radius: 12px !important;
+  }
+
+  .search-box {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .menu-item {
+    font-size: 11px !important;
+  }
+}
