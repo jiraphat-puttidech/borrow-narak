@@ -9,14 +9,22 @@ const router = express.Router();
 const db = require("../config/db");
 
 const nodemailer = require("nodemailer");
+// ✅ ตั้งค่า บัญชีผู้ส่งอีเมล (อัปเกรดแก้ปัญหา Render IPv6)
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, 
   auth: {
-    user: process.env.EMAIL_USER, // ✅ ดึงอีเมลจากไฟล์ .env
-    pass: process.env.EMAIL_PASS, // ✅ ดึง App Password จากไฟล์ .env
+    user: process.env.EMAIL_USER, 
+    pass: process.env.EMAIL_PASS, 
   },
+  tls: {
+    rejectUnauthorized: false
+  },
+  family: 4, // 👈 🚀 เติมบรรทัดนี้เข้าไปครับ! บังคับใช้ IPv4 
+  debug: true, 
+  logger: true 
 });
-
 // 🔔 Helper: ฟังก์ชันส่งแจ้งเตือนหา "แอดมินทุกคน" เวลามีคนขอยืมของ
 const sendNotiToAdmins = (message) => {
   db.query(
