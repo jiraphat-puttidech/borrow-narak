@@ -8,19 +8,13 @@ const path = require("path");
 const router = express.Router();
 const db = require("../config/db");
 
-// ✅ 1. เพิ่ม Library สำหรับส่งอีเมล
-const nodemailer = require("nodemailer");
+// ✅ 1. เพิ่ม Library สำหรับส่งอีเมล (เปลี่ยนเป็น SendGrid)
+const sgMail = require('@sendgrid/mail');
 
-// ✅ 2. ตั้งค่า บัญชีผู้ส่งอีเมล (เปลี่ยนเป็นข้อมูลของคุณ)
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER, // ✅ ดึงอีเมลจากไฟล์ .env
-    pass: process.env.EMAIL_PASS, // ✅ ดึง App Password จากไฟล์ .env
-  },
-});
+// ✅ 2. ตั้งค่า API Key ของ SendGrid (ดึงจากไฟล์ .env หรือ Render)
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// ✅ 2. ฟังก์ชันหลักสำหรับจัดรูปแบบและส่งอีเมล (อัปเกรดเป็น SendGrid)
+// ✅ 3. ฟังก์ชันหลักสำหรับจัดรูปแบบและส่งอีเมล (อัปเกรดทะลุกำแพง Render)
 const sendEmail = async (to, subject, title, detail, color = "#ea580c") => {
   if (!to) return;
   const htmlContent = `
@@ -35,17 +29,21 @@ const sendEmail = async (to, subject, title, detail, color = "#ea580c") => {
       </div>
     </div>
   `;
-  transporter.sendMail(
-    {
-      from: '"IT Borrow System" <jiraphat0puttidech@gmail.com>', // 📧 ใส่อีเมลของคุณตรงนี้ด้วย
-      to: to,
-      subject: subject,
-      html: htmlContent,
-    },
-    (err) => {
-      if (err) console.error("❌ Email Error:", err);
-    },
-  );
+  
+  const msg = {
+    to: to,
+    from: process.env.SENDGRID_FROM_EMAIL, // 📧 ดึงอีเมลผู้ส่งที่ยืนยันแล้วจาก Render
+    subject: subject,
+    html: htmlContent,
+  };
+
+  try {
+    await sgMail.send(msg);
+    console.log(`✅ ส่งอีเมลผ่าน SendGrid ไปที่ ${to} สำเร็จ!`);
+  } catch (error) {
+    console.error("❌ SendGrid Error:", error);
+    if (error.response) console.error(error.response.body);
+  }
 };
 
 // 🔔 Helper: ฟังก์ชันส่งแจ้งเตือนหา User
