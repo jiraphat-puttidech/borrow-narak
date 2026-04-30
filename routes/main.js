@@ -9,11 +9,12 @@ const router = express.Router();
 const db = require("../config/db");
 
 const nodemailer = require("nodemailer");
-// ✅ ตั้งค่า บัญชีผู้ส่งอีเมล (อัปเกรดแก้ปัญหา Render IPv6)
+// ✅ ตั้งค่า บัญชีผู้ส่งอีเมล (อัปเกรดทะลวงบล็อกของ Render)
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true, 
+  port: 587,             // 👈 1. เปลี่ยนพอร์ตเป็น 587
+  secure: false,         // 👈 2. ต้องแก้เป็น false (เพราะเราไม่ได้ใช้พอร์ต 465 แล้ว)
+  requireTLS: true,      // 👈 3. เพิ่มบรรทัดนี้ เพื่อบังคับใช้ความปลอดภัยแบบ TLS
   auth: {
     user: process.env.EMAIL_USER, 
     pass: process.env.EMAIL_PASS, 
@@ -21,9 +22,9 @@ const transporter = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false
   },
-  family: 4, // 👈 🚀 เติมบรรทัดนี้เข้าไปครับ! บังคับใช้ IPv4 
-  debug: true, 
-  logger: true 
+  family: 4,             // 👈 4. ยังคงบังคับใช้ IPv4 ไว้เหมือนเดิม
+  debug: true,
+  logger: true
 });
 // 🔔 Helper: ฟังก์ชันส่งแจ้งเตือนหา "แอดมินทุกคน" เวลามีคนขอยืมของ
 const sendNotiToAdmins = (message) => {
