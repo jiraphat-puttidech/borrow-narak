@@ -203,9 +203,9 @@
         <div class="settings-box">
           <ul class="settings-list">
             <li>
-              <a href="#" onclick="showManualAlert(event)">
-                <span>📖 คู่มือการใช้งานสำหรับผู้ดูแล</span>
-                <span class="arrow">&gt;</span>
+             <a href="/docs/EBRS admin.pdf" target="_blank">
+                    <span>📖 คู่มือการใช้งานสำหรับผู้ดูแล</span>
+                      <span class="arrow">&gt;</span>
               </a>
             </li>
             <li>
@@ -243,16 +243,7 @@
           .catch((err) => console.error("Error loading profile:", err));
       }
 
-      function showManualAlert(event) {
-        event.preventDefault();
-        Swal.fire({
-          icon: "info",
-          title: "อยู่ในระหว่างการจัดทำ",
-          text: "คู่มือการใช้งานสำหรับแอดมินจะพร้อมใช้งานเร็วๆ นี้ครับ",
-          confirmButtonColor: "var(--primary)",
-          confirmButtonText: "ตกลง",
-        });
-      }
+      
     </script>
     <script src="/static/js/noti.js"></script>
     <script src="/static/js/wow.js"></script>
