@@ -1252,33 +1252,41 @@
           return;
         }
 
-        fetch("/api/admin/master-data/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: type, name: name }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success) {
-              Swal.fire({
-                icon: "success",
-                title: "สำเร็จ",
-                text: "เพิ่มข้อมูลเรียบร้อย",
-                timer: 1500,
-                showConfirmButton: false,
-              });
-              loadMasterData();
-              closeMasterModal();
-            } else {
-              Swal.fire(
-                "ข้อผิดพลาด",
-                data.message || "ไม่สามารถบันทึกข้อมูลได้",
-                "error",
-              );
-            }
-          })
-          .catch((err) => console.error(err));
+        // ✅ แก้ URL ให้ตรงกับ admin.js
+  fetch("/api/admin/master/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type: type, name: name }),
+  })
+    .then((res) => {
+      // ดักจับกรณี Server พัง หรือตอบกลับมาไม่ใช่ JSON
+      if (!res.ok) throw new Error("Network response was not ok");
+      return res.json();
+    })
+    .then((data) => {
+      if (data.success) {
+        Swal.fire({
+          icon: "success",
+          title: "สำเร็จ",
+          text: "เพิ่มข้อมูลเรียบร้อย",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        loadMasterData(); // โหลดข้อมูลใหม่มาแสดง
+        closeMasterModal(); // ปิดหน้าต่าง
+      } else {
+        Swal.fire(
+          "ข้อผิดพลาด",
+          data.message || "ไม่สามารถบันทึกข้อมูลได้",
+          "error"
+        );
       }
+    })
+    .catch((err) => {
+      console.error(err);
+      Swal.fire("ข้อผิดพลาด", "ไม่สามารถติดต่อกับเซิร์ฟเวอร์ได้", "error");
+    });
+}
 
       // ==========================================
       // ฟังก์ชัน เพิ่มอุปกรณ์ใหม่ (Add Device)
